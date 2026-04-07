@@ -2,7 +2,7 @@ import { useRef, useCallback, type RefObject } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
 import type { BoundingBox, Anchor } from '@model/transform'
-import { anchorPoint, buildParentMap, getAbsoluteTransform } from '@utils/geometry'
+import { anchorPoint, buildParentMap, getAbsoluteTransform, getParentContentOrigin } from '@utils/geometry'
 
 const HANDLE_PX = 8  // visual size in screen pixels
 
@@ -173,7 +173,15 @@ function ResizeHandle({ anchor, cx, cy, handleSize, bbox, ids, containerRef, dis
     height = Math.max(4, height)
 
     if (ids.length === 1) {
-      dispatch({ type: 'SET_TRANSFORM', id: ids[0], transform: { x, y, width, height, rotation: startBbox.rotation } })
+      const parentMap = buildParentMap(state.document.rootNodes)
+      const origin = getParentContentOrigin(ids[0], state.document.shapes, parentMap)
+      dispatch({ type: 'SET_TRANSFORM', id: ids[0], transform: {
+        x: x - origin.x,
+        y: y - origin.y,
+        width,
+        height,
+        rotation: startBbox.rotation,
+      }})
     }
   }, [anchor, ids, containerRef, dispatch, state.viewTransform])
 

@@ -1,3 +1,9 @@
+## 2026-04-07 09:25
+
+### Bug fixes
+
+- **Resize handles broken for nested shapes**: `startBbox` in `ResizeHandle` is in canvas space (from `getAbsoluteTransform`), but `SET_TRANSFORM` stores coordinates in parent-local space. Added `getParentContentOrigin` to `geometry.ts` which returns the canvas-space origin of a shape's parent content area. The resize handler now subtracts this origin before dispatching `SET_TRANSFORM`, converting canvas-space back to local coordinates.
+
 ## 2026-04-07 09:20
 
 ### Features

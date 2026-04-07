@@ -111,6 +111,31 @@ export function buildParentMap(nodes: TreeNode[]): Record<string, string> {
 }
 
 /**
+ * Returns the canvas-space origin of the parent's content area for a shape.
+ * Subtract this from a canvas-space position to get the shape's local coordinate.
+ * Returns (0, 0) for top-level shapes.
+ */
+export function getParentContentOrigin(
+  shapeId: string,
+  shapes: Record<string, Shape>,
+  parentMap: Record<string, string>,
+): { x: number; y: number } {
+  const parentId = parentMap[shapeId]
+  if (!parentId) return { x: 0, y: 0 }
+
+  const parentAbs = getAbsoluteTransform(parentId, shapes, parentMap)
+  if (!parentAbs) return { x: 0, y: 0 }
+
+  const parent = shapes[parentId]
+  let contentOffsetY = 0
+  if (parent?.type === 'panel' && parent.title) {
+    contentOffsetY = parent.title.fontSize + 12
+  }
+
+  return { x: parentAbs.x, y: parentAbs.y + contentOffsetY }
+}
+
+/**
  * Compute the canvas-space (absolute) bounding box of a shape by walking up
  * the parent chain and accumulating offsets. Panel shapes add a title-bar
  * offset to their children's Y coordinate.
