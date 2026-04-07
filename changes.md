@@ -1,3 +1,9 @@
+## 2026-04-07 09:30
+
+### Features
+
+- **Multi-line text with alignment for all text shapes**: `TextShape`, `ButtonShape`, and `PanelShape` title now support multi-line text (`white-space: pre-wrap`, `word-break: break-word`) and correctly apply both horizontal (`text-align`) and vertical alignment. Display uses a `flexDirection: column` container with `justifyContent` for vertical positioning and an inner `div` with `textAlign` for horizontal — the inner div has `width: 100%` so alignment applies across the full width. `ButtonShape` and `PanelShape` title were also changed from `<input>` to `<textarea>` for multi-line editing. Vertical alignment is reflected in the `TextStyle.verticalAlign` field already present in the model.
+
 ## 2026-04-07 09:25
 
 ### Bug fixes

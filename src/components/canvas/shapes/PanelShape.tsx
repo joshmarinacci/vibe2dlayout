@@ -18,18 +18,18 @@ interface Props {
 export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, children }: Props) {
   const { transform, fill, stroke, title, clipChildren } = shape
   const { x, y, width, height, rotation } = transform
-  const inputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus()
+      textareaRef.current.select()
     }
   }, [isEditing])
 
   const commitEdit = () => {
-    if (inputRef.current && title) {
-      dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: inputRef.current.value })
+    if (textareaRef.current && title) {
+      dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: textareaRef.current.value })
     }
     dispatch({ type: 'STOP_TEXT_EDIT' })
   }
@@ -91,46 +91,59 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           left: 0,
           right: 0,
           height: titleBarHeight,
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 8px',
+          overflow: 'hidden',
           zIndex: 1,
         }}>
           {isEditing ? (
-            <input
-              ref={inputRef}
+            <textarea
+              ref={textareaRef}
               defaultValue={title.content}
               style={{
+                position: 'absolute',
+                inset: 0,
                 border: 'none',
                 background: 'transparent',
+                resize: 'none',
                 fontFamily: title.fontFamily,
                 fontSize: title.fontSize,
                 fontWeight: title.fontWeight,
                 color: title.color,
+                textAlign: title.align,
                 outline: 'none',
-                width: '100%',
+                padding: '4px 8px',
               }}
               onBlur={commitEdit}
               onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); commitEdit() }
+                if (e.key === 'Escape') { e.preventDefault(); commitEdit() }
                 e.stopPropagation()
               }}
               onClick={e => e.stopPropagation()}
             />
           ) : (
-            <span style={{
-              fontFamily: title.fontFamily,
-              fontSize: title.fontSize,
-              fontWeight: title.fontWeight,
-              fontStyle: title.fontStyle,
-              color: title.color,
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              padding: '0 8px',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              userSelect: 'none',
             }}>
-              {title.content}
-            </span>
+              <div style={{
+                fontFamily: title.fontFamily,
+                fontSize: title.fontSize,
+                fontWeight: title.fontWeight,
+                fontStyle: title.fontStyle,
+                color: title.color,
+                textAlign: title.align,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                width: '100%',
+                userSelect: 'none',
+              }}>
+                {title.content}
+              </div>
+            </div>
           )}
         </div>
       )}

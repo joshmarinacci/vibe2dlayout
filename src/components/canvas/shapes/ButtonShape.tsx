@@ -17,18 +17,18 @@ interface Props {
 export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, fill, stroke, text } = shape
   const { x, y, width, height, rotation } = transform
-  const inputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus()
+      textareaRef.current.select()
     }
   }, [isEditing])
 
   const commitEdit = () => {
-    if (inputRef.current) {
-      dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: inputRef.current.value })
+    if (textareaRef.current) {
+      dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: textareaRef.current.value })
     }
     dispatch({ type: 'STOP_TEXT_EDIT' })
   }
@@ -44,6 +44,21 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
     stroke: stroke.color,
     strokeWidth: stroke.width,
   })
+
+  const vJustify = text.verticalAlign === 'top' ? 'flex-start' : text.verticalAlign === 'bottom' ? 'flex-end' : 'center'
+
+  const textStyle: React.CSSProperties = {
+    fontFamily: text.fontFamily,
+    fontSize: text.fontSize,
+    fontWeight: text.fontWeight,
+    fontStyle: text.fontStyle,
+    color: text.color,
+    textAlign: text.align,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    width: '100%',
+    userSelect: 'none',
+  }
 
   return (
     <div
@@ -69,50 +84,46 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
         <RoughSvgPaths paths={roughPaths} />
       </svg>
 
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        pointerEvents: 'none',
-      }}>
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            defaultValue={text.content}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              fontFamily: text.fontFamily,
-              fontSize: text.fontSize,
-              fontWeight: text.fontWeight,
-              color: text.color,
-              textAlign: 'center',
-              outline: 'none',
-              width: '90%',
-              pointerEvents: 'all',
-            }}
-            onBlur={commitEdit}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); commitEdit() }
-              e.stopPropagation()
-            }}
-            onClick={e => e.stopPropagation()}
-          />
-        ) : (
-          <span style={{
+      {isEditing ? (
+        <textarea
+          ref={textareaRef}
+          defaultValue={text.content}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            border: 'none',
+            background: 'transparent',
+            resize: 'none',
             fontFamily: text.fontFamily,
             fontSize: text.fontSize,
             fontWeight: text.fontWeight,
-            fontStyle: text.fontStyle,
             color: text.color,
-            userSelect: 'none',
-          }}>
-            {text.content}
-          </span>
-        )}
-      </div>
+            textAlign: text.align,
+            outline: 'none',
+            padding: '4px 8px',
+            pointerEvents: 'all',
+          }}
+          onBlur={commitEdit}
+          onKeyDown={e => {
+            if (e.key === 'Escape') { e.preventDefault(); commitEdit() }
+            e.stopPropagation()
+          }}
+          onClick={e => e.stopPropagation()}
+        />
+      ) : (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: vJustify,
+          padding: '4px 8px',
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}>
+          <div style={textStyle}>{text.content}</div>
+        </div>
+      )}
     </div>
   )
 }

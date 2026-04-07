@@ -31,6 +31,21 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
     dispatch({ type: 'STOP_TEXT_EDIT' })
   }
 
+  const vJustify = text.verticalAlign === 'top' ? 'flex-start' : text.verticalAlign === 'bottom' ? 'flex-end' : 'center'
+
+  const textStyle: React.CSSProperties = {
+    fontFamily: text.fontFamily,
+    fontSize: text.fontSize,
+    fontWeight: text.fontWeight,
+    fontStyle: text.fontStyle,
+    color: text.color,
+    textAlign: text.align,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    width: '100%',
+    userSelect: 'none',
+  }
+
   return (
     <div
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
@@ -43,9 +58,6 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
         transform: rotation ? `rotate(${rotation}deg)` : undefined,
         transformOrigin: 'center center',
         background: fill.color === 'transparent' ? 'transparent' : fill.color,
-        display: 'flex',
-        alignItems: text.verticalAlign === 'top' ? 'flex-start' : text.verticalAlign === 'bottom' ? 'flex-end' : 'center',
-        justifyContent: text.align === 'left' ? 'flex-start' : text.align === 'right' ? 'flex-end' : 'center',
         overflow: 'hidden',
       }}
       onClick={onClick}
@@ -56,8 +68,8 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
           ref={textareaRef}
           defaultValue={text.content}
           style={{
-            width: '100%',
-            height: '100%',
+            position: 'absolute',
+            inset: 0,
             border: 'none',
             background: 'transparent',
             resize: 'none',
@@ -68,7 +80,7 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
             color: text.color,
             textAlign: text.align,
             outline: 'none',
-            padding: 4,
+            padding: '4px 8px',
           }}
           onBlur={commitEdit}
           onKeyDown={e => {
@@ -78,20 +90,17 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
           onClick={e => e.stopPropagation()}
         />
       ) : (
-        <span
-          style={{
-            fontFamily: text.fontFamily,
-            fontSize: text.fontSize,
-            fontWeight: text.fontWeight,
-            fontStyle: text.fontStyle,
-            color: text.color,
-            textAlign: text.align,
-            whiteSpace: 'pre-wrap',
-            padding: 4,
-          }}
-        >
-          {text.content}
-        </span>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: vJustify,
+          padding: '4px 8px',
+          overflow: 'hidden',
+        }}>
+          <div style={textStyle}>{text.content}</div>
+        </div>
       )}
     </div>
   )
