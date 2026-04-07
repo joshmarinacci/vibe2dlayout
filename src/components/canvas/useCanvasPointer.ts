@@ -32,6 +32,10 @@ const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-button': 'button',
   'insert-panel': 'panel',
   'insert-slider': 'slider',
+  'insert-label': 'label',
+  'insert-textfield': 'textfield',
+  'insert-checkbox': 'checkbox',
+  'insert-toggle': 'toggle',
   'insert-page': 'page',
 }
 
@@ -312,7 +316,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     return screenToCanvas(state.viewTransform, sx, sy)
   }, [state.viewTransform, containerRef])
 
-  const TEXT_EDITABLE = new Set(['text', 'button', 'panel'])
+  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle'])
 
   const onDoubleClick = useCallback((e: React.MouseEvent) => {
     if (state.toolMode !== 'select') return

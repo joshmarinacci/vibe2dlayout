@@ -11,6 +11,10 @@ import { PageShapeComp } from './shapes/PageShape'
 import { ButtonShapeComp } from './shapes/ButtonShape'
 import { PanelShapeComp } from './shapes/PanelShape'
 import { SliderShapeComp } from './shapes/SliderShape'
+import { LabelShapeComp } from './shapes/LabelShape'
+import { TextFieldShapeComp } from './shapes/TextFieldShape'
+import { CheckboxShapeComp } from './shapes/CheckboxShape'
+import { ToggleShapeComp } from './shapes/ToggleShape'
 
 interface Props {
   nodes: TreeNode[]
@@ -60,9 +64,11 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch }
     dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: e.shiftKey })
   }
 
+  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle'])
+
   const onDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (shape.type === 'text' || shape.type === 'button' || shape.type === 'panel') {
+    if (TEXT_EDITABLE.has(shape.type)) {
       dispatch({ type: 'START_TEXT_EDIT', id: shape.id })
     }
   }
@@ -98,5 +104,13 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch }
       return <PanelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps}>{children}</PanelShapeComp>
     case 'slider':
       return <SliderShapeComp shape={shape} {...commonProps} />
+    case 'label':
+      return <LabelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+    case 'textfield':
+      return <TextFieldShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+    case 'checkbox':
+      return <CheckboxShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+    case 'toggle':
+      return <ToggleShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
   }
 }

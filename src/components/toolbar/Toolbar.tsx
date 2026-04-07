@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import {
-  MousePointer2, Hand, Square, Circle, Minus, Type, Image,
-  RectangleHorizontal, PanelLeft, SlidersHorizontal, FileText,
+  MousePointer2, Hand, Square, Circle, Minus, Type, Image, FileText,
+  RectangleHorizontal, PanelLeft, SlidersHorizontal,
+  Tag, TextCursorInput, CheckSquare, ToggleLeft, ChevronDown,
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
@@ -22,15 +24,26 @@ const TOOLS: ToolButton[] = [
   { mode: 'insert-line',   icon: <Minus size={15} />,         title: 'Line / Connector' },
   { mode: 'insert-text',   icon: <Type size={15} />,          title: 'Text' },
   { mode: 'insert-image',  icon: <Image size={15} />,         title: 'Image' },
-  { mode: 'insert-button', icon: <RectangleHorizontal size={15} />, title: 'Button' },
-  { mode: 'insert-panel',  icon: <PanelLeft size={15} />,     title: 'Panel' },
-  { mode: 'insert-slider', icon: <SlidersHorizontal size={15} />, title: 'Slider' },
   { mode: 'insert-page',   icon: <FileText size={15} />,      title: 'Page' },
 ]
+
+const FORM_CONTROLS: ToolButton[] = [
+  { mode: 'insert-button',    icon: <RectangleHorizontal size={14} />, title: 'Button' },
+  { mode: 'insert-panel',     icon: <PanelLeft size={14} />,           title: 'Panel' },
+  { mode: 'insert-slider',    icon: <SlidersHorizontal size={14} />,   title: 'Slider' },
+  { mode: 'insert-label',     icon: <Tag size={14} />,                 title: 'Label' },
+  { mode: 'insert-textfield', icon: <TextCursorInput size={14} />,     title: 'Text Field' },
+  { mode: 'insert-checkbox',  icon: <CheckSquare size={14} />,         title: 'Checkbox' },
+  { mode: 'insert-toggle',    icon: <ToggleLeft size={14} />,          title: 'Toggle' },
+]
+
+const FORM_MODES = new Set(FORM_CONTROLS.map(fc => fc.mode))
 
 export function Toolbar() {
   const { state, canUndo, canRedo } = useAppState()
   const dispatch = useAppDispatch()
+  const [showFormMenu, setShowFormMenu] = useState(false)
+  const activeFormControl = FORM_CONTROLS.find(fc => fc.mode === state.toolMode)
 
   const handleSave = () => {
     downloadJSON(state.document)
@@ -78,6 +91,35 @@ export function Toolbar() {
             {tool.icon}
           </button>
         ))}
+
+        {/* Form Controls dropdown */}
+        <div style={{ position: 'relative' }}>
+          <button
+            className={`${styles.btn} ${styles.formBtn} ${FORM_MODES.has(state.toolMode) ? styles.active : ''}`}
+            title="Form Controls"
+            onClick={() => setShowFormMenu(v => !v)}
+          >
+            {activeFormControl ? activeFormControl.icon : <RectangleHorizontal size={14} />}
+            <ChevronDown size={10} />
+          </button>
+          {showFormMenu && (
+            <div className={styles.formMenu}>
+              {FORM_CONTROLS.map(fc => (
+                <button
+                  key={fc.mode}
+                  className={`${styles.formMenuItem} ${state.toolMode === fc.mode ? styles.formMenuItemActive : ''}`}
+                  onClick={() => {
+                    dispatch({ type: 'SET_TOOL_MODE', mode: fc.mode })
+                    setShowFormMenu(false)
+                  }}
+                >
+                  {fc.icon}
+                  <span>{fc.title}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={styles.separator} />

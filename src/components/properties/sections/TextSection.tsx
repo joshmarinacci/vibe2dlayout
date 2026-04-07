@@ -1,8 +1,15 @@
 import type { TextStyle } from '@model/shapes'
 import { ColorInput } from '../inputs/ColorInput'
-import { NumberInput } from '../inputs/NumberInput'
 import { SelectInput } from '../inputs/SelectInput'
 import styles from '../PropertiesPanel.module.css'
+
+const FONT_SIZES: { value: number; label: string }[] = [
+  { value: 10, label: 'XS' },
+  { value: 14, label: 'Small' },
+  { value: 20, label: 'Medium' },
+  { value: 32, label: 'Large' },
+  { value: 56, label: 'XL' },
+]
 
 interface Props {
   text: TextStyle
@@ -10,11 +17,22 @@ interface Props {
 }
 
 export function TextSection({ text, onChange }: Props) {
+  const isPreset = FONT_SIZES.some(s => s.value === text.fontSize)
+  const sizeOptions = [
+    ...FONT_SIZES.map(s => ({ value: String(s.value), label: s.label })),
+    ...(!isPreset ? [{ value: String(text.fontSize), label: `${text.fontSize}px` }] : []),
+  ]
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionTitle}>Text</div>
       <ColorInput label="Color" value={text.color} onChange={v => onChange({ ...text, color: v })} />
-      <NumberInput label="Size" value={text.fontSize} min={6} max={200} onChange={v => onChange({ ...text, fontSize: v })} unit="px" />
+      <SelectInput
+        label="Size"
+        value={String(text.fontSize)}
+        options={sizeOptions}
+        onChange={v => onChange({ ...text, fontSize: Number(v) })}
+      />
       <SelectInput
         label="Align"
         value={text.align}

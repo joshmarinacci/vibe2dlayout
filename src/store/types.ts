@@ -23,6 +23,10 @@ export type ToolMode =
   | 'insert-button'
   | 'insert-panel'
   | 'insert-slider'
+  | 'insert-label'
+  | 'insert-textfield'
+  | 'insert-checkbox'
+  | 'insert-toggle'
   | 'insert-page'
 
 // ─── App State ─────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import {
   Square, Circle, Minus, Type, Image, FileText,
   RectangleHorizontal, PanelLeft, SlidersHorizontal,
+  Tag, TextCursorInput, CheckSquare, ToggleLeft,
   Eye, EyeOff, Lock, Unlock, Trash2, ChevronRight, ChevronDown,
 } from 'lucide-react'
 import type { TreeNode } from '@model/document'
@@ -13,27 +14,38 @@ import { ContextMenu, type ContextMenuGroup } from './ContextMenu'
 import styles from './TreeNode.module.css'
 
 const SHAPE_ICON_MAP: Record<string, React.ReactNode> = {
-  rect:   <Square size={11} />,
-  circle: <Circle size={11} />,
-  line:   <Minus size={11} />,
-  text:   <Type size={11} />,
-  image:  <Image size={11} />,
-  page:   <FileText size={11} />,
-  button: <RectangleHorizontal size={11} />,
-  panel:  <PanelLeft size={11} />,
-  slider: <SlidersHorizontal size={11} />,
+  rect:      <Square size={11} />,
+  circle:    <Circle size={11} />,
+  line:      <Minus size={11} />,
+  text:      <Type size={11} />,
+  image:     <Image size={11} />,
+  page:      <FileText size={11} />,
+  button:    <RectangleHorizontal size={11} />,
+  panel:     <PanelLeft size={11} />,
+  slider:    <SlidersHorizontal size={11} />,
+  label:     <Tag size={11} />,
+  textfield: <TextCursorInput size={11} />,
+  checkbox:  <CheckSquare size={11} />,
+  toggle:    <ToggleLeft size={11} />,
 }
 
-const ADD_SHAPE_TYPES: { type: ShapeType; label: string }[] = [
+const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
   { type: 'rect',   label: 'Rectangle' },
   { type: 'circle', label: 'Circle' },
   { type: 'line',   label: 'Line' },
   { type: 'text',   label: 'Text' },
   { type: 'image',  label: 'Image' },
-  { type: 'button', label: 'Button' },
-  { type: 'panel',  label: 'Panel' },
-  { type: 'slider', label: 'Slider' },
   { type: 'page',   label: 'Page' },
+]
+
+const FORM_CONTROL_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'button',    label: 'Button' },
+  { type: 'panel',     label: 'Panel' },
+  { type: 'slider',    label: 'Slider' },
+  { type: 'label',     label: 'Label' },
+  { type: 'textfield', label: 'Text Field' },
+  { type: 'checkbox',  label: 'Checkbox' },
+  { type: 'toggle',    label: 'Toggle' },
 ]
 
 interface DragPayload {
@@ -170,10 +182,28 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
   }, [dispatch, expanded])
 
   const buildContextMenuGroups = (): ContextMenuGroup[] => {
-    const addItems = ADD_SHAPE_TYPES.map(opt => ({
+    const basicItems = BASIC_SHAPES.map(opt => ({
       label: opt.label,
       onClick: () => addShapeTo(node.id, opt.type),
     }))
+    const formItems = FORM_CONTROL_TYPES.map(opt => ({
+      label: opt.label,
+      onClick: () => addShapeTo(node.id, opt.type),
+    }))
+    const addShapeGroups: ContextMenuGroup[] = [
+      {
+        items: [
+          { label: 'Shapes', onClick: () => {}, disabled: true },
+          ...basicItems,
+        ],
+      },
+      {
+        items: [
+          { label: 'Form Controls', onClick: () => {}, disabled: true },
+          ...formItems,
+        ],
+      },
+    ]
 
     if (isPage) {
       return [
@@ -187,12 +217,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
             },
           ],
         },
-        {
-          items: [
-            { label: 'Add Shape', onClick: () => {}, disabled: true },
-            ...addItems,
-          ],
-        },
+        ...addShapeGroups,
         {
           items: [
             {
@@ -225,12 +250,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
 
     // Non-page shape
     return [
-      {
-        items: [
-          { label: 'Add Child Shape', onClick: () => {}, disabled: true },
-          ...addItems,
-        ],
-      },
+      ...addShapeGroups,
       {
         items: [
           {

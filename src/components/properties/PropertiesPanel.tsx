@@ -10,6 +10,7 @@ import { ImageSection } from './sections/ImageSection'
 import { ConnectorSection } from './sections/ConnectorSection'
 import { PageSection } from './sections/PageSection'
 import { ContentSection } from './sections/ContentSection'
+import { ButtonIconSection } from './sections/ButtonIconSection'
 import type { BoundingBox } from '@model/transform'
 import type { FillStyle, StrokeStyle, Shape } from '@model/shapes'
 import styles from './PropertiesPanel.module.css'
@@ -186,6 +187,10 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
             text={shape.text}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
           />
+          <ButtonIconSection
+            icon={shape.icon}
+            onChange={ic => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { icon: ic } })}
+          />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Button</div>
             <NumberInput
@@ -248,6 +253,74 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
           </div>
           <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })} />
           <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })} />
+        </>
+      )
+
+    case 'label':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
+        </>
+      )
+
+    case 'textfield':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Text Field</div>
+            <input
+              className={styles.nameInput}
+              value={shape.placeholder}
+              placeholder="Placeholder text"
+              onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { placeholder: e.target.value } as Partial<Shape> })}
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'checkbox':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.label} dispatch={dispatch} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Checkbox</div>
+            <ToggleInput
+              label="Checked"
+              value={shape.checked}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'toggle':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.label} dispatch={dispatch} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Toggle</div>
+            <ToggleInput
+              label="Checked"
+              value={shape.checked}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
+            />
+          </div>
+          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })} />
+          <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
         </>
       )
   }

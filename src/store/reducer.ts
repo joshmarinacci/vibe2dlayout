@@ -158,6 +158,18 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
           shapes: { ...doc.shapes, [action.id]: { ...shape, title: { ...shape.title, content: action.content } } },
         }
       }
+      if (shape.type === 'label' || shape.type === 'textfield') {
+        return {
+          ...doc,
+          shapes: { ...doc.shapes, [action.id]: { ...shape, text: { ...shape.text, content: action.content } } },
+        }
+      }
+      if (shape.type === 'checkbox' || shape.type === 'toggle') {
+        return {
+          ...doc,
+          shapes: { ...doc.shapes, [action.id]: { ...shape, label: action.content } },
+        }
+      }
       return doc
     }
 

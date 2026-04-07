@@ -5,16 +5,22 @@ import { createShape } from '@utils/shapeFactory'
 import { TreeNodeComp } from './TreeNode'
 import styles from './TreePanel.module.css'
 
-const ADD_SHAPE_OPTIONS: { type: ShapeType; label: string }[] = [
+const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
   { type: 'rect',   label: 'Rectangle' },
   { type: 'circle', label: 'Circle' },
   { type: 'line',   label: 'Line' },
   { type: 'text',   label: 'Text' },
   { type: 'image',  label: 'Image' },
-  { type: 'button', label: 'Button' },
-  { type: 'panel',  label: 'Panel' },
-  { type: 'slider', label: 'Slider' },
-  { type: 'page',   label: 'Page' },
+]
+
+const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
+  { type: 'button',    label: 'Button' },
+  { type: 'panel',     label: 'Panel' },
+  { type: 'slider',    label: 'Slider' },
+  { type: 'label',     label: 'Label' },
+  { type: 'textfield', label: 'Text Field' },
+  { type: 'checkbox',  label: 'Checkbox' },
+  { type: 'toggle',    label: 'Toggle' },
 ]
 
 export function TreePanel() {
@@ -58,12 +64,17 @@ export function TreePanel() {
                 <div className={styles.addMenuDivider} />
                 <div className={styles.addMenuGroup}>
                   <div className={styles.addMenuLabel}>Shapes</div>
-                  {ADD_SHAPE_OPTIONS.filter(o => o.type !== 'page').map(opt => (
-                    <button
-                      key={opt.type}
-                      className={styles.addMenuItem}
-                      onClick={() => addShape(opt.type)}
-                    >
+                  {BASIC_SHAPES.map(opt => (
+                    <button key={opt.type} className={styles.addMenuItem} onClick={() => addShape(opt.type)}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.addMenuDivider} />
+                <div className={styles.addMenuGroup}>
+                  <div className={styles.addMenuLabel}>Form Controls</div>
+                  {FORM_CONTROLS.map(opt => (
+                    <button key={opt.type} className={styles.addMenuItem} onClick={() => addShape(opt.type)}>
                       {opt.label}
                     </button>
                   ))}

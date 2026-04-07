@@ -67,7 +67,8 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         fill: { color: '#3b82f6', opacity: 1 },
         stroke: defaultStroke(),
         cornerRadius: 6,
-        text: { ...defaultText('Button'), color: '#ffffff' },
+        text: { ...defaultText('Button'), fontFamily: 'Caveat, cursive', fontSize: 16, color: '#ffffff' },
+        icon: null,
       }
     case 'panel':
       return {
@@ -76,7 +77,7 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         fill: { color: '#ffffff', opacity: 1 },
         stroke: defaultStroke(),
         cornerRadius: 4,
-        title: { ...defaultText('Panel'), align: 'left', fontSize: 13, fontWeight: 'bold' },
+        title: { ...defaultText('Panel'), fontFamily: 'Caveat, cursive', align: 'left', fontSize: 15, fontWeight: 'bold' },
         clipChildren: false,
       }
     case 'slider':
@@ -84,6 +85,40 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         ...base, type: 'slider',
         transform: defaultTransform(x, y, 160, 24),
         value: 0.5,
+        trackFill: { color: '#e5e7eb', opacity: 1 },
+        thumbFill: { color: '#3b82f6', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+    case 'label':
+      return {
+        ...base, type: 'label',
+        transform: defaultTransform(x, y, 100, 20),
+        text: { ...defaultText('Label'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#555555' },
+      }
+    case 'textfield':
+      return {
+        ...base, type: 'textfield',
+        transform: defaultTransform(x, y, 160, 32),
+        placeholder: 'Placeholder...',
+        text: { ...defaultText(''), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
+        fill: { color: '#ffffff', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+    case 'checkbox':
+      return {
+        ...base, type: 'checkbox',
+        transform: defaultTransform(x, y, 120, 20),
+        checked: false,
+        label: 'Checkbox',
+        fill: { color: '#ffffff', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+    case 'toggle':
+      return {
+        ...base, type: 'toggle',
+        transform: defaultTransform(x, y, 130, 24),
+        checked: false,
+        label: 'Toggle',
         trackFill: { color: '#e5e7eb', opacity: 1 },
         thumbFill: { color: '#3b82f6', opacity: 1 },
         stroke: defaultStroke(),

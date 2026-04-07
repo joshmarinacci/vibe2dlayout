@@ -1,13 +1,12 @@
-import { useRef, useEffect, type Dispatch, type CSSProperties } from 'react'
-import type { ButtonShape, TextStyle } from '@model/shapes'
+import { useRef, useEffect, type Dispatch } from 'react'
+import type { TextFieldShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import { getButtonIcon } from '@utils/buttonIcons'
 import styles from './Shape.module.css'
 
 interface Props {
-  shape: ButtonShape
+  shape: TextFieldShape
   isSelected: boolean
   isEditing: boolean
   dispatch: Dispatch<AppAction>
@@ -15,8 +14,8 @@ interface Props {
   onDoubleClick: (e: React.MouseEvent) => void
 }
 
-export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
-  const { transform, fill, stroke, text, icon } = shape
+export function TextFieldShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+  const { transform, text, placeholder, fill, stroke } = shape
   const { x, y, width, height, rotation } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const editValueRef = useRef(text.content)
@@ -40,10 +39,11 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
   }, [isEditing])
 
   const pad = 2
+  const seed = seedFromId(shape.id)
   const roughPaths = roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed: seedFromId(shape.id),
-    roughness: 1.4,
-    bowing: 1,
+    seed,
+    roughness: 1.2,
+    bowing: 0.5,
     fill: fill.color === 'transparent' ? undefined : fill.color,
     fillStyle: 'solid',
     fillWeight: 1,
@@ -51,7 +51,7 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
     strokeWidth: stroke.width,
   })
 
-  const vJustify = text.verticalAlign === 'top' ? 'flex-start' : text.verticalAlign === 'bottom' ? 'flex-end' : 'center'
+  const showPlaceholder = !text.content
 
   return (
     <div
@@ -64,7 +64,6 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
         height,
         transform: rotation ? `rotate(${rotation}deg)` : undefined,
         transformOrigin: 'center center',
-        opacity: fill.opacity,
       }}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
@@ -91,10 +90,8 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
             fontSize: text.fontSize,
             fontWeight: text.fontWeight,
             color: text.color,
-            textAlign: text.align,
             outline: 'none',
             padding: '4px 8px',
-            pointerEvents: 'all',
           }}
           onChange={e => { editValueRef.current = e.target.value }}
           onKeyDown={e => {
@@ -112,55 +109,19 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
           position: 'absolute',
           inset: 0,
           display: 'flex',
-          flexDirection: 'column',
-          justifyContent: vJustify,
-          padding: '4px 8px',
+          alignItems: 'center',
+          padding: '0 8px',
+          fontFamily: text.fontFamily,
+          fontSize: text.fontSize,
+          fontWeight: text.fontWeight,
+          color: showPlaceholder ? '#aaaaaa' : text.color,
+          userSelect: 'none',
           overflow: 'hidden',
-          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
         }}>
-          <ButtonContent text={text} icon={icon} />
+          {showPlaceholder ? placeholder : text.content}
         </div>
       )}
-    </div>
-  )
-}
-
-function ButtonContent({
-  text,
-  icon,
-}: {
-  text: TextStyle
-  icon: ButtonShape['icon']
-}) {
-  const IconComp = icon ? getButtonIcon(icon.name) : null
-  const iconSize = Math.round(text.fontSize * 1.1)
-
-  const rowStyle: CSSProperties = {
-    display: 'flex',
-    flexDirection: icon?.side === 'right' ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    gap: IconComp ? 4 : 0,
-    width: '100%',
-    justifyContent: text.align === 'left' ? 'flex-start' : text.align === 'right' ? 'flex-end' : 'center',
-  }
-
-  const textStyle: CSSProperties = {
-    fontFamily: text.fontFamily,
-    fontSize: text.fontSize,
-    fontWeight: text.fontWeight,
-    fontStyle: text.fontStyle,
-    color: text.color,
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-    userSelect: 'none',
-  }
-
-  return (
-    <div style={rowStyle}>
-      {IconComp && (
-        <IconComp size={iconSize} color={text.color} strokeWidth={1.5} />
-      )}
-      {text.content && <span style={textStyle}>{text.content}</span>}
     </div>
   )
 }

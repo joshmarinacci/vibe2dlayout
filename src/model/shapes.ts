@@ -102,6 +102,7 @@ export interface ButtonShape extends ShapeBase {
   stroke: StrokeStyle
   cornerRadius: number
   text: TextStyle
+  icon: { name: string; side: 'left' | 'right' } | null
 }
 
 export interface PanelShape extends ShapeBase {
@@ -123,12 +124,47 @@ export interface SliderShape extends ShapeBase {
   stroke: StrokeStyle
 }
 
+export interface LabelShape extends ShapeBase {
+  type: 'label'
+  transform: BoundingBox
+  text: TextStyle
+}
+
+export interface TextFieldShape extends ShapeBase {
+  type: 'textfield'
+  transform: BoundingBox
+  placeholder: string
+  text: TextStyle     // content = displayed value; empty = show placeholder
+  fill: FillStyle
+  stroke: StrokeStyle
+}
+
+export interface CheckboxShape extends ShapeBase {
+  type: 'checkbox'
+  transform: BoundingBox
+  checked: boolean
+  label: string
+  fill: FillStyle
+  stroke: StrokeStyle
+}
+
+export interface ToggleShape extends ShapeBase {
+  type: 'toggle'
+  transform: BoundingBox
+  checked: boolean
+  label: string
+  trackFill: FillStyle
+  thumbFill: FillStyle
+  stroke: StrokeStyle
+}
+
 // ─── Union ────────────────────────────────────────────────────────────────
 
 export type Shape =
   | RectShape | CircleShape | LineShape
   | TextShape | ImageShape  | PageShape
   | ButtonShape | PanelShape | SliderShape
+  | LabelShape | TextFieldShape | CheckboxShape | ToggleShape
 
 export type ShapeType = Shape['type']
 

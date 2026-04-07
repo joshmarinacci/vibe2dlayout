@@ -1,3 +1,28 @@
+## 2026-04-07 11:20
+
+### Features
+
+- **Button icon support**: Buttons can now display a Lucide icon alongside their label. In the Properties panel, a new "Icon" section shows a 6-column grid of 36 common icons (arrows, chevrons, UI actions, etc.) to pick from. Left/Right radio buttons control which side the icon appears on; "None" clears the icon. The icon scales with the button's font size (`fontSize × 1.1`), matches the button's text color, and uses a `strokeWidth` of 1.5 for a lighter hand-drawn look. The `ButtonShape` model gains an `icon: { name: string; side: 'left' | 'right' } | null` field (defaults to `null` for new buttons).
+
+## 2026-04-07 11:10
+
+### Features
+
+- **Caveat handwritten font for form controls**: Added [Caveat](https://fonts.google.com/specimen/Caveat) (Google Fonts) to `index.html`. All form control shapes default to `Caveat, cursive` — button text, panel title, label, textfield value/placeholder display, checkbox label, and toggle label all render in the hand-drawn font, complementing the RoughJS sketchy outlines.
+
+## 2026-04-07 11:00
+
+### Features
+
+- **4 new form control shapes with RoughJS rendering**:
+  - `Label` — text label with a subtle rough underline. Double-click to edit text.
+  - `Text Field` — rough rect with placeholder text (shown in gray when value is empty). Double-click to edit displayed value.
+  - `Checkbox` — rough 16×16 tick box with a rough checkmark when checked, and a label to the right. Double-click to edit label.
+  - `Toggle` — rough pill track with a sliding rough circle thumb (moves left/right based on `checked` state), label to the right. Double-click to edit label.
+- **Form Controls dropdown in toolbar**: Replaced the three individual button/panel/slider toolbar buttons with a single "Form Controls" dropdown. Shows the icon of the currently active form control; clicking opens a menu with all 7 controls (Button, Panel, Slider, Label, Text Field, Checkbox, Toggle).
+- **Form Controls section in all context menus**: Both the canvas right-click menu and the tree node right-click menu now have separate "Shapes" and "Form Controls" sections when adding shapes. Same split applied to the Layers panel `+` add menu.
+- **Properties panel**: Added property sections for all 4 new shapes (transform, content, text style for label; placeholder, fill, stroke for textfield; checked toggle, fill, stroke for checkbox/toggle).
+
 ## 2026-04-07 10:10
 
 ### Features

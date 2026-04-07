@@ -14,15 +14,22 @@ interface Props {
   onClose: () => void
 }
 
-const ADD_SHAPE_TYPES: { type: ShapeType; label: string }[] = [
+const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
   { type: 'rect',   label: 'Rectangle' },
   { type: 'circle', label: 'Circle' },
   { type: 'line',   label: 'Line' },
   { type: 'text',   label: 'Text' },
   { type: 'image',  label: 'Image' },
-  { type: 'button', label: 'Button' },
-  { type: 'panel',  label: 'Panel' },
-  { type: 'slider', label: 'Slider' },
+]
+
+const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
+  { type: 'button',    label: 'Button' },
+  { type: 'panel',     label: 'Panel' },
+  { type: 'slider',    label: 'Slider' },
+  { type: 'label',     label: 'Label' },
+  { type: 'textfield', label: 'Text Field' },
+  { type: 'checkbox',  label: 'Checkbox' },
+  { type: 'toggle',    label: 'Toggle' },
 ]
 
 export function CanvasContextMenu({ menuState, shapes, activePageId, dispatch, onClose }: Props) {
@@ -35,21 +42,38 @@ export function CanvasContextMenu({ menuState, shapes, activePageId, dispatch, o
     dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
   }
 
-  const addItems = ADD_SHAPE_TYPES.map(opt => ({
+  const parentId = shapeId ?? activePageId
+
+  const basicItems = BASIC_SHAPES.map(opt => ({
     label: opt.label,
-    onClick: () => addShape(opt.type, shapeId ?? activePageId),
+    onClick: () => addShape(opt.type, parentId),
   }))
+
+  const formItems = FORM_CONTROLS.map(opt => ({
+    label: opt.label,
+    onClick: () => addShape(opt.type, parentId),
+  }))
+
+  const addShapeGroups: ContextMenuGroup[] = [
+    {
+      items: [
+        { label: 'Shapes', onClick: () => {}, disabled: true },
+        ...basicItems,
+      ],
+    },
+    {
+      items: [
+        { label: 'Form Controls', onClick: () => {}, disabled: true },
+        ...formItems,
+      ],
+    },
+  ]
 
   let groups: ContextMenuGroup[]
 
   if (shape && shape.type !== 'page') {
     groups = [
-      {
-        items: [
-          { label: 'Add Child Shape', onClick: () => {}, disabled: true },
-          ...addItems,
-        ],
-      },
+      ...addShapeGroups,
       {
         items: [
           {
@@ -104,14 +128,7 @@ export function CanvasContextMenu({ menuState, shapes, activePageId, dispatch, o
     ]
   } else {
     // Empty canvas or page shape — add to active page
-    groups = [
-      {
-        items: [
-          { label: 'Add Shape', onClick: () => {}, disabled: true },
-          ...addItems,
-        ],
-      },
-    ]
+    groups = addShapeGroups
   }
 
   return createPortal(
