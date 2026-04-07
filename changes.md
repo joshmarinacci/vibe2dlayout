@@ -1,3 +1,9 @@
+## 2026-04-07 09:50
+
+### Features
+
+- **Compact transform panel**: X/Y/W/H/° fields redesigned with a tight grid layout. Each field is a bordered pill containing a small label (`X`, `Y`, `W`, `H`, `°`) left-aligned and the number input right-aligned, matching the label to its field visually. X+Y share one row, W+H share the next, ° sits alone on the third row at half-width. Replaced generic `NumberInput` wrappers with a local `TField` component for full layout control.
+
 ## 2026-04-07 09:35
 
 ### Bug fixes
