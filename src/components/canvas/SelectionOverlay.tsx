@@ -138,6 +138,37 @@ function ResizeHandle({ anchor, cx, cy, handleSize, bbox, ids, containerRef, dis
       case 'bottom-right':  width += dx; height += dy; break
     }
 
+    // Shift: constrain to square, keeping the anchor's fixed corner in place
+    if (e.shiftKey) {
+      const size = Math.max(Math.abs(width), Math.abs(height))
+      switch (anchor) {
+        case 'top-left':
+          x = startBbox.x + startBbox.width - size
+          y = startBbox.y + startBbox.height - size
+          width = size; height = size; break
+        case 'top-right':
+          y = startBbox.y + startBbox.height - size
+          width = size; height = size; break
+        case 'bottom-left':
+          x = startBbox.x + startBbox.width - size
+          width = size; height = size; break
+        case 'bottom-right':
+          width = size; height = size; break
+        case 'middle-left':
+        case 'middle-right':
+          height = size; width = size
+          y = startBbox.y + (startBbox.height - size) / 2
+          if (anchor === 'middle-left') x = startBbox.x + startBbox.width - size
+          break
+        case 'top-center':
+        case 'bottom-center':
+          width = size; height = size
+          x = startBbox.x + (startBbox.width - size) / 2
+          if (anchor === 'top-center') y = startBbox.y + startBbox.height - size
+          break
+      }
+    }
+
     width = Math.max(4, width)
     height = Math.max(4, height)
 

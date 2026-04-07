@@ -1,3 +1,9 @@
+## 2026-04-07 09:15
+
+### Features
+
+- **Shift-constrained square resize**: Holding Shift while dragging any resize handle constrains width and height to be equal (square). For corner handles the opposite corner stays fixed. For edge handles the shape grows symmetrically around the perpendicular axis.
+
 ## 2026-04-07 09:10
 
 ### Features
