@@ -45,6 +45,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const isDragging = useRef(false)
 
   const [ghostRect, setGhostRect] = useState<GhostRect | null>(null)
+  const [marqueeRect, setMarqueeRect] = useState<GhostRect | null>(null)
+  const marqueeStart = useRef<{ cx: number; cy: number; sx: number; sy: number } | null>(null)
   const [contextMenu, setContextMenu] = useState<CanvasContextMenuState | null>(null)
 
   const getCanvasPos = useCallback((e: React.PointerEvent) => {
@@ -124,8 +126,9 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
           ? state.selection.ids
           : [hitId]
     } else {
-      dispatch({ type: 'DESELECT_ALL' })
+      if (!e.shiftKey) dispatch({ type: 'DESELECT_ALL' })
       draggingIds.current = []
+      marqueeStart.current = { cx: pos.x, cy: pos.y, sx: pos.sx, sy: pos.sy }
     }
   }, [state, dispatch, getCanvasPos, hitTestShapes, containerRef])
 
@@ -160,6 +163,20 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         y: Math.min(startScreenY, curScreenY),
         width: Math.abs(curScreenX - startScreenX),
         height: Math.abs(curScreenY - startScreenY),
+      })
+      return
+    }
+
+    // Marquee selection drag
+    if (marqueeStart.current) {
+      const containerRect = containerRef.current!.getBoundingClientRect()
+      const curSx = e.clientX - containerRect.left
+      const curSy = e.clientY - containerRect.top
+      setMarqueeRect({
+        x: Math.min(marqueeStart.current.sx, curSx),
+        y: Math.min(marqueeStart.current.sy, curSy),
+        width: Math.abs(curSx - marqueeStart.current.sx),
+        height: Math.abs(curSy - marqueeStart.current.sy),
       })
       return
     }
@@ -217,6 +234,38 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
     }
 
+    // Commit marquee selection
+    if (marqueeStart.current && isDragging.current && state.activePageId) {
+      const { cx: startCx, cy: startCy } = marqueeStart.current
+      const x1 = Math.min(startCx, pos.x)
+      const y1 = Math.min(startCy, pos.y)
+      const x2 = Math.max(startCx, pos.x)
+      const y2 = Math.max(startCy, pos.y)
+
+      const activeNode = state.document.rootNodes.find(n => n.id === state.activePageId)
+      if (activeNode) {
+        const allIds: string[] = []
+        const collect = (nodes: { id: string; children: typeof nodes }[]) => {
+          for (const n of nodes) { allIds.push(n.id); collect(n.children) }
+        }
+        collect(activeNode.children)
+
+        const parentMap = buildParentMap(state.document.rootNodes)
+        const selected = allIds.filter(id => {
+          const shape = state.document.shapes[id]
+          if (!shape || !shape.visible || shape.type === 'line') return false
+          const abs = getAbsoluteTransform(id, state.document.shapes, parentMap)
+          if (!abs) return false
+          return abs.x < x2 && abs.x + abs.width > x1 && abs.y < y2 && abs.y + abs.height > y1
+        })
+        if (selected.length > 0) {
+          dispatch({ type: 'SELECT_SHAPES', ids: selected, additive: e.shiftKey })
+        }
+      }
+    }
+
+    marqueeStart.current = null
+    setMarqueeRect(null)
     setGhostRect(null)
     dragStart.current = null
     isDragging.current = false
@@ -255,5 +304,5 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     setContextMenu({ screenX: e.clientX, screenY: e.clientY, canvasX: pos.x, canvasY: pos.y, shapeId })
   }, [getMouseCanvasPos, hitTestShapes, dispatch])
 
-  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, contextMenu, closeContextMenu: () => setContextMenu(null) }
+  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null) }
 }

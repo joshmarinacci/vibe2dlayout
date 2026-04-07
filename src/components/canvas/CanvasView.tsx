@@ -24,7 +24,7 @@ export function CanvasView() {
     return () => el.removeEventListener('wheel', handleWheel)
   }, [handleWheel])
 
-  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, contextMenu, closeContextMenu } = useCanvasPointer(containerRef)
+  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu } = useCanvasPointer(containerRef)
 
   const { panX, panY, zoom } = state.viewTransform
 
@@ -101,6 +101,19 @@ export function CanvasView() {
           }}
         />
       )}
+      {/* Marquee selection rectangle */}
+      {marqueeRect && (
+        <div
+          className={styles.marqueeRect}
+          style={{
+            left: marqueeRect.x,
+            top: marqueeRect.y,
+            width: marqueeRect.width,
+            height: marqueeRect.height,
+          }}
+        />
+      )}
+
       {contextMenu && (
         <CanvasContextMenu
           menuState={contextMenu}

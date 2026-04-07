@@ -1,3 +1,9 @@
+## 2026-04-07 09:20
+
+### Features
+
+- **Marquee (rubber-band) selection**: Clicking and dragging on the empty canvas background draws a selection rectangle. On release, all shapes whose absolute bounding boxes intersect the rectangle are selected. Shift+drag adds to the existing selection without deselecting first. The marquee is rendered as a thin blue overlay in screen space; hit testing converts the rectangle to canvas space and uses `getAbsoluteTransform` to correctly handle nested shapes.
+
 ## 2026-04-07 09:15
 
 ### Features
