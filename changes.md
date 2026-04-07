@@ -1,3 +1,10 @@
+## 2026-04-07 08:55
+
+### Bug fixes
+
+- **Canvas context menu delete not working**: Clicking a menu item in the canvas context menu (a React portal) was bubbling `pointerdown`/`pointerup`/`click` through the React component tree into the canvas container's `onPointerDown` handler, which called `setPointerCapture` and dispatched `DESELECT_ALL`, preventing delete from completing and the menu from closing. Fixed by adding `stopPropagation` for `onPointerDown`, `onPointerUp`, `onClick`, and `onContextMenu` on the `ContextMenu` div — applies to both canvas and tree context menus.
+- **Unit test**: Added `tests/store/canvasContextMenu.test.ts` with 5 tests covering the delete action sequence (shape removed from map, removed from tree, selection cleared, other shapes unaffected, full action sequence).
+
 ## 2026-04-07 08:34
 
 ### Features & fixes

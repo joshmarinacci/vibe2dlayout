@@ -57,7 +57,10 @@ export function ContextMenu({ x, y, groups, onClose }: Props) {
       ref={menuRef}
       className={styles.menu}
       style={{ left: x, top: y }}
-      onContextMenu={e => e.preventDefault()}
+      onPointerDown={e => e.stopPropagation()}
+      onPointerUp={e => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
+      onContextMenu={e => { e.preventDefault(); e.stopPropagation() }}
     >
       {groups.map((group, gi) => (
         <div key={gi}>
