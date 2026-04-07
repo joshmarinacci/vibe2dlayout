@@ -1,3 +1,10 @@
+## 2026-04-07 09:35
+
+### Bug fixes
+
+- **Text editing commit on click-outside**: Clicking outside a text textarea was not committing changes (text reverted). Root cause: `pointerdown` fires on the canvas before `blur` fires on the textarea, so `DESELECT_ALL` cleared `editingTextId` first, causing the textarea to unmount before `onBlur` could run. Fixed by watching `isEditing` transitioning `true → false` in a `useEffect` instead of relying on `onBlur`. A `cancelRef` tracks whether Escape was pressed so the effect knows whether to commit or discard. **Escape** reverts. Clicking anywhere outside commits. Enter inserts a newline (multi-line). Applied to `TextShape`, `ButtonShape`, and `PanelShape`.
+- **Unit tests**: Added `tests/store/textEditCommitOnDeselect.test.ts` with 7 tests covering: `DESELECT_ALL` clears `editingTextId`, `COMMIT_TEXT_EDIT` after `DESELECT_ALL` still saves content, cancel path (`STOP_TEXT_EDIT` without commit) for all three shape types, and full commit sequences for button and panel.
+
 ## 2026-04-07 09:30
 
 ### Features

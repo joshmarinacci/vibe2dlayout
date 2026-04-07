@@ -42,7 +42,8 @@ export function CanvasView() {
     <div
       ref={containerRef}
       className={styles.container}
-      style={{ cursor: state.toolMode === 'pan' ? 'grab' : 'default' }}
+      tabIndex={-1}
+      style={{ cursor: state.toolMode === 'pan' ? 'grab' : 'default', outline: 'none' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

@@ -19,20 +19,25 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
   const { transform, fill, stroke, title, clipChildren } = shape
   const { x, y, width, height, rotation } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const editValueRef = useRef(title?.content ?? '')
+  const cancelRef = useRef(false)
+  const wasEditingRef = useRef(false)
 
   useEffect(() => {
-    if (isEditing && textareaRef.current) {
-      textareaRef.current.focus()
-      textareaRef.current.select()
+    if (isEditing && !wasEditingRef.current) {
+      wasEditingRef.current = true
+      editValueRef.current = title?.content ?? ''
+      cancelRef.current = false
+      textareaRef.current?.focus()
+      textareaRef.current?.select()
+    } else if (!isEditing && wasEditingRef.current) {
+      wasEditingRef.current = false
+      if (!cancelRef.current && title) {
+        dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: editValueRef.current })
+      }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing])
-
-  const commitEdit = () => {
-    if (textareaRef.current && title) {
-      dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: textareaRef.current.value })
-    }
-    dispatch({ type: 'STOP_TEXT_EDIT' })
-  }
 
   const titleBarHeight = title ? (title.fontSize + 12) : 0
   const pad = 2
@@ -112,9 +117,13 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
                 outline: 'none',
                 padding: '4px 8px',
               }}
-              onBlur={commitEdit}
+              onChange={e => { editValueRef.current = e.target.value }}
               onKeyDown={e => {
-                if (e.key === 'Escape') { e.preventDefault(); commitEdit() }
+                if (e.key === 'Escape') {
+                  cancelRef.current = true
+                  dispatch({ type: 'STOP_TEXT_EDIT' })
+                  e.preventDefault(); e.stopPropagation(); return
+                }
                 e.stopPropagation()
               }}
               onClick={e => e.stopPropagation()}
