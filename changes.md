@@ -1,3 +1,9 @@
+## 2026-04-07 09:00
+
+### Bug fixes
+
+- **Nested shape click selection and selection overlay**: Shapes inside panels (or other containers) couldn't be clicked to select in the canvas, and the selection overlay was drawn at the wrong position. Root cause: both `hitTestShapes` and `SelectionOverlay` were treating shape `transform.x/y` as canvas-absolute coordinates, but for nested shapes those are parent-relative. Fixed by adding `buildParentMap` and `getAbsoluteTransform` helpers to `geometry.ts` that walk the tree to compute absolute canvas-space positions (including the panel title-bar Y offset for panel children). Both `useCanvasPointer` and `SelectionOverlay` now use these helpers.
+
 ## 2026-04-07 08:55
 
 ### Bug fixes

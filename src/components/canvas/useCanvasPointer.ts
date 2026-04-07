@@ -4,7 +4,7 @@ import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
 import type { ShapeType } from '@model/shapes'
 import { createShape } from '@utils/shapeFactory'
-import { pointInBox, pointNearLine } from '@utils/geometry'
+import { pointInBox, pointNearLine, buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { resolveEndpoint } from '@utils/connectors'
 
 interface GhostRect {
@@ -69,6 +69,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }
     collect(activeNode.children)
 
+    const parentMap = buildParentMap(state.document.rootNodes)
+
     for (let i = allIds.length - 1; i >= 0; i--) {
       const id = allIds[i]
       const shape = state.document.shapes[id]
@@ -82,12 +84,13 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         }
         continue
       }
-      if (pointInBox({ x: cx, y: cy }, shape.transform)) {
+      const absTransform = getAbsoluteTransform(id, state.document.shapes, parentMap)
+      if (absTransform && pointInBox({ x: cx, y: cy }, absTransform)) {
         return id
       }
     }
     return null
-  }, [state.document, state.activePageId])
+  }, [state.document, state.activePageId, state.viewTransform.zoom])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return

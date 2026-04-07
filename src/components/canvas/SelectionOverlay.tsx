@@ -2,7 +2,7 @@ import { useRef, useCallback, type RefObject } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
 import type { BoundingBox, Anchor } from '@model/transform'
-import { anchorPoint } from '@utils/geometry'
+import { anchorPoint, buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 
 const HANDLE_PX = 8  // visual size in screen pixels
 
@@ -36,12 +36,12 @@ export function SelectionOverlay({ containerRef }: Props) {
 
   if (ids.length === 0) return null
 
-  // Compute aggregate bounding box in canvas space
+  // Compute aggregate bounding box in canvas space (accounting for nesting)
+  const parentMap = buildParentMap(state.document.rootNodes)
   let bbox: BoundingBox | null = null
   for (const id of ids) {
-    const shape = state.document.shapes[id]
-    if (!shape || shape.type === 'line') continue
-    const t = shape.transform
+    const t = getAbsoluteTransform(id, state.document.shapes, parentMap)
+    if (!t) continue
     if (!bbox) {
       bbox = { ...t }
     } else {

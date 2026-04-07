@@ -1,4 +1,6 @@
 import type { BoundingBox, Point, Anchor } from '@model/transform'
+import type { Shape } from '@model/shapes'
+import type { TreeNode } from '@model/document'
 
 export interface Rect {
   x: number
@@ -93,4 +95,49 @@ export function rotatePoint(pt: Point, origin: Point, angleDeg: number): Point {
 /** Distance between two points */
 export function distance(a: Point, b: Point): number {
   return Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2)
+}
+
+/** Build a flat map of childId → parentId from the document tree. Top-level shapes have no entry. */
+export function buildParentMap(nodes: TreeNode[]): Record<string, string> {
+  const map: Record<string, string> = {}
+  function walk(ns: TreeNode[], parentId: string | null) {
+    for (const n of ns) {
+      if (parentId !== null) map[n.id] = parentId
+      walk(n.children, n.id)
+    }
+  }
+  walk(nodes, null)
+  return map
+}
+
+/**
+ * Compute the canvas-space (absolute) bounding box of a shape by walking up
+ * the parent chain and accumulating offsets. Panel shapes add a title-bar
+ * offset to their children's Y coordinate.
+ */
+export function getAbsoluteTransform(
+  shapeId: string,
+  shapes: Record<string, Shape>,
+  parentMap: Record<string, string>,
+): BoundingBox | null {
+  const shape = shapes[shapeId]
+  if (!shape || shape.type === 'line') return null
+
+  const parentId = parentMap[shapeId]
+  if (!parentId) return { ...shape.transform }
+
+  const parentAbs = getAbsoluteTransform(parentId, shapes, parentMap)
+  if (!parentAbs) return { ...shape.transform }
+
+  const parent = shapes[parentId]
+  let contentOffsetY = 0
+  if (parent?.type === 'panel' && parent.title) {
+    contentOffsetY = parent.title.fontSize + 12
+  }
+
+  return {
+    ...shape.transform,
+    x: parentAbs.x + shape.transform.x,
+    y: parentAbs.y + contentOffsetY + shape.transform.y,
+  }
 }
