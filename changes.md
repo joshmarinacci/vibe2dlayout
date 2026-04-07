@@ -1,3 +1,10 @@
+## 2026-04-07 08:34
+
+### Features & fixes
+
+- **Canvas context menu**: Right-clicking anywhere on the canvas now shows a context menu. Right-clicking a shape selects it and shows: Add Child Shape submenu, Bring to Front/Send to Back/Move Up/Move Down, Hide/Show, Lock/Unlock, Delete. Right-clicking empty canvas shows an Add Shape submenu (all types inserted at the cursor position, added to the active page). Implemented in `CanvasContextMenu.tsx`; `useCanvasPointer` exposes `onContextMenu`/`contextMenu`/`closeContextMenu`.
+- **Stable rough.js seeds**: `seedFromId` helper derives a deterministic seed from each shape's UUID so hand-drawn paths don't jitter on re-render when shapes are moved. Added to `roughPaths.ts`; used in ButtonShape, PanelShape, and SliderShape.
+
 ## 2026-04-06 15:10
 
 ### Features & fixes

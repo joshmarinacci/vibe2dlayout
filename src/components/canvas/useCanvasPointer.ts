@@ -14,6 +14,14 @@ interface GhostRect {
   height: number
 }
 
+export interface CanvasContextMenuState {
+  screenX: number
+  screenY: number
+  canvasX: number
+  canvasY: number
+  shapeId: string | null
+}
+
 // Map tool mode to shape type
 const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-rect': 'rect',
@@ -37,6 +45,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const isDragging = useRef(false)
 
   const [ghostRect, setGhostRect] = useState<GhostRect | null>(null)
+  const [contextMenu, setContextMenu] = useState<CanvasContextMenuState | null>(null)
 
   const getCanvasPos = useCallback((e: React.PointerEvent) => {
     const rect = containerRef.current!.getBoundingClientRect()
@@ -233,5 +242,15 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }
   }, [state, dispatch, getMouseCanvasPos, hitTestShapes])
 
-  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, ghostRect }
+  const onContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const pos = getMouseCanvasPos(e)
+    const shapeId = hitTestShapes(pos.x, pos.y)
+    if (shapeId) {
+      dispatch({ type: 'SELECT_SHAPES', ids: [shapeId], additive: false })
+    }
+    setContextMenu({ screenX: e.clientX, screenY: e.clientY, canvasX: pos.x, canvasY: pos.y, shapeId })
+  }, [getMouseCanvasPos, hitTestShapes, dispatch])
+
+  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, contextMenu, closeContextMenu: () => setContextMenu(null) }
 }

@@ -5,6 +5,7 @@ import { useDocumentShortcuts } from '@hooks/useDocumentShortcuts'
 import { ShapeRenderer } from './ShapeRenderer'
 import { SelectionOverlay } from './SelectionOverlay'
 import { useCanvasPointer } from './useCanvasPointer'
+import { CanvasContextMenu } from './CanvasContextMenu'
 import styles from './CanvasView.module.css'
 
 export function CanvasView() {
@@ -23,7 +24,7 @@ export function CanvasView() {
     return () => el.removeEventListener('wheel', handleWheel)
   }, [handleWheel])
 
-  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, ghostRect } = useCanvasPointer(containerRef)
+  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, contextMenu, closeContextMenu } = useCanvasPointer(containerRef)
 
   const { panX, panY, zoom } = state.viewTransform
 
@@ -46,6 +47,7 @@ export function CanvasView() {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
     >
       {/* Canvas background */}
       <div className={styles.background} />
@@ -97,6 +99,15 @@ export function CanvasView() {
             width: ghostRect.width,
             height: ghostRect.height,
           }}
+        />
+      )}
+      {contextMenu && (
+        <CanvasContextMenu
+          menuState={contextMenu}
+          shapes={state.document.shapes}
+          activePageId={state.activePageId}
+          dispatch={dispatch}
+          onClose={closeContextMenu}
         />
       )}
     </div>
