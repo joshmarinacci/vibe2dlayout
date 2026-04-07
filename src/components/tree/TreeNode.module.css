@@ -101,3 +101,17 @@
 .children {
   /* children rendered at increased depth via paddingLeft */
 }
+
+.dropBefore {
+  border-top: 2px solid #3b82f6;
+}
+
+.dropAfter {
+  border-bottom: 2px solid #3b82f6;
+}
+
+.dropInto {
+  background: #bfdbfe !important;
+  outline: 1px solid #3b82f6;
+  border-radius: 3px;
+}

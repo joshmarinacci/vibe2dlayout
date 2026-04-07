@@ -1,4 +1,4 @@
-import { useState, useCallback, type Dispatch } from 'react'
+import { useState, useCallback, useRef, type Dispatch } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Square, Circle, Minus, Type, Image, FileText,
@@ -36,6 +36,14 @@ const ADD_SHAPE_TYPES: { type: ShapeType; label: string }[] = [
   { type: 'page',   label: 'Page' },
 ]
 
+interface DragPayload {
+  id: string
+  parentId: string | null
+  index: number
+}
+
+const DRAG_TYPE = 'application/vibe-tree-drag'
+
 interface Props {
   node: TreeNode
   shapes: Record<string, Shape>
@@ -43,9 +51,11 @@ interface Props {
   selectedIds: string[]
   activePageId: string | null
   dispatch: Dispatch<AppAction>
+  parentId: string | null
+  nodeIndex: number
 }
 
-export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, dispatch }: Props) {
+export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, dispatch, parentId, nodeIndex }: Props) {
   const shape = shapes[node.id]
   if (!shape) return null
 
@@ -56,6 +66,72 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
   const hasChildren = node.children.length > 0
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const [dropZone, setDropZone] = useState<'before' | 'into' | 'after' | null>(null)
+  const isDraggingSelf = useRef(false)
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.stopPropagation()
+    isDraggingSelf.current = true
+    const payload: DragPayload = { id: node.id, parentId, index: nodeIndex }
+    e.dataTransfer.setData(DRAG_TYPE, JSON.stringify(payload))
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragEnd = () => {
+    isDraggingSelf.current = false
+    setDropZone(null)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes(DRAG_TYPE)) return
+    e.preventDefault()
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = 'move'
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const ratio = (e.clientY - rect.top) / rect.height
+    setDropZone(ratio < 0.25 ? 'before' : ratio > 0.75 ? 'after' : 'into')
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+      setDropZone(null)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const raw = e.dataTransfer.getData(DRAG_TYPE)
+    setDropZone(null)
+    if (!raw) return
+    const drag: DragPayload = JSON.parse(raw)
+    if (drag.id === node.id) return  // dropped on self
+
+    let newParentId: string | null
+    let insertIndex: number
+
+    if (dropZone === 'into') {
+      newParentId = node.id
+      insertIndex = node.children.length
+    } else {
+      // before / after: insert as sibling of this node
+      newParentId = parentId
+      const targetIndex = nodeIndex
+      if (dropZone === 'before') {
+        // if drag came from same parent and was before target, target shifts left after removal
+        insertIndex = drag.parentId === newParentId && drag.index < targetIndex
+          ? targetIndex - 1
+          : targetIndex
+      } else {
+        // after
+        insertIndex = drag.parentId === newParentId && drag.index < targetIndex
+          ? targetIndex        // target shifted left, "after" = same index
+          : targetIndex + 1
+      }
+    }
+
+    dispatch({ type: 'REPARENT_SHAPE', id: drag.id, newParentId, index: insertIndex })
+  }
 
   const handleClick = (e: React.MouseEvent) => {
     if (isPage) {
@@ -212,10 +288,23 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
   return (
     <div className={styles.nodeWrapper}>
       <div
-        className={`${styles.node} ${isSelected ? styles.selected : ''} ${isActivePage ? styles.activePage : ''}`}
+        className={[
+          styles.node,
+          isSelected ? styles.selected : '',
+          isActivePage ? styles.activePage : '',
+          dropZone === 'before' ? styles.dropBefore : '',
+          dropZone === 'into'   ? styles.dropInto   : '',
+          dropZone === 'after'  ? styles.dropAfter  : '',
+        ].join(' ')}
         style={{ paddingLeft: 8 + depth * 14 }}
+        draggable
         onClick={handleClick}
         onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {hasChildren ? (
           <button
@@ -252,7 +341,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
 
       {expanded && hasChildren && (
         <div className={styles.children}>
-          {node.children.map(child => (
+          {node.children.map((child, i) => (
             <TreeNodeComp
               key={child.id}
               node={child}
@@ -261,6 +350,8 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
               selectedIds={selectedIds}
               activePageId={activePageId}
               dispatch={dispatch}
+              parentId={node.id}
+              nodeIndex={i}
             />
           ))}
         </div>

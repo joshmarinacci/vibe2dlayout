@@ -1,3 +1,9 @@
+## 2026-04-07 09:10
+
+### Features
+
+- **Tree view drag-and-drop reparenting**: Each tree row is now draggable. Hovering the top 25% of a row shows a "before" indicator (blue top border), the bottom 25% shows "after" (blue bottom border), and the middle shows "into" (blue background highlight). Dropping dispatches `REPARENT_SHAPE` with the correct `newParentId` and `index`, including same-parent index adjustment (when dragging within the same parent, the target's index shifts after removal). Added `parentId` and `nodeIndex` props to `TreeNodeComp` to carry the positional context needed for the index calculation.
+
 ## 2026-04-07 09:00
 
 ### Bug fixes

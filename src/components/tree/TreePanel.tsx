@@ -75,7 +75,7 @@ export function TreePanel() {
       </div>
 
       <div className={styles.tree}>
-        {rootNodes.map(node => (
+        {rootNodes.map((node, i) => (
           <TreeNodeComp
             key={node.id}
             node={node}
@@ -84,6 +84,8 @@ export function TreePanel() {
             selectedIds={state.selection.ids}
             activePageId={state.activePageId}
             dispatch={dispatch}
+            parentId={null}
+            nodeIndex={i}
           />
         ))}
       </div>
