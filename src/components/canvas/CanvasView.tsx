@@ -24,7 +24,7 @@ export function CanvasView() {
     return () => el.removeEventListener('wheel', handleWheel)
   }, [handleWheel])
 
-  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu } = useCanvasPointer(containerRef)
+  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu, spaceHeld } = useCanvasPointer(containerRef)
 
   const { panX, panY, zoom } = state.viewTransform
 
@@ -43,7 +43,7 @@ export function CanvasView() {
       ref={containerRef}
       className={styles.container}
       tabIndex={-1}
-      style={{ cursor: state.toolMode === 'pan' ? 'grab' : 'default', outline: 'none' }}
+      style={{ cursor: (state.toolMode === 'pan' || spaceHeld) ? 'grab' : 'default', outline: 'none' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

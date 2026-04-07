@@ -1,7 +1,7 @@
 import {
   MousePointer2, Hand, Square, Circle, Minus, Type, Image,
   RectangleHorizontal, PanelLeft, SlidersHorizontal, FileText,
-  Undo2, Redo2, Home, FolderOpen, Save,
+  Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
@@ -83,7 +83,43 @@ export function Toolbar() {
       <div className={styles.separator} />
 
       <div className={styles.group}>
-        <span className={styles.zoomLabel}>{Math.round(state.viewTransform.zoom * 100)}%</span>
+        <button
+          className={styles.btn}
+          title="Zoom out"
+          onClick={() => {
+            const presets = [0.25, 0.5, 0.75, 1, 1.5, 2]
+            const cur = state.viewTransform.zoom
+            const next = [...presets].reverse().find(z => z < cur - 0.01) ?? presets[0]
+            dispatch({ type: 'ZOOM_TO', zoom: next, origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 } })
+          }}
+        ><ZoomOut size={15} /></button>
+        <select
+          className={styles.zoomSelect}
+          value={Math.round(state.viewTransform.zoom * 100)}
+          onChange={e => {
+            const zoom = parseInt(e.target.value) / 100
+            dispatch({ type: 'ZOOM_TO', zoom, origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 } })
+          }}
+        >
+          {[25, 50, 75, 100, 150, 200].map(pct => (
+            <option key={pct} value={pct}>{pct}%</option>
+          ))}
+          {![25, 50, 75, 100, 150, 200].includes(Math.round(state.viewTransform.zoom * 100)) && (
+            <option value={Math.round(state.viewTransform.zoom * 100)}>
+              {Math.round(state.viewTransform.zoom * 100)}%
+            </option>
+          )}
+        </select>
+        <button
+          className={styles.btn}
+          title="Zoom in"
+          onClick={() => {
+            const presets = [0.25, 0.5, 0.75, 1, 1.5, 2]
+            const cur = state.viewTransform.zoom
+            const next = presets.find(z => z > cur + 0.01) ?? presets[presets.length - 1]
+            dispatch({ type: 'ZOOM_TO', zoom: next, origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 } })
+          }}
+        ><ZoomIn size={15} /></button>
         <button className={styles.btn} onClick={() => dispatch({ type: 'RESET_VIEW' })} title="Reset view">
           <Home size={15} />
         </button>

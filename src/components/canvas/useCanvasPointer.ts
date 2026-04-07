@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
@@ -43,6 +43,32 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const draggingIds = useRef<string[]>([])
   const lastCanvasPos = useRef<{ x: number; y: number } | null>(null)
   const isDragging = useRef(false)
+  const spaceDown = useRef(false)
+  const spacePanning = useRef(false)
+  const [spaceHeld, setSpaceHeld] = useState(false)
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat && document.activeElement === containerRef.current) {
+        e.preventDefault()
+        spaceDown.current = true
+        setSpaceHeld(true)
+      }
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        spaceDown.current = false
+        spacePanning.current = false
+        setSpaceHeld(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [containerRef])
 
   const [ghostRect, setGhostRect] = useState<GhostRect | null>(null)
   const [marqueeRect, setMarqueeRect] = useState<GhostRect | null>(null)
@@ -103,6 +129,11 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     lastCanvasPos.current = { x: pos.x, y: pos.y }
     isDragging.current = false
 
+    if (spaceDown.current) {
+      spacePanning.current = true
+      return
+    }
+
     const shapeType = TOOL_SHAPE[state.toolMode]
     if (shapeType) {
       // Insert mode: ghost starts here
@@ -144,7 +175,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }
     if (!isDragging.current) return
 
-    if (state.toolMode === 'pan') {
+    if (state.toolMode === 'pan' || spacePanning.current) {
       dispatch({ type: 'PAN_BY', dx, dy })
       dragStart.current = { sx: e.clientX, sy: e.clientY, cx: pos.x, cy: pos.y }
       return
@@ -271,6 +302,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     isDragging.current = false
     draggingIds.current = []
     lastCanvasPos.current = null
+    spacePanning.current = false
   }, [state, dispatch, getCanvasPos, containerRef])
 
   const getMouseCanvasPos = useCallback((e: React.MouseEvent) => {
@@ -304,5 +336,5 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     setContextMenu({ screenX: e.clientX, screenY: e.clientY, canvasX: pos.x, canvasY: pos.y, shapeId })
   }, [getMouseCanvasPos, hitTestShapes, dispatch])
 
-  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null) }
+  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null), spaceHeld }
 }

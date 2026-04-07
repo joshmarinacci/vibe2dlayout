@@ -1,3 +1,15 @@
+## 2026-04-07 10:10
+
+### Features
+
+- **Space+drag to pan**: Holding Space while dragging on the canvas pans the view regardless of the active tool. The cursor changes to `grab` while Space is held. Space key is captured on `keydown` when the canvas container is focused to prevent browser scroll.
+
+## 2026-04-07 10:00
+
+### Features
+
+- **Zoom control in toolbar**: Replaced the static zoom label with a `−` / dropdown / `+` control. The dropdown offers 25%, 50%, 75%, 100%, 150%, 200% presets; if the current zoom is outside that list (e.g. from pinch/scroll) it shows the actual percentage as an extra option. The `−`/`+` buttons step through the same presets. All zoom changes use `ZOOM_TO` centered on the viewport so the canvas center stays fixed.
+
 ## 2026-04-07 09:50
 
 ### Features
