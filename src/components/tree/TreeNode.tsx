@@ -1,0 +1,280 @@
+import { useState, useCallback, type Dispatch } from 'react'
+import { createPortal } from 'react-dom'
+import {
+  Square, Circle, Minus, Type, Image, FileText,
+  RectangleHorizontal, PanelLeft, SlidersHorizontal,
+  Eye, EyeOff, Lock, Unlock, Trash2, ChevronRight, ChevronDown,
+} from 'lucide-react'
+import type { TreeNode } from '@model/document'
+import type { Shape, ShapeType } from '@model/shapes'
+import type { AppAction } from '@store/types'
+import { createShape } from '@utils/shapeFactory'
+import { ContextMenu, type ContextMenuGroup } from './ContextMenu'
+import styles from './TreeNode.module.css'
+
+const SHAPE_ICON_MAP: Record<string, React.ReactNode> = {
+  rect:   <Square size={11} />,
+  circle: <Circle size={11} />,
+  line:   <Minus size={11} />,
+  text:   <Type size={11} />,
+  image:  <Image size={11} />,
+  page:   <FileText size={11} />,
+  button: <RectangleHorizontal size={11} />,
+  panel:  <PanelLeft size={11} />,
+  slider: <SlidersHorizontal size={11} />,
+}
+
+const ADD_SHAPE_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'rect',   label: 'Rectangle' },
+  { type: 'circle', label: 'Circle' },
+  { type: 'line',   label: 'Line' },
+  { type: 'text',   label: 'Text' },
+  { type: 'image',  label: 'Image' },
+  { type: 'button', label: 'Button' },
+  { type: 'panel',  label: 'Panel' },
+  { type: 'slider', label: 'Slider' },
+  { type: 'page',   label: 'Page' },
+]
+
+interface Props {
+  node: TreeNode
+  shapes: Record<string, Shape>
+  depth: number
+  selectedIds: string[]
+  activePageId: string | null
+  dispatch: Dispatch<AppAction>
+}
+
+export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, dispatch }: Props) {
+  const shape = shapes[node.id]
+  if (!shape) return null
+
+  const isSelected = selectedIds.includes(node.id)
+  const isActivePage = node.id === activePageId
+  const isPage = shape.type === 'page'
+  const [expanded, setExpanded] = useState(true)
+  const hasChildren = node.children.length > 0
+
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isPage) {
+      dispatch({ type: 'SET_ACTIVE_PAGE', pageId: node.id })
+    }
+    dispatch({ type: 'SELECT_SHAPES', ids: [node.id], additive: e.shiftKey })
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    dispatch({ type: 'DELETE_SHAPES', ids: [node.id] })
+    dispatch({ type: 'DESELECT_ALL' })
+  }
+
+  const toggleVisibility = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { visible: !shape.visible } })
+  }
+
+  const toggleLock = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { locked: !shape.locked } })
+  }
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({ x: e.clientX, y: e.clientY })
+  }
+
+  const addShapeTo = useCallback((parentId: string, type: ShapeType) => {
+    const newShape = createShape(type)
+    dispatch({ type: 'ADD_SHAPE', parentId, shape: newShape })
+    dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
+    if (!expanded) setExpanded(true)
+  }, [dispatch, expanded])
+
+  const buildContextMenuGroups = (): ContextMenuGroup[] => {
+    const addItems = ADD_SHAPE_TYPES.map(opt => ({
+      label: opt.label,
+      onClick: () => addShapeTo(node.id, opt.type),
+    }))
+
+    if (isPage) {
+      return [
+        {
+          items: [
+            {
+              label: 'Set as Active Page',
+              icon: '📄',
+              onClick: () => dispatch({ type: 'SET_ACTIVE_PAGE', pageId: node.id }),
+              disabled: isActivePage,
+            },
+          ],
+        },
+        {
+          items: [
+            { label: 'Add Shape', onClick: () => {}, disabled: true },
+            ...addItems,
+          ],
+        },
+        {
+          items: [
+            {
+              label: shape.visible ? 'Hide' : 'Show',
+              icon: shape.visible ? '👁' : '🚫',
+              onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { visible: !shape.visible } }),
+            },
+            {
+              label: shape.locked ? 'Unlock' : 'Lock',
+              icon: shape.locked ? '🔓' : '🔒',
+              onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { locked: !shape.locked } }),
+            },
+          ],
+        },
+        {
+          items: [
+            {
+              label: 'Delete',
+              icon: '✕',
+              danger: true,
+              onClick: () => {
+                dispatch({ type: 'DELETE_SHAPES', ids: [node.id] })
+                dispatch({ type: 'DESELECT_ALL' })
+              },
+            },
+          ],
+        },
+      ]
+    }
+
+    // Non-page shape
+    return [
+      {
+        items: [
+          { label: 'Add Child Shape', onClick: () => {}, disabled: true },
+          ...addItems,
+        ],
+      },
+      {
+        items: [
+          {
+            label: 'Move Up',
+            icon: '↑',
+            onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'up' }),
+          },
+          {
+            label: 'Move Down',
+            icon: '↓',
+            onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'down' }),
+          },
+          {
+            label: 'Bring to Front',
+            icon: '⬆',
+            onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'to-front' }),
+          },
+          {
+            label: 'Send to Back',
+            icon: '⬇',
+            onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'to-back' }),
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            label: shape.visible ? 'Hide' : 'Show',
+            icon: shape.visible ? '👁' : '🚫',
+            onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { visible: !shape.visible } }),
+          },
+          {
+            label: shape.locked ? 'Unlock' : 'Lock',
+            icon: shape.locked ? '🔓' : '🔒',
+            onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { locked: !shape.locked } }),
+          },
+        ],
+      },
+      {
+        items: [
+          {
+            label: 'Delete',
+            icon: '✕',
+            danger: true,
+            onClick: () => {
+              dispatch({ type: 'DELETE_SHAPES', ids: [node.id] })
+              dispatch({ type: 'DESELECT_ALL' })
+            },
+          },
+        ],
+      },
+    ]
+  }
+
+  return (
+    <div className={styles.nodeWrapper}>
+      <div
+        className={`${styles.node} ${isSelected ? styles.selected : ''} ${isActivePage ? styles.activePage : ''}`}
+        style={{ paddingLeft: 8 + depth * 14 }}
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
+      >
+        {hasChildren ? (
+          <button
+            className={styles.expander}
+            onClick={e => { e.stopPropagation(); setExpanded(v => !v) }}
+          >
+            {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+          </button>
+        ) : (
+          <span className={styles.expanderSpacer} />
+        )}
+
+        <span className={styles.icon}>{SHAPE_ICON_MAP[shape.type] ?? <Square size={11} />}</span>
+        <span className={`${styles.name} ${!shape.visible ? styles.hidden : ''}`}>{shape.name}</span>
+
+        <div className={styles.actions}>
+          <button
+            className={styles.actionBtn}
+            onClick={toggleVisibility}
+            title={shape.visible ? 'Hide' : 'Show'}
+          >{shape.visible ? <Eye size={11} /> : <EyeOff size={11} />}</button>
+          <button
+            className={styles.actionBtn}
+            onClick={toggleLock}
+            title={shape.locked ? 'Unlock' : 'Lock'}
+          >{shape.locked ? <Lock size={11} /> : <Unlock size={11} />}</button>
+          <button
+            className={`${styles.actionBtn} ${styles.deleteBtn}`}
+            onClick={handleDelete}
+            title="Delete"
+          ><Trash2 size={11} /></button>
+        </div>
+      </div>
+
+      {expanded && hasChildren && (
+        <div className={styles.children}>
+          {node.children.map(child => (
+            <TreeNodeComp
+              key={child.id}
+              node={child}
+              shapes={shapes}
+              depth={depth + 1}
+              selectedIds={selectedIds}
+              activePageId={activePageId}
+              dispatch={dispatch}
+            />
+          ))}
+        </div>
+      )}
+
+      {contextMenu && createPortal(
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          groups={buildContextMenuGroups()}
+          onClose={() => setContextMenu(null)}
+        />,
+        document.body,
+      )}
+    </div>
+  )
+}

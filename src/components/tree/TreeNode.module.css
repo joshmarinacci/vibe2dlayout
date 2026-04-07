@@ -1,0 +1,103 @@
+.nodeWrapper {
+  user-select: none;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  height: 26px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin: 1px 4px;
+  gap: 4px;
+  position: relative;
+}
+
+.node:hover {
+  background: #e6e6e6;
+}
+
+.node:hover .actions {
+  opacity: 1;
+}
+
+.selected {
+  background: #dbeafe !important;
+}
+
+.activePage {
+  border-left: 2px solid #3b82f6;
+}
+
+.expander {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 10px;
+  cursor: pointer;
+  width: 14px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.expander:hover {
+  color: #333;
+}
+
+.expanderSpacer {
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.icon {
+  font-size: 12px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #777;
+}
+
+.name {
+  flex: 1;
+  font-size: 12px;
+  color: #222;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hidden {
+  opacity: 0.4;
+}
+
+.actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.1s;
+  padding-right: 4px;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 3px;
+  border-radius: 2px;
+  color: #888;
+}
+
+.actionBtn:hover {
+  background: #d0d0d0;
+  color: #111;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.children {
+  /* children rendered at increased depth via paddingLeft */
+}

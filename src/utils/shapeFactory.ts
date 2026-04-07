@@ -1,0 +1,92 @@
+import type { Shape, ShapeType } from '@model/shapes'
+import {
+  defaultFill, defaultStroke, defaultText, defaultTransform,
+} from '@model/shapes'
+import { generateId } from './idgen'
+
+export function createShape(type: ShapeType, x = 50, y = 50): Shape {
+  const id = generateId()
+  const base = { id, name: type, locked: false, visible: true }
+
+  switch (type) {
+    case 'rect':
+      return {
+        ...base, type: 'rect',
+        transform: defaultTransform(x, y, 120, 80),
+        fill: defaultFill(),
+        stroke: defaultStroke(),
+        cornerRadius: 0,
+        clipChildren: false,
+      }
+    case 'circle':
+      return {
+        ...base, type: 'circle',
+        transform: defaultTransform(x, y, 80, 80),
+        fill: defaultFill(),
+        stroke: defaultStroke(),
+        clipChildren: false,
+      }
+    case 'line':
+      return {
+        ...base, type: 'line',
+        start: { kind: 'free', point: { x, y } },
+        end: { kind: 'free', point: { x: x + 100, y: y + 60 } },
+        route: { mode: 'straight', waypoints: [] },
+        stroke: { ...defaultStroke(), width: 2 },
+        startArrow: 'none',
+        endArrow: 'arrow',
+      }
+    case 'text':
+      return {
+        ...base, type: 'text',
+        transform: defaultTransform(x, y, 150, 40),
+        text: defaultText('Text'),
+        fill: { color: 'transparent', opacity: 0 },
+      }
+    case 'image':
+      return {
+        ...base, type: 'image',
+        transform: defaultTransform(x, y, 200, 150),
+        src: '',
+        mimeType: 'image/png',
+        preserveAspectRatio: true,
+        opacity: 1,
+      }
+    case 'page':
+      return {
+        ...base, type: 'page',
+        transform: defaultTransform(x, y, 800, 600),
+        fixedSize: null,
+        background: '#f8f8f8',
+        clipChildren: false,
+      }
+    case 'button':
+      return {
+        ...base, type: 'button',
+        transform: defaultTransform(x, y, 100, 36),
+        fill: { color: '#3b82f6', opacity: 1 },
+        stroke: defaultStroke(),
+        cornerRadius: 6,
+        text: { ...defaultText('Button'), color: '#ffffff' },
+      }
+    case 'panel':
+      return {
+        ...base, type: 'panel',
+        transform: defaultTransform(x, y, 200, 150),
+        fill: { color: '#ffffff', opacity: 1 },
+        stroke: defaultStroke(),
+        cornerRadius: 4,
+        title: { ...defaultText('Panel'), align: 'left', fontSize: 13, fontWeight: 'bold' },
+        clipChildren: false,
+      }
+    case 'slider':
+      return {
+        ...base, type: 'slider',
+        transform: defaultTransform(x, y, 160, 24),
+        value: 0.5,
+        trackFill: { color: '#e5e7eb', opacity: 1 },
+        thumbFill: { color: '#3b82f6', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+  }
+}

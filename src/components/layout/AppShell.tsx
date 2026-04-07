@@ -1,0 +1,44 @@
+import { useState, useCallback } from 'react'
+import styles from './AppShell.module.css'
+import { ResizeHandle } from './ResizeHandle'
+import { Toolbar } from '@components/toolbar/Toolbar'
+import { TreePanel } from '@components/tree/TreePanel'
+import { CanvasView } from '@components/canvas/CanvasView'
+import { PropertiesPanel } from '@components/properties/PropertiesPanel'
+
+const MIN_SIDEBAR = 150
+const MAX_SIDEBAR = 500
+
+export function AppShell() {
+  const [leftWidth, setLeftWidth] = useState(220)
+  const [rightWidth, setRightWidth] = useState(300)
+
+  const onResizeLeft = useCallback((delta: number) => {
+    setLeftWidth(w => Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w + delta)))
+  }, [])
+
+  const onResizeRight = useCallback((delta: number) => {
+    setRightWidth(w => Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w + delta)))
+  }, [])
+
+  return (
+    <div className={styles.shell}>
+      <div className={styles.toolbar}>
+        <Toolbar />
+      </div>
+      <div className={styles.body}>
+        <div className={styles.sidebar} style={{ flex: `0 0 ${leftWidth}px` }}>
+          <TreePanel />
+        </div>
+        <ResizeHandle onResize={onResizeLeft} side="left" />
+        <div className={styles.canvas}>
+          <CanvasView />
+        </div>
+        <ResizeHandle onResize={onResizeRight} side="right" />
+        <div className={styles.properties} style={{ flex: `0 0 ${rightWidth}px` }}>
+          <PropertiesPanel />
+        </div>
+      </div>
+    </div>
+  )
+}
