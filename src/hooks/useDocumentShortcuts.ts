@@ -30,6 +30,13 @@ export function useDocumentShortcuts() {
         dispatch({ type: 'SELECT_ALL' })
         return
       }
+      if (meta && e.key === 'd') {
+        if (state.selection.ids.length > 0) {
+          e.preventDefault()
+          dispatch({ type: 'DUPLICATE_SHAPES', ids: state.selection.ids })
+        }
+        return
+      }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (state.selection.ids.length > 0) {

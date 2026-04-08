@@ -119,6 +119,7 @@ export function CanvasView() {
         <CanvasContextMenu
           menuState={contextMenu}
           shapes={state.document.shapes}
+          rootNodes={state.document.rootNodes}
           activePageId={state.activePageId}
           dispatch={dispatch}
           onClose={closeContextMenu}

@@ -1,3 +1,16 @@
+## 2026-04-08
+
+### Features
+
+- **Cmd+Enter exits text editing**: Pressing Cmd+Enter (or Ctrl+Enter) while editing text in any shape commits the edit and exits text editing mode. Applies to all 7 editable shapes: Text, Button, Panel, Label, TextField, Checkbox, Toggle.
+- **Duplicate action**: Added `DUPLICATE_SHAPES` document action that deep-clones a shape subtree with new IDs, offsets the root clone by (10, 10) in local space, and inserts it after the original in the tree. Accessible via Cmd+D keyboard shortcut, canvas right-click context menu, and tree node right-click context menu.
+- **Zoom 300%/400%**: Added 300% and 400% presets to the zoom dropdown and zoom in/out step sequence.
+- **Status bar**: Added a 24px status bar at the bottom of the screen. Left corner has a button to collapse/expand the layer panel (‹/›), right corner for the properties panel. Center displays the name of the currently selected shape, or "N shapes selected" for multi-selection.
+
+### Bug fixes
+
+- **Subshape positioned at mouse cursor**: When right-clicking a shape to add a subshape, the new shape's position is now converted from absolute canvas coordinates to parent-local coordinates, so it appears under the cursor rather than at the raw canvas position.
+
 ## 2026-04-07 11:20
 
 ### Features

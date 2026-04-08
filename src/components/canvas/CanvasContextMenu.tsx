@@ -2,13 +2,16 @@ import { createPortal } from 'react-dom'
 import type { Dispatch } from 'react'
 import type { AppAction } from '@store/types'
 import type { Shape, ShapeType } from '@model/shapes'
+import type { TreeNode } from '@model/document'
 import { createShape } from '@utils/shapeFactory'
+import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { ContextMenu, type ContextMenuGroup } from '../tree/ContextMenu'
 import type { CanvasContextMenuState } from './useCanvasPointer'
 
 interface Props {
   menuState: CanvasContextMenuState
   shapes: Record<string, Shape>
+  rootNodes: TreeNode[]
   activePageId: string | null
   dispatch: Dispatch<AppAction>
   onClose: () => void
@@ -32,12 +35,24 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
   { type: 'toggle',    label: 'Toggle' },
 ]
 
-export function CanvasContextMenu({ menuState, shapes, activePageId, dispatch, onClose }: Props) {
+export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose }: Props) {
   const { screenX, screenY, canvasX, canvasY, shapeId } = menuState
   const shape = shapeId ? shapes[shapeId] : null
 
   const addShape = (type: ShapeType, parentId: string | null) => {
-    const newShape = createShape(type, canvasX, canvasY)
+    let localX = canvasX
+    let localY = canvasY
+    if (parentId && parentId !== activePageId) {
+      const parentMap = buildParentMap(rootNodes)
+      const parentAbs = getAbsoluteTransform(parentId, shapes, parentMap)
+      if (parentAbs) {
+        const parent = shapes[parentId]
+        const contentOffsetY = parent?.type === 'panel' && parent.title ? parent.title.fontSize + 12 : 0
+        localX = canvasX - parentAbs.x
+        localY = canvasY - parentAbs.y - contentOffsetY
+      }
+    }
+    const newShape = createShape(type, localX, localY)
     dispatch({ type: 'ADD_SHAPE', parentId, shape: newShape })
     dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
   }
@@ -74,6 +89,15 @@ export function CanvasContextMenu({ menuState, shapes, activePageId, dispatch, o
   if (shape && shape.type !== 'page') {
     groups = [
       ...addShapeGroups,
+      {
+        items: [
+          {
+            label: 'Duplicate',
+            icon: '⧉',
+            onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: [shapeId!] }),
+          },
+        ],
+      },
       {
         items: [
           {

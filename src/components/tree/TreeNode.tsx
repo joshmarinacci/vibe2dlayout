@@ -254,6 +254,15 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
       {
         items: [
           {
+            label: 'Duplicate',
+            icon: '⧉',
+            onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: [node.id] }),
+          },
+        ],
+      },
+      {
+        items: [
+          {
             label: 'Move Up',
             icon: '↑',
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'up' }),

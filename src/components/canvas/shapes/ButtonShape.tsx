@@ -98,6 +98,10 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
           }}
           onChange={e => { editValueRef.current = e.target.value }}
           onKeyDown={e => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              dispatch({ type: 'STOP_TEXT_EDIT' })
+              e.preventDefault(); e.stopPropagation(); return
+            }
             if (e.key === 'Escape') {
               cancelRef.current = true
               dispatch({ type: 'STOP_TEXT_EDIT' })

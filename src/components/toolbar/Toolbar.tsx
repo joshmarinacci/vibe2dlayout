@@ -129,7 +129,7 @@ export function Toolbar() {
           className={styles.btn}
           title="Zoom out"
           onClick={() => {
-            const presets = [0.25, 0.5, 0.75, 1, 1.5, 2]
+            const presets = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4]
             const cur = state.viewTransform.zoom
             const next = [...presets].reverse().find(z => z < cur - 0.01) ?? presets[0]
             dispatch({ type: 'ZOOM_TO', zoom: next, origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 } })
@@ -143,10 +143,10 @@ export function Toolbar() {
             dispatch({ type: 'ZOOM_TO', zoom, origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 } })
           }}
         >
-          {[25, 50, 75, 100, 150, 200].map(pct => (
+          {[25, 50, 75, 100, 150, 200, 300, 400].map(pct => (
             <option key={pct} value={pct}>{pct}%</option>
           ))}
-          {![25, 50, 75, 100, 150, 200].includes(Math.round(state.viewTransform.zoom * 100)) && (
+          {![25, 50, 75, 100, 150, 200, 300, 400].includes(Math.round(state.viewTransform.zoom * 100)) && (
             <option value={Math.round(state.viewTransform.zoom * 100)}>
               {Math.round(state.viewTransform.zoom * 100)}%
             </option>
@@ -156,7 +156,7 @@ export function Toolbar() {
           className={styles.btn}
           title="Zoom in"
           onClick={() => {
-            const presets = [0.25, 0.5, 0.75, 1, 1.5, 2]
+            const presets = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4]
             const cur = state.viewTransform.zoom
             const next = presets.find(z => z > cur + 0.01) ?? presets[presets.length - 1]
             dispatch({ type: 'ZOOM_TO', zoom: next, origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 } })

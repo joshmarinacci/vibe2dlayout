@@ -54,6 +54,7 @@ export type DocumentAction =
   | { type: 'REPARENT_SHAPE'; id: string; newParentId: string | null; index: number }
   | { type: 'REORDER_SHAPE'; id: string; direction: 'up' | 'down' | 'to-front' | 'to-back' }
   | { type: 'COMMIT_TEXT_EDIT'; id: string; content: string }
+  | { type: 'DUPLICATE_SHAPES'; ids: string[] }
   | { type: 'LOAD_DOCUMENT'; document: VibeDocument }
 
 // Selection mutations — NOT pushed to undo history

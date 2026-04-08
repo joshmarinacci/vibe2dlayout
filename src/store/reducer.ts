@@ -1,8 +1,27 @@
 import type { AppState, AppAction, DocumentAction, ViewTransform } from './types'
 import type { VibeDocument, TreeNode } from '@model/document'
 import type { Shape } from '@model/shapes'
-import { findNode, removeNode, insertNode, getAllIds } from '@model/document'
+import { findNode, findParent, removeNode, insertNode, getAllIds } from '@model/document'
 import { generateId } from '@utils/idgen'
+
+function cloneSubtree(
+  node: TreeNode,
+  shapes: Record<string, Shape>,
+): { node: TreeNode; newShapes: Record<string, Shape> } {
+  const newId = generateId()
+  const shape = shapes[node.id]
+  const newShapes: Record<string, Shape> = {}
+  if (shape) {
+    newShapes[newId] = { ...shape, id: newId }
+  }
+  const newChildren: TreeNode[] = []
+  for (const child of node.children) {
+    const { node: childNode, newShapes: childShapes } = cloneSubtree(child, shapes)
+    newChildren.push(childNode)
+    Object.assign(newShapes, childShapes)
+  }
+  return { node: { id: newId, children: newChildren }, newShapes }
+}
 
 // ─── Document reducer (pure) ───────────────────────────────────────────────
 
@@ -173,6 +192,35 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       return doc
     }
 
+    case 'DUPLICATE_SHAPES': {
+      let newDoc = doc
+      for (const id of action.ids) {
+        const node = findNode(newDoc.rootNodes, id)
+        if (!node) continue
+        const { node: clonedNode, newShapes } = cloneSubtree(node, newDoc.shapes)
+        // Offset the root clone by (10, 10) in local space
+        const rootShape = newShapes[clonedNode.id]
+        if (rootShape && rootShape.type !== 'line' && rootShape.type !== 'page') {
+          newShapes[clonedNode.id] = {
+            ...rootShape,
+            transform: { ...rootShape.transform, x: rootShape.transform.x + 10, y: rootShape.transform.y + 10 },
+          }
+        }
+        // Insert after the original
+        const parentNode = findParent(newDoc.rootNodes, id)
+        const parentId = parentNode?.id ?? null
+        const siblings = parentNode ? parentNode.children : newDoc.rootNodes
+        const idx = siblings.findIndex(n => n.id === id)
+        const insertIndex = idx >= 0 ? idx + 1 : siblings.length
+        newDoc = {
+          ...newDoc,
+          shapes: { ...newDoc.shapes, ...newShapes },
+          rootNodes: insertNode(newDoc.rootNodes, parentId, clonedNode, insertIndex),
+        }
+      }
+      return newDoc
+    }
+
     case 'LOAD_DOCUMENT':
       return action.document
 
@@ -229,6 +277,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'REPARENT_SHAPE':
     case 'REORDER_SHAPE':
     case 'COMMIT_TEXT_EDIT':
+    case 'DUPLICATE_SHAPES':
     case 'LOAD_DOCUMENT':
       return {
         ...state,

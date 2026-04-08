@@ -83,11 +83,17 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
             fontSize: text.fontSize,
             fontWeight: text.fontWeight,
             color: text.color,
+            textAlign: text.align,
             outline: 'none',
             padding: '0 2px',
+            width: '100%',
           }}
           onChange={e => { editValueRef.current = e.target.value }}
           onKeyDown={e => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              dispatch({ type: 'STOP_TEXT_EDIT' })
+              e.preventDefault(); e.stopPropagation(); return
+            }
             if (e.key === 'Escape') {
               cancelRef.current = true
               dispatch({ type: 'STOP_TEXT_EDIT' })
@@ -104,17 +110,21 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           display: 'flex',
           alignItems: 'center',
           padding: '0 2px',
-          fontFamily: text.fontFamily,
-          fontSize: text.fontSize,
-          fontWeight: text.fontWeight,
-          fontStyle: text.fontStyle,
-          color: text.color,
-          textAlign: text.align,
-          userSelect: 'none',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
         }}>
-          {text.content}
+          <span style={{
+            flex: 1,
+            fontFamily: text.fontFamily,
+            fontSize: text.fontSize,
+            fontWeight: text.fontWeight,
+            fontStyle: text.fontStyle,
+            color: text.color,
+            textAlign: text.align,
+            userSelect: 'none',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}>
+            {text.content}
+          </span>
         </div>
       )}
     </div>
