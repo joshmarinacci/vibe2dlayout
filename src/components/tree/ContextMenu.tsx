@@ -1,9 +1,10 @@
+import type React from 'react'
 import { useEffect, useRef } from 'react'
 import styles from './ContextMenu.module.css'
 
 export interface ContextMenuItem {
   label: string
-  icon?: string
+  icon?: React.ReactNode
   onClick: () => void
   danger?: boolean
   disabled?: boolean

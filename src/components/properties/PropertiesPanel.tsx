@@ -273,6 +273,10 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
         <>
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Text Field</div>
             <input
@@ -291,7 +295,11 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
       return (
         <>
           <TransformSection transform={shape.transform} onChange={patchTransform} />
-          <ContentSection id={shape.id} content={shape.label} dispatch={dispatch} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Checkbox</div>
             <ToggleInput
@@ -309,7 +317,11 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
       return (
         <>
           <TransformSection transform={shape.transform} onChange={patchTransform} />
-          <ContentSection id={shape.id} content={shape.label} dispatch={dispatch} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Toggle</div>
             <ToggleInput
@@ -320,6 +332,146 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
           </div>
           <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })} />
           <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'frame':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Panel</div>
+            <NumberInput
+              label="Radius"
+              value={shape.cornerRadius}
+              min={0}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
+              unit="px"
+            />
+            <ToggleInput
+              label="Clip"
+              value={shape.clipChildren}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { clipChildren: v } })}
+            />
+          </div>
+        </>
+      )
+
+    case 'dialog':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Dialog</div>
+            <input
+              className={styles.nameInput}
+              value={shape.title}
+              placeholder="Title"
+              onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { title: e.target.value } as Partial<Shape> })}
+            />
+            <input
+              className={styles.nameInput}
+              value={shape.okLabel}
+              placeholder="OK label"
+              onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { okLabel: e.target.value } as Partial<Shape> })}
+            />
+            <input
+              className={styles.nameInput}
+              value={shape.cancelLabel}
+              placeholder="Cancel label"
+              onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cancelLabel: e.target.value } as Partial<Shape> })}
+            />
+          </div>
+        </>
+      )
+
+    case 'radio':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Radio Button</div>
+            <ToggleInput
+              label="Checked"
+              value={shape.checked}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'select':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Select</div>
+            <input
+              className={styles.nameInput}
+              value={shape.placeholder}
+              placeholder="Placeholder"
+              onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { placeholder: e.target.value } as Partial<Shape> })}
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'progress':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Progress Bar</div>
+            <NumberInput
+              label="Value"
+              value={shape.value}
+              min={0} max={100}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { value: v } })}
+              unit="%"
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'stepper':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Number Stepper</div>
+            <NumberInput
+              label="Value"
+              value={shape.value}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { value: v } })}
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
         </>
       )

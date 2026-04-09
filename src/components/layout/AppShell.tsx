@@ -6,6 +6,7 @@ import { TreePanel } from '@components/tree/TreePanel'
 import { CanvasView } from '@components/canvas/CanvasView'
 import { PropertiesPanel } from '@components/properties/PropertiesPanel'
 import { StatusBar } from './StatusBar'
+import { ShortcutsModal } from './ShortcutsModal'
 
 const MIN_SIDEBAR = 150
 const MAX_SIDEBAR = 500
@@ -56,6 +57,7 @@ export function AppShell() {
         onToggleLeft={() => setLeftCollapsed(c => !c)}
         onToggleRight={() => setRightCollapsed(c => !c)}
       />
+      <ShortcutsModal />
     </div>
   )
 }

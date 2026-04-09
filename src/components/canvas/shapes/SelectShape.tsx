@@ -1,12 +1,13 @@
 import { useRef, useEffect, type Dispatch } from 'react'
-import type { CheckboxShape } from '@model/shapes'
+import type { SelectShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
+import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
+import { ChevronDown } from 'lucide-react'
 import styles from './Shape.module.css'
 
 interface Props {
-  shape: CheckboxShape
+  shape: SelectShape
   isSelected: boolean
   isEditing: boolean
   dispatch: Dispatch<AppAction>
@@ -14,10 +15,10 @@ interface Props {
   onDoubleClick: (e: React.MouseEvent) => void
 }
 
-export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
-  const { transform, checked, text, fill, stroke } = shape
+export function SelectShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+  const { transform, placeholder, text, fill, stroke } = shape
   const { x, y, width, height, rotation } = transform
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const editValueRef = useRef(text.content)
   const cancelRef = useRef(false)
   const wasEditingRef = useRef(false)
@@ -27,8 +28,8 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
       wasEditingRef.current = true
       editValueRef.current = text.content
       cancelRef.current = false
-      textareaRef.current?.focus()
-      textareaRef.current?.select()
+      inputRef.current?.focus()
+      inputRef.current?.select()
     } else if (!isEditing && wasEditingRef.current) {
       wasEditingRef.current = false
       if (!cancelRef.current) {
@@ -38,11 +39,9 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing])
 
-  const boxSize = Math.min(height - 2, 16)
-  const boxY = (height - boxSize) / 2
-
   const seed = seedFromId(shape.id)
-  const boxPaths = roughRect(1, boxY, boxSize, boxSize, {
+  const pad = 2
+  const paths = roughRect(pad, pad, width - pad * 2, height - pad * 2, {
     seed,
     roughness: 1.2,
     bowing: 0.5,
@@ -53,22 +52,8 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
     strokeWidth: stroke.width,
   })
 
-  const checkPaths = checked ? [
-    ...roughLine(3, boxY + boxSize * 0.5, boxSize * 0.42, boxY + boxSize * 0.78, {
-      seed: seed + 1,
-      roughness: 1.5,
-      stroke: stroke.color,
-      strokeWidth: stroke.width + 0.5,
-    }),
-    ...roughLine(boxSize * 0.42, boxY + boxSize * 0.78, boxSize - 2, boxY + boxSize * 0.22, {
-      seed: seed + 2,
-      roughness: 1.5,
-      stroke: stroke.color,
-      strokeWidth: stroke.width + 0.5,
-    }),
-  ] : []
-
-  const labelLeft = boxSize + 6
+  const displayText = text.content || placeholder
+  const isPlaceholder = !text.content
 
   return (
     <div
@@ -90,33 +75,28 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
         width={width}
         height={height}
       >
-        <RoughSvgPaths paths={boxPaths} />
-        <RoughSvgPaths paths={checkPaths} />
+        <RoughSvgPaths paths={paths} />
       </svg>
 
       {isEditing ? (
-        <textarea
-          ref={textareaRef}
+        <input
+          ref={inputRef}
           defaultValue={text.content}
           style={{
             position: 'absolute',
-            left: labelLeft,
-            top: 0,
-            right: 0,
-            bottom: 0,
+            inset: 0,
             border: 'none',
             background: 'transparent',
-            resize: 'none',
-            fontSize: text.fontSize,
             fontFamily: text.fontFamily,
+            fontSize: text.fontSize,
             fontWeight: text.fontWeight,
             color: text.color,
             outline: 'none',
-            padding: '0 2px',
+            padding: '0 24px 0 8px',
           }}
           onChange={e => { editValueRef.current = e.target.value }}
           onKeyDown={e => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            if (e.key === 'Enter' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
               dispatch({ type: 'STOP_TEXT_EDIT' })
               e.preventDefault(); e.stopPropagation(); return
             }
@@ -132,23 +112,34 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
       ) : (
         <div style={{
           position: 'absolute',
-          left: labelLeft,
-          top: 0,
-          right: 0,
-          bottom: 0,
+          inset: 0,
           display: 'flex',
           alignItems: 'center',
-          fontSize: text.fontSize,
+          padding: '0 24px 0 8px',
           fontFamily: text.fontFamily,
+          fontSize: text.fontSize,
           fontWeight: text.fontWeight,
-          color: text.color,
+          color: isPlaceholder ? '#999' : text.color,
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
         }}>
-          {text.content}
+          {displayText}
         </div>
       )}
+
+      <div style={{
+        position: 'absolute',
+        right: 4,
+        top: 0,
+        bottom: 0,
+        display: 'flex',
+        alignItems: 'center',
+        color: stroke.color,
+        pointerEvents: 'none',
+      }}>
+        <ChevronDown size={14} />
+      </div>
     </div>
   )
 }

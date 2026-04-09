@@ -57,6 +57,11 @@ export function useDocumentShortcuts() {
         return
       }
 
+      if (e.key === '?' && !meta && !state.selection.editingTextId) {
+        dispatch({ type: 'TOGGLE_SHORTCUTS_MODAL' })
+        return
+      }
+
       // Arrow key nudge
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
         if (state.selection.ids.length > 0) {

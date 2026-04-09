@@ -3,6 +3,7 @@ import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
 import type { BoundingBox, Anchor } from '@model/transform'
 import { anchorPoint, buildParentMap, getAbsoluteTransform, getParentContentOrigin } from '@utils/geometry'
+import { RULER_SIZE } from './CanvasRuler'
 
 const HANDLE_PX = 8  // visual size in screen pixels
 
@@ -120,8 +121,8 @@ function ResizeHandle({ anchor, cx, cy, handleSize, bbox, ids, containerRef, dis
     const { sx, sy, bbox: startBbox } = dragStart.current
     const rect = containerRef.current!.getBoundingClientRect()
 
-    const startCanvas = screenToCanvas(state.viewTransform, sx - rect.left, sy - rect.top)
-    const curCanvas = screenToCanvas(state.viewTransform, e.clientX - rect.left, e.clientY - rect.top)
+    const startCanvas = screenToCanvas(state.viewTransform, sx - rect.left - RULER_SIZE, sy - rect.top - RULER_SIZE)
+    const curCanvas = screenToCanvas(state.viewTransform, e.clientX - rect.left - RULER_SIZE, e.clientY - rect.top - RULER_SIZE)
     const dx = curCanvas.x - startCanvas.x
     const dy = curCanvas.y - startCanvas.y
 

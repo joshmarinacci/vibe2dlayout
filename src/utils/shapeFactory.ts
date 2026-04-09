@@ -109,7 +109,7 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         ...base, type: 'checkbox',
         transform: defaultTransform(x, y, 120, 20),
         checked: false,
-        label: 'Checkbox',
+        text: { ...defaultText('Checkbox'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
         fill: { color: '#ffffff', opacity: 1 },
         stroke: defaultStroke(),
       }
@@ -118,9 +118,66 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         ...base, type: 'toggle',
         transform: defaultTransform(x, y, 130, 24),
         checked: false,
-        label: 'Toggle',
+        text: { ...defaultText('Toggle'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
         trackFill: { color: '#e5e7eb', opacity: 1 },
         thumbFill: { color: '#3b82f6', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+    case 'frame':
+      return {
+        ...base, name: 'Frame', type: 'frame',
+        transform: defaultTransform(x, y, 200, 150),
+        fill: { color: '#ffffff', opacity: 1 },
+        stroke: defaultStroke(),
+        cornerRadius: 4,
+        clipChildren: false,
+      }
+    case 'dialog':
+      return {
+        ...base, name: 'Dialog', type: 'dialog',
+        transform: defaultTransform(x, y, 320, 220),
+        fill: { color: '#ffffff', opacity: 1 },
+        stroke: defaultStroke(),
+        title: 'Dialog',
+        titleFontSize: 15,
+        okLabel: 'OK',
+        cancelLabel: 'Cancel',
+      }
+    case 'radio':
+      return {
+        ...base, name: 'Radio', type: 'radio',
+        transform: defaultTransform(x, y, 120, 20),
+        checked: false,
+        text: { ...defaultText('Option'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
+        fill: { color: '#ffffff', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+    case 'select':
+      return {
+        ...base, name: 'Select', type: 'select',
+        transform: defaultTransform(x, y, 160, 32),
+        value: '',
+        placeholder: 'Select...',
+        text: { ...defaultText(''), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
+        fill: { color: '#ffffff', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+    case 'progress':
+      return {
+        ...base, name: 'Progress', type: 'progress',
+        transform: defaultTransform(x, y, 200, 16),
+        value: 60,
+        fill: { color: '#3b82f6', opacity: 1 },
+        trackFill: { color: '#e5e7eb', opacity: 1 },
+        stroke: defaultStroke(),
+      }
+    case 'stepper':
+      return {
+        ...base, name: 'Stepper', type: 'stepper',
+        transform: defaultTransform(x, y, 140, 32),
+        value: 0,
+        text: { ...defaultText('0'), fontFamily: 'Caveat, cursive', fontSize: 15, color: '#333333', align: 'center', verticalAlign: 'middle' },
+        fill: { color: '#ffffff', opacity: 1 },
         stroke: defaultStroke(),
       }
   }

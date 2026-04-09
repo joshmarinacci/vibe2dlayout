@@ -5,8 +5,11 @@ import {
   RectangleHorizontal, PanelLeft, SlidersHorizontal,
   Tag, TextCursorInput, CheckSquare, ToggleLeft,
   Eye, EyeOff, Lock, Unlock, Trash2, ChevronRight, ChevronDown,
+  AppWindow, CircleDot, List, GanttChart, Hash,
+  Copy, ChevronsUp, ChevronsDown, ChevronUp, LayoutPanelLeft,
 } from 'lucide-react'
 import type { TreeNode } from '@model/document'
+import { findAncestorPage } from '@model/document'
 import type { Shape, ShapeType } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { createShape } from '@utils/shapeFactory'
@@ -27,6 +30,12 @@ const SHAPE_ICON_MAP: Record<string, React.ReactNode> = {
   textfield: <TextCursorInput size={11} />,
   checkbox:  <CheckSquare size={11} />,
   toggle:    <ToggleLeft size={11} />,
+  frame:     <LayoutPanelLeft size={11} />,
+  dialog:    <AppWindow size={11} />,
+  radio:     <CircleDot size={11} />,
+  select:    <List size={11} />,
+  progress:  <GanttChart size={11} />,
+  stepper:   <Hash size={11} />,
 }
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -38,14 +47,23 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
   { type: 'page',   label: 'Page' },
 ]
 
+const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'panel',   label: 'Titled Panel' },
+  { type: 'frame',   label: 'Panel' },
+  { type: 'dialog',  label: 'Dialog' },
+]
+
 const FORM_CONTROL_TYPES: { type: ShapeType; label: string }[] = [
   { type: 'button',    label: 'Button' },
-  { type: 'panel',     label: 'Panel' },
   { type: 'slider',    label: 'Slider' },
   { type: 'label',     label: 'Label' },
   { type: 'textfield', label: 'Text Field' },
   { type: 'checkbox',  label: 'Checkbox' },
   { type: 'toggle',    label: 'Toggle' },
+  { type: 'radio',     label: 'Radio Button' },
+  { type: 'select',    label: 'Select' },
+  { type: 'progress',  label: 'Progress Bar' },
+  { type: 'stepper',   label: 'Number Stepper' },
 ]
 
 interface DragPayload {
@@ -58,6 +76,7 @@ const DRAG_TYPE = 'application/vibe-tree-drag'
 
 interface Props {
   node: TreeNode
+  rootNodes: TreeNode[]
   shapes: Record<string, Shape>
   depth: number
   selectedIds: string[]
@@ -67,7 +86,7 @@ interface Props {
   nodeIndex: number
 }
 
-export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, dispatch, parentId, nodeIndex }: Props) {
+export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, activePageId, dispatch, parentId, nodeIndex }: Props) {
   const shape = shapes[node.id]
   if (!shape) return null
 
@@ -148,6 +167,11 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
   const handleClick = (e: React.MouseEvent) => {
     if (isPage) {
       dispatch({ type: 'SET_ACTIVE_PAGE', pageId: node.id })
+    } else {
+      const ancestorPageId = findAncestorPage(rootNodes, node.id, shapes)
+      if (ancestorPageId && ancestorPageId !== activePageId) {
+        dispatch({ type: 'SET_ACTIVE_PAGE', pageId: ancestorPageId })
+      }
     }
     dispatch({ type: 'SELECT_SHAPES', ids: [node.id], additive: e.shiftKey })
   }
@@ -186,6 +210,10 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
       label: opt.label,
       onClick: () => addShapeTo(node.id, opt.type),
     }))
+    const containerItems = CONTAINER_TYPES.map(opt => ({
+      label: opt.label,
+      onClick: () => addShapeTo(node.id, opt.type),
+    }))
     const formItems = FORM_CONTROL_TYPES.map(opt => ({
       label: opt.label,
       onClick: () => addShapeTo(node.id, opt.type),
@@ -199,6 +227,8 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
       },
       {
         items: [
+          { label: 'Containers', onClick: () => {}, disabled: true },
+          ...containerItems,
           { label: 'Form Controls', onClick: () => {}, disabled: true },
           ...formItems,
         ],
@@ -211,7 +241,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
           items: [
             {
               label: 'Set as Active Page',
-              icon: '📄',
+              icon: <FileText size={14} />,
               onClick: () => dispatch({ type: 'SET_ACTIVE_PAGE', pageId: node.id }),
               disabled: isActivePage,
             },
@@ -222,12 +252,12 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
           items: [
             {
               label: shape.visible ? 'Hide' : 'Show',
-              icon: shape.visible ? '👁' : '🚫',
+              icon: shape.visible ? <Eye size={14} /> : <EyeOff size={14} />,
               onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { visible: !shape.visible } }),
             },
             {
               label: shape.locked ? 'Unlock' : 'Lock',
-              icon: shape.locked ? '🔓' : '🔒',
+              icon: shape.locked ? <Unlock size={14} /> : <Lock size={14} />,
               onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { locked: !shape.locked } }),
             },
           ],
@@ -236,7 +266,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
           items: [
             {
               label: 'Delete',
-              icon: '✕',
+              icon: <Trash2 size={14} />,
               danger: true,
               onClick: () => {
                 dispatch({ type: 'DELETE_SHAPES', ids: [node.id] })
@@ -255,7 +285,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
         items: [
           {
             label: 'Duplicate',
-            icon: '⧉',
+            icon: <Copy size={14} />,
             onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: [node.id] }),
           },
         ],
@@ -264,22 +294,22 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
         items: [
           {
             label: 'Move Up',
-            icon: '↑',
+            icon: <ChevronUp size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'up' }),
           },
           {
             label: 'Move Down',
-            icon: '↓',
+            icon: <ChevronDown size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'down' }),
           },
           {
             label: 'Bring to Front',
-            icon: '⬆',
+            icon: <ChevronsUp size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'to-front' }),
           },
           {
             label: 'Send to Back',
-            icon: '⬇',
+            icon: <ChevronsDown size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: node.id, direction: 'to-back' }),
           },
         ],
@@ -288,12 +318,12 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
         items: [
           {
             label: shape.visible ? 'Hide' : 'Show',
-            icon: shape.visible ? '👁' : '🚫',
+            icon: shape.visible ? <Eye size={14} /> : <EyeOff size={14} />,
             onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { visible: !shape.visible } }),
           },
           {
             label: shape.locked ? 'Unlock' : 'Lock',
-            icon: shape.locked ? '🔓' : '🔒',
+            icon: shape.locked ? <Unlock size={14} /> : <Lock size={14} />,
             onClick: () => dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { locked: !shape.locked } }),
           },
         ],
@@ -302,7 +332,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
         items: [
           {
             label: 'Delete',
-            icon: '✕',
+            icon: <Trash2 size={14} />,
             danger: true,
             onClick: () => {
               dispatch({ type: 'DELETE_SHAPES', ids: [node.id] })
@@ -374,6 +404,7 @@ export function TreeNodeComp({ node, shapes, depth, selectedIds, activePageId, d
             <TreeNodeComp
               key={child.id}
               node={child}
+              rootNodes={rootNodes}
               shapes={shapes}
               depth={depth + 1}
               selectedIds={selectedIds}

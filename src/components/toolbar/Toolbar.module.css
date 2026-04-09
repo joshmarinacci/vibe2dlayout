@@ -103,6 +103,22 @@
   color: #3b82f6;
 }
 
+.formMenuSection {
+  padding: 3px 8px 1px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  pointer-events: none;
+}
+
+.formMenuDivider {
+  height: 1px;
+  background: #eee;
+  margin: 3px 4px;
+}
+
 .zoomSelect {
   height: 24px;
   border: 1px solid #ccc;

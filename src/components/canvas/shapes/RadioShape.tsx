@@ -1,12 +1,12 @@
 import { useRef, useEffect, type Dispatch } from 'react'
-import type { CheckboxShape } from '@model/shapes'
+import type { RadioShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
+import { roughCircle, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import styles from './Shape.module.css'
 
 interface Props {
-  shape: CheckboxShape
+  shape: RadioShape
   isSelected: boolean
   isEditing: boolean
   dispatch: Dispatch<AppAction>
@@ -14,7 +14,7 @@ interface Props {
   onDoubleClick: (e: React.MouseEvent) => void
 }
 
-export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, checked, text, fill, stroke } = shape
   const { x, y, width, height, rotation } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -39,10 +39,11 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
   }, [isEditing])
 
   const boxSize = Math.min(height - 2, 16)
-  const boxY = (height - boxSize) / 2
+  const cx = boxSize / 2 + 1
+  const cy = height / 2
 
   const seed = seedFromId(shape.id)
-  const boxPaths = roughRect(1, boxY, boxSize, boxSize, {
+  const circlePaths = roughCircle(cx, cy, boxSize, {
     seed,
     roughness: 1.2,
     bowing: 0.5,
@@ -53,22 +54,17 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
     strokeWidth: stroke.width,
   })
 
-  const checkPaths = checked ? [
-    ...roughLine(3, boxY + boxSize * 0.5, boxSize * 0.42, boxY + boxSize * 0.78, {
-      seed: seed + 1,
-      roughness: 1.5,
-      stroke: stroke.color,
-      strokeWidth: stroke.width + 0.5,
-    }),
-    ...roughLine(boxSize * 0.42, boxY + boxSize * 0.78, boxSize - 2, boxY + boxSize * 0.22, {
-      seed: seed + 2,
-      roughness: 1.5,
-      stroke: stroke.color,
-      strokeWidth: stroke.width + 0.5,
-    }),
-  ] : []
+  const dotPaths = checked ? roughCircle(cx, cy, boxSize * 0.45, {
+    seed: seed + 1,
+    roughness: 1,
+    fill: stroke.color,
+    fillStyle: 'solid',
+    fillWeight: 2,
+    stroke: stroke.color,
+    strokeWidth: 0.5,
+  }) : []
 
-  const labelLeft = boxSize + 6
+  const labelLeft = boxSize + 8
 
   return (
     <div
@@ -90,8 +86,8 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
         width={width}
         height={height}
       >
-        <RoughSvgPaths paths={boxPaths} />
-        <RoughSvgPaths paths={checkPaths} />
+        <RoughSvgPaths paths={circlePaths} />
+        <RoughSvgPaths paths={dotPaths} />
       </svg>
 
       {isEditing ? (

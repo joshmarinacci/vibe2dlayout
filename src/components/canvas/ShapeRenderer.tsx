@@ -15,6 +15,12 @@ import { LabelShapeComp } from './shapes/LabelShape'
 import { TextFieldShapeComp } from './shapes/TextFieldShape'
 import { CheckboxShapeComp } from './shapes/CheckboxShape'
 import { ToggleShapeComp } from './shapes/ToggleShape'
+import { FrameShapeComp } from './shapes/FrameShape'
+import { DialogShapeComp } from './shapes/DialogShape'
+import { RadioShapeComp } from './shapes/RadioShape'
+import { SelectShapeComp } from './shapes/SelectShape'
+import { ProgressShapeComp } from './shapes/ProgressShape'
+import { StepperShapeComp } from './shapes/StepperShape'
 
 interface Props {
   nodes: TreeNode[]
@@ -64,7 +70,7 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch }
     dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: e.shiftKey })
   }
 
-  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle'])
+  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select'])
 
   const onDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -112,5 +118,17 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch }
       return <CheckboxShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
     case 'toggle':
       return <ToggleShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+    case 'frame':
+      return <FrameShapeComp shape={shape} dispatch={dispatch} {...commonProps}>{children}</FrameShapeComp>
+    case 'dialog':
+      return <DialogShapeComp shape={shape} dispatch={dispatch} {...commonProps}>{children}</DialogShapeComp>
+    case 'radio':
+      return <RadioShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+    case 'select':
+      return <SelectShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+    case 'progress':
+      return <ProgressShapeComp shape={shape} dispatch={dispatch} {...commonProps} />
+    case 'stepper':
+      return <StepperShapeComp shape={shape} dispatch={dispatch} {...commonProps} />
   }
 }

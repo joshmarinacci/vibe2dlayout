@@ -13,14 +13,23 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
   { type: 'image',  label: 'Image' },
 ]
 
+const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'panel',   label: 'Titled Panel' },
+  { type: 'frame',   label: 'Panel' },
+  { type: 'dialog',  label: 'Dialog' },
+]
+
 const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
   { type: 'button',    label: 'Button' },
-  { type: 'panel',     label: 'Panel' },
   { type: 'slider',    label: 'Slider' },
   { type: 'label',     label: 'Label' },
   { type: 'textfield', label: 'Text Field' },
   { type: 'checkbox',  label: 'Checkbox' },
   { type: 'toggle',    label: 'Toggle' },
+  { type: 'radio',     label: 'Radio Button' },
+  { type: 'select',    label: 'Select' },
+  { type: 'progress',  label: 'Progress Bar' },
+  { type: 'stepper',   label: 'Number Stepper' },
 ]
 
 export function TreePanel() {
@@ -72,6 +81,15 @@ export function TreePanel() {
                 </div>
                 <div className={styles.addMenuDivider} />
                 <div className={styles.addMenuGroup}>
+                  <div className={styles.addMenuLabel}>Containers</div>
+                  {CONTAINER_TYPES.map(opt => (
+                    <button key={opt.type} className={styles.addMenuItem} onClick={() => addShape(opt.type)}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.addMenuDivider} />
+                <div className={styles.addMenuGroup}>
                   <div className={styles.addMenuLabel}>Form Controls</div>
                   {FORM_CONTROLS.map(opt => (
                     <button key={opt.type} className={styles.addMenuItem} onClick={() => addShape(opt.type)}>
@@ -90,6 +108,7 @@ export function TreePanel() {
           <TreeNodeComp
             key={node.id}
             node={node}
+            rootNodes={rootNodes}
             shapes={shapes}
             depth={0}
             selectedIds={state.selection.ids}

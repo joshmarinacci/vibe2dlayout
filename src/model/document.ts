@@ -65,6 +65,17 @@ export function insertNode(
   })
 }
 
+export function findAncestorPage(
+  nodes: TreeNode[],
+  id: string,
+  shapes: Record<string, Shape>,
+): string | null {
+  for (const node of nodes) {
+    if (shapes[node.id]?.type === 'page' && findNode([node], id)) return node.id
+  }
+  return null
+}
+
 export function getAllIds(nodes: TreeNode[]): string[] {
   const ids: string[] = []
   function walk(ns: TreeNode[]) {

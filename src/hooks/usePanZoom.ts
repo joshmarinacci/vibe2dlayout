@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useAppDispatch, useAppState } from '@store/context'
+import { RULER_SIZE } from '@components/canvas/CanvasRuler'
 
 const MIN_ZOOM = 0.05
 const MAX_ZOOM = 20
@@ -12,8 +13,9 @@ export function usePanZoom() {
     e.preventDefault()
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const originX = e.clientX - rect.left
-    const originY = e.clientY - rect.top
+    // Subtract ruler offset so zoom origin is in canvas div space
+    const originX = e.clientX - rect.left - RULER_SIZE
+    const originY = e.clientY - rect.top - RULER_SIZE
 
     if (e.ctrlKey || e.metaKey) {
       // Zoom

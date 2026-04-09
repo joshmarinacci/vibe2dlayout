@@ -1,3 +1,43 @@
+## 2026-04-08 13:38
+
+### Bug Fixes
+
+- **Ruler numbers legible**: Increased RULER_SIZE from 20 → 28px; vertical labels now use `ctx.measureText` for proper centering instead of a fixed char-width estimate; labels drawn in the non-tick area of each ruler.
+- **Page button now activates new page**: After inserting a page shape from the toolbar, `SET_ACTIVE_PAGE` is now dispatched so the canvas immediately switches to the new empty page.
+
+## 2026-04-08 13:10
+
+### Bug Fixes & Improvements
+
+- **Select control text editing**: Double-click to edit the selected value directly on the canvas (inline `<input>`). Commit with Enter or Cmd+Enter, cancel with Escape.
+- **Text style properties on all text controls**: Added TextSection (font size, weight, family, alignment, color) to textfield, select, stepper, checkbox, toggle, and radio in the Properties panel.
+- **Checkbox/Toggle/Radio now use TextStyle**: Model updated to replace `label: string` with `text: TextStyle`, giving full typography control. Renderers updated to use `text.fontFamily/fontSize/fontWeight/color`.
+- **Canvas ruler numbers fixed**: Ruler canvases now dynamically match their CSS rendered size (×devicePixelRatio for sharpness), so labels render at full size instead of being scaled down from a 4000px buffer. Font increased to 11px; minimum tick spacing increased to 12px screen pixels.
+- **Toolbar dropdowns no longer render behind canvas**: Added `position: relative` and increased z-index to 100 on the toolbar container, ensuring dropdowns always appear above canvas content.
+- **Page button in toolbar now works**: Inserting a page shape now uses `parentId: null` (root level) instead of the current active page, so pages appear at the document root.
+
+## 2026-04-08 12:40
+
+### Features
+
+- **Canvas ruler**: 20px horizontal and vertical rulers positioned in screen space, origin (0 label + blue line) aligned to the active page's top-left corner. Ticks adapt their interval based on zoom level; origin marker moves correctly with pan/zoom.
+- **Titled Panel / plain Panel split**: Existing "Panel" shape is now labelled "Titled Panel" everywhere (type remains `'panel'` for document compatibility). A new "Panel" (`type: 'frame'`) is a simple container with no title bar — rough rect outline with children nested inside.
+- **Dialog shape**: New `'dialog'` type with a rough title bar, a scrollable body area for child shapes, a rough footer divider, and two rough-rect buttons (Cancel / OK) with configurable labels.
+- **Cmd+drag to duplicate-and-move**: Holding Cmd while dragging a shape creates a duplicate at the original position and drags the clone. Pre-generates clone IDs so the drag is immediately transferred to the new shape.
+- **Lucide icons in context menus**: All unicode glyph icons (`⧉`, `↑↓⬆⬇`, `👁🚫🔒🔓`, `✕`, `📄`) replaced with lucide-react components. `ContextMenuItem.icon` widened from `string` to `React.ReactNode`.
+- **Shapes dropdown in toolbar**: Rect, Circle, and Line moved into a single dropdown button (same pattern as Form Controls). Shows the icon of the last-used shape tool.
+- **Components dropdown in toolbar**: Renamed from "Form Controls"; now has a "Containers" section (Titled Panel, Panel, Dialog) and a "Form Controls" section. Help `?` button added to the right side of the toolbar.
+- **4 new form controls**: Radio Button (`'radio'`), Select/Dropdown (`'select'`), Progress Bar (`'progress'`), Number Stepper (`'stepper'`) — all rendered with rough.js hand-drawn style.
+- **Tree view auto-switches active page**: Clicking any non-page shape in the layer tree that belongs to a different page now automatically switches the active page.
+- **Help modal (`?`)**: Press `?` or click the `?` toolbar button to open a keyboard + mouse shortcuts reference modal. Escape or clicking the overlay closes it.
+
+### Internal
+
+- `findAncestorPage` helper added to `document.ts`
+- All ruler, pan, zoom, and resize-handle coordinate conversions updated to account for the 20px ruler offset
+- `DUPLICATE_SHAPES` action accepts an optional `rootIds` array for pre-seeded clone IDs (used by Cmd+drag)
+- `AppState.showShortcutsModal` + `TOGGLE_SHORTCUTS_MODAL` view action added
+
 ## 2026-04-08
 
 ### Features

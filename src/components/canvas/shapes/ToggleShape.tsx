@@ -15,17 +15,17 @@ interface Props {
 }
 
 export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
-  const { transform, checked, label, trackFill, thumbFill, stroke } = shape
+  const { transform, checked, text, trackFill, thumbFill, stroke } = shape
   const { x, y, width, height, rotation } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const editValueRef = useRef(label)
+  const editValueRef = useRef(text.content)
   const cancelRef = useRef(false)
   const wasEditingRef = useRef(false)
 
   useEffect(() => {
     if (isEditing && !wasEditingRef.current) {
       wasEditingRef.current = true
-      editValueRef.current = label
+      editValueRef.current = text.content
       cancelRef.current = false
       textareaRef.current?.focus()
       textareaRef.current?.select()
@@ -102,7 +102,7 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
       {isEditing ? (
         <textarea
           ref={textareaRef}
-          defaultValue={label}
+          defaultValue={text.content}
           style={{
             position: 'absolute',
             left: labelLeft,
@@ -112,9 +112,10 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
             border: 'none',
             background: 'transparent',
             resize: 'none',
-            fontSize: 13,
-            fontFamily: 'sans-serif',
-            color: '#333',
+            fontSize: text.fontSize,
+            fontFamily: text.fontFamily,
+            fontWeight: text.fontWeight,
+            color: text.color,
             outline: 'none',
             padding: '0 2px',
           }}
@@ -142,14 +143,15 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
           bottom: 0,
           display: 'flex',
           alignItems: 'center',
-          fontSize: 15,
-          fontFamily: 'Caveat, cursive',
-          color: '#333',
+          fontSize: text.fontSize,
+          fontFamily: text.fontFamily,
+          fontWeight: text.fontWeight,
+          color: text.color,
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
         }}>
-          {label}
+          {text.content}
         </div>
       )}
     </div>

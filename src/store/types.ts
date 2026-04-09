@@ -27,6 +27,12 @@ export type ToolMode =
   | 'insert-textfield'
   | 'insert-checkbox'
   | 'insert-toggle'
+  | 'insert-frame'
+  | 'insert-dialog'
+  | 'insert-radio'
+  | 'insert-select'
+  | 'insert-progress'
+  | 'insert-stepper'
   | 'insert-page'
 
 // ─── App State ─────────────────────────────────────────────────────────────
@@ -38,6 +44,7 @@ export interface AppState {
   toolMode: ToolMode
   // current page being viewed/edited
   activePageId: string | null
+  showShortcutsModal: boolean
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -54,7 +61,7 @@ export type DocumentAction =
   | { type: 'REPARENT_SHAPE'; id: string; newParentId: string | null; index: number }
   | { type: 'REORDER_SHAPE'; id: string; direction: 'up' | 'down' | 'to-front' | 'to-back' }
   | { type: 'COMMIT_TEXT_EDIT'; id: string; content: string }
-  | { type: 'DUPLICATE_SHAPES'; ids: string[] }
+  | { type: 'DUPLICATE_SHAPES'; ids: string[]; rootIds?: string[] }
   | { type: 'LOAD_DOCUMENT'; document: VibeDocument }
 
 // Selection mutations — NOT pushed to undo history
@@ -72,6 +79,7 @@ export type ViewAction =
   | { type: 'ZOOM_TO'; zoom: number; origin: Point }
   | { type: 'RESET_VIEW' }
   | { type: 'SET_ACTIVE_PAGE'; pageId: string | null }
+  | { type: 'TOGGLE_SHORTCUTS_MODAL' }
 
 // Undo/redo
 export type HistoryAction =

@@ -8,10 +8,11 @@
 
 .toolbar {
   flex: 0 0 auto;
+  position: relative;
   height: 40px;
   background: #f5f5f5;
   border-bottom: 1px solid #d0d0d0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .body {

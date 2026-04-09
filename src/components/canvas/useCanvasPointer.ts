@@ -4,8 +4,10 @@ import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
 import type { ShapeType } from '@model/shapes'
 import { createShape } from '@utils/shapeFactory'
+import { generateId } from '@utils/idgen'
 import { pointInBox, pointNearLine, buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { resolveEndpoint } from '@utils/connectors'
+import { RULER_SIZE } from './CanvasRuler'
 
 interface GhostRect {
   x: number
@@ -36,7 +38,12 @@ const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-textfield': 'textfield',
   'insert-checkbox': 'checkbox',
   'insert-toggle': 'toggle',
-  'insert-page': 'page',
+  'insert-frame': 'frame',
+  'insert-dialog': 'dialog',
+  'insert-radio': 'radio',
+  'insert-select': 'select',
+  'insert-progress': 'progress',
+  'insert-stepper': 'stepper',
 }
 
 export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>) {
@@ -47,6 +54,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const draggingIds = useRef<string[]>([])
   const lastCanvasPos = useRef<{ x: number; y: number } | null>(null)
   const isDragging = useRef(false)
+  const metaDownAtStart = useRef(false)
+  const hasDuplicated = useRef(false)
   const spaceDown = useRef(false)
   const spacePanning = useRef(false)
   const [spaceHeld, setSpaceHeld] = useState(false)
@@ -83,7 +92,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     const rect = containerRef.current!.getBoundingClientRect()
     const sx = e.clientX - rect.left
     const sy = e.clientY - rect.top
-    return { sx, sy, ...screenToCanvas(state.viewTransform, sx, sy) }
+    return { sx, sy, ...screenToCanvas(state.viewTransform, sx - RULER_SIZE, sy - RULER_SIZE) }
   }, [state.viewTransform, containerRef])
 
   const hitTestShapes = useCallback((cx: number, cy: number): string | null => {
@@ -149,6 +158,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }
 
     // Select mode
+    metaDownAtStart.current = e.metaKey
+    hasDuplicated.current = false
     const hitId = hitTestShapes(pos.x, pos.y)
     if (hitId) {
       const alreadySelected = state.selection.ids.includes(hitId)
@@ -216,8 +227,15 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       return
     }
 
-    // Move selected shapes
+    // Move selected shapes (with optional Cmd+drag duplicate)
     if (draggingIds.current.length > 0 && lastCanvasPos.current) {
+      if (metaDownAtStart.current && !hasDuplicated.current) {
+        const newRootIds = draggingIds.current.map(() => generateId())
+        dispatch({ type: 'DUPLICATE_SHAPES', ids: draggingIds.current, rootIds: newRootIds })
+        dispatch({ type: 'SELECT_SHAPES', ids: newRootIds, additive: false })
+        draggingIds.current = newRootIds
+        hasDuplicated.current = true
+      }
       const canvasDx = pos.x - lastCanvasPos.current.x
       const canvasDy = pos.y - lastCanvasPos.current.y
       dispatch({ type: 'MOVE_SHAPES', ids: draggingIds.current, dx: canvasDx, dy: canvasDy })
@@ -256,16 +274,20 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         const shape = createShape(shapeType, x, y)
         if (shape.type !== 'line') {
           const newShape = { ...shape, transform: { ...shape.transform, x, y, width: w, height: h } }
-          dispatch({ type: 'ADD_SHAPE', parentId: state.activePageId, shape: newShape })
+          const parentId = shapeType === 'page' ? null : state.activePageId
+          dispatch({ type: 'ADD_SHAPE', parentId, shape: newShape })
           dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
+          if (shapeType === 'page') dispatch({ type: 'SET_ACTIVE_PAGE', pageId: newShape.id })
         }
       }
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
     } else if (shapeType && !isDragging.current) {
       // Single click insert with default size
       const shape = createShape(shapeType, pos.x - 60, pos.y - 30)
-      dispatch({ type: 'ADD_SHAPE', parentId: state.activePageId, shape })
+      const parentId = shapeType === 'page' ? null : state.activePageId
+      dispatch({ type: 'ADD_SHAPE', parentId, shape })
       dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: false })
+      if (shapeType === 'page') dispatch({ type: 'SET_ACTIVE_PAGE', pageId: shape.id })
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
     }
 
@@ -307,16 +329,18 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     draggingIds.current = []
     lastCanvasPos.current = null
     spacePanning.current = false
+    metaDownAtStart.current = false
+    hasDuplicated.current = false
   }, [state, dispatch, getCanvasPos, containerRef])
 
   const getMouseCanvasPos = useCallback((e: React.MouseEvent) => {
     const rect = containerRef.current!.getBoundingClientRect()
     const sx = e.clientX - rect.left
     const sy = e.clientY - rect.top
-    return screenToCanvas(state.viewTransform, sx, sy)
+    return screenToCanvas(state.viewTransform, sx - RULER_SIZE, sy - RULER_SIZE)
   }, [state.viewTransform, containerRef])
 
-  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle'])
+  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select'])
 
   const onDoubleClick = useCallback((e: React.MouseEvent) => {
     if (state.toolMode !== 'select') return

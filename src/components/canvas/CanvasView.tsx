@@ -6,6 +6,7 @@ import { ShapeRenderer } from './ShapeRenderer'
 import { SelectionOverlay } from './SelectionOverlay'
 import { useCanvasPointer } from './useCanvasPointer'
 import { CanvasContextMenu } from './CanvasContextMenu'
+import { CanvasRuler, RULER_SIZE } from './CanvasRuler'
 import styles from './CanvasView.module.css'
 
 export function CanvasView() {
@@ -38,6 +39,9 @@ export function CanvasView() {
 
   const bgColor = activePage?.type === 'page' ? activePage.background : '#f0f0f0'
 
+  const pageOriginX = activePage?.type === 'page' ? activePage.transform.x : 0
+  const pageOriginY = activePage?.type === 'page' ? activePage.transform.y : 0
+
   return (
     <div
       ref={containerRef}
@@ -50,13 +54,22 @@ export function CanvasView() {
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
     >
-      {/* Canvas background */}
-      <div className={styles.background} />
+      {/* Canvas background (offset by ruler) */}
+      <div className={styles.background} style={{ top: RULER_SIZE, left: RULER_SIZE }} />
 
-      {/* Transformed canvas content */}
+      {/* Ruler overlay */}
+      <CanvasRuler
+        viewTransform={state.viewTransform}
+        pageOriginX={pageOriginX}
+        pageOriginY={pageOriginY}
+      />
+
+      {/* Transformed canvas content (offset by ruler) */}
       <div
         className={styles.canvas}
         style={{
+          top: RULER_SIZE,
+          left: RULER_SIZE,
           transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
           transformOrigin: '0 0',
         }}

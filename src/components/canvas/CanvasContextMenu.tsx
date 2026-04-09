@@ -7,6 +7,10 @@ import { createShape } from '@utils/shapeFactory'
 import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { ContextMenu, type ContextMenuGroup } from '../tree/ContextMenu'
 import type { CanvasContextMenuState } from './useCanvasPointer'
+import {
+  Copy, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
+  Eye, EyeOff, Lock, Unlock, Trash2,
+} from 'lucide-react'
 
 interface Props {
   menuState: CanvasContextMenuState
@@ -25,14 +29,23 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
   { type: 'image',  label: 'Image' },
 ]
 
+const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'panel',   label: 'Titled Panel' },
+  { type: 'frame',   label: 'Panel' },
+  { type: 'dialog',  label: 'Dialog' },
+]
+
 const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
   { type: 'button',    label: 'Button' },
-  { type: 'panel',     label: 'Panel' },
   { type: 'slider',    label: 'Slider' },
   { type: 'label',     label: 'Label' },
   { type: 'textfield', label: 'Text Field' },
   { type: 'checkbox',  label: 'Checkbox' },
   { type: 'toggle',    label: 'Toggle' },
+  { type: 'radio',     label: 'Radio Button' },
+  { type: 'select',    label: 'Select' },
+  { type: 'progress',  label: 'Progress Bar' },
+  { type: 'stepper',   label: 'Number Stepper' },
 ]
 
 export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose }: Props) {
@@ -64,6 +77,11 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
     onClick: () => addShape(opt.type, parentId),
   }))
 
+  const containerItems = CONTAINER_TYPES.map(opt => ({
+    label: opt.label,
+    onClick: () => addShape(opt.type, parentId),
+  }))
+
   const formItems = FORM_CONTROLS.map(opt => ({
     label: opt.label,
     onClick: () => addShape(opt.type, parentId),
@@ -78,6 +96,8 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
     },
     {
       items: [
+        { label: 'Containers', onClick: () => {}, disabled: true },
+        ...containerItems,
         { label: 'Form Controls', onClick: () => {}, disabled: true },
         ...formItems,
       ],
@@ -93,7 +113,7 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
         items: [
           {
             label: 'Duplicate',
-            icon: '⧉',
+            icon: <Copy size={14} />,
             onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: [shapeId!] }),
           },
         ],
@@ -102,22 +122,22 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
         items: [
           {
             label: 'Bring to Front',
-            icon: '⬆',
+            icon: <ChevronsUp size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: shapeId!, direction: 'to-front' }),
           },
           {
             label: 'Send to Back',
-            icon: '⬇',
+            icon: <ChevronsDown size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: shapeId!, direction: 'to-back' }),
           },
           {
             label: 'Move Up',
-            icon: '↑',
+            icon: <ChevronUp size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: shapeId!, direction: 'up' }),
           },
           {
             label: 'Move Down',
-            icon: '↓',
+            icon: <ChevronDown size={14} />,
             onClick: () => dispatch({ type: 'REORDER_SHAPE', id: shapeId!, direction: 'down' }),
           },
         ],
@@ -126,12 +146,12 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
         items: [
           {
             label: shape.visible ? 'Hide' : 'Show',
-            icon: shape.visible ? '👁' : '🚫',
+            icon: shape.visible ? <Eye size={14} /> : <EyeOff size={14} />,
             onClick: () => dispatch({ type: 'PATCH_SHAPE', id: shapeId!, patch: { visible: !shape.visible } }),
           },
           {
             label: shape.locked ? 'Unlock' : 'Lock',
-            icon: shape.locked ? '🔓' : '🔒',
+            icon: shape.locked ? <Unlock size={14} /> : <Lock size={14} />,
             onClick: () => dispatch({ type: 'PATCH_SHAPE', id: shapeId!, patch: { locked: !shape.locked } }),
           },
         ],
@@ -140,7 +160,7 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
         items: [
           {
             label: 'Delete',
-            icon: '✕',
+            icon: <Trash2 size={14} />,
             danger: true,
             onClick: () => {
               dispatch({ type: 'DELETE_SHAPES', ids: [shapeId!] })

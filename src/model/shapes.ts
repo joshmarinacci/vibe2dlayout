@@ -143,7 +143,7 @@ export interface CheckboxShape extends ShapeBase {
   type: 'checkbox'
   transform: BoundingBox
   checked: boolean
-  label: string
+  text: TextStyle
   fill: FillStyle
   stroke: StrokeStyle
 }
@@ -152,9 +152,66 @@ export interface ToggleShape extends ShapeBase {
   type: 'toggle'
   transform: BoundingBox
   checked: boolean
-  label: string
+  text: TextStyle
   trackFill: FillStyle
   thumbFill: FillStyle
+  stroke: StrokeStyle
+}
+
+export interface FrameShape extends ShapeBase {
+  type: 'frame'
+  transform: BoundingBox
+  fill: FillStyle
+  stroke: StrokeStyle
+  cornerRadius: number
+  clipChildren: boolean
+}
+
+export interface DialogShape extends ShapeBase {
+  type: 'dialog'
+  transform: BoundingBox
+  fill: FillStyle
+  stroke: StrokeStyle
+  title: string
+  titleFontSize: number
+  okLabel: string
+  cancelLabel: string
+}
+
+export interface RadioShape extends ShapeBase {
+  type: 'radio'
+  transform: BoundingBox
+  checked: boolean
+  text: TextStyle
+  fill: FillStyle
+  stroke: StrokeStyle
+}
+
+export interface SelectShape extends ShapeBase {
+  type: 'select'
+  transform: BoundingBox
+  value: string
+  placeholder: string
+  text: TextStyle
+  fill: FillStyle
+  stroke: StrokeStyle
+}
+
+export interface ProgressShape extends ShapeBase {
+  type: 'progress'
+  transform: BoundingBox
+  value: number       // 0–100
+  fill: FillStyle     // bar fill
+  trackFill: FillStyle
+  stroke: StrokeStyle
+}
+
+export interface StepperShape extends ShapeBase {
+  type: 'stepper'
+  transform: BoundingBox
+  value: number
+  text: TextStyle
+  fill: FillStyle
   stroke: StrokeStyle
 }
 
@@ -165,6 +222,7 @@ export type Shape =
   | TextShape | ImageShape  | PageShape
   | ButtonShape | PanelShape | SliderShape
   | LabelShape | TextFieldShape | CheckboxShape | ToggleShape
+  | FrameShape | DialogShape | RadioShape | SelectShape | ProgressShape | StepperShape
 
 export type ShapeType = Shape['type']
 

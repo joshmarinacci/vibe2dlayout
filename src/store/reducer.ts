@@ -7,8 +7,9 @@ import { generateId } from '@utils/idgen'
 function cloneSubtree(
   node: TreeNode,
   shapes: Record<string, Shape>,
+  overrideId?: string,
 ): { node: TreeNode; newShapes: Record<string, Shape> } {
-  const newId = generateId()
+  const newId = overrideId ?? generateId()
   const shape = shapes[node.id]
   const newShapes: Record<string, Shape> = {}
   if (shape) {
@@ -177,16 +178,14 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
           shapes: { ...doc.shapes, [action.id]: { ...shape, title: { ...shape.title, content: action.content } } },
         }
       }
-      if (shape.type === 'label' || shape.type === 'textfield') {
+      if (
+        shape.type === 'label' || shape.type === 'textfield' ||
+        shape.type === 'checkbox' || shape.type === 'toggle' || shape.type === 'radio' ||
+        shape.type === 'select'
+      ) {
         return {
           ...doc,
           shapes: { ...doc.shapes, [action.id]: { ...shape, text: { ...shape.text, content: action.content } } },
-        }
-      }
-      if (shape.type === 'checkbox' || shape.type === 'toggle') {
-        return {
-          ...doc,
-          shapes: { ...doc.shapes, [action.id]: { ...shape, label: action.content } },
         }
       }
       return doc
@@ -194,10 +193,12 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
 
     case 'DUPLICATE_SHAPES': {
       let newDoc = doc
-      for (const id of action.ids) {
+      for (let i = 0; i < action.ids.length; i++) {
+        const id = action.ids[i]
         const node = findNode(newDoc.rootNodes, id)
         if (!node) continue
-        const { node: clonedNode, newShapes } = cloneSubtree(node, newDoc.shapes)
+        const overrideId = action.rootIds?.[i]
+        const { node: clonedNode, newShapes } = cloneSubtree(node, newDoc.shapes, overrideId)
         // Offset the root clone by (10, 10) in local space
         const rootShape = newShapes[clonedNode.id]
         if (rootShape && rootShape.type !== 'line' && rootShape.type !== 'page') {
@@ -260,6 +261,7 @@ export const initialState: AppState = {
   viewTransform: { panX: 0, panY: 0, zoom: 1 },
   toolMode: 'select',
   activePageId: initialDocument.rootNodes[0]?.id ?? null,
+  showShortcutsModal: false,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -335,6 +337,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, viewTransform: { panX: 0, panY: 0, zoom: 1 } }
     case 'SET_ACTIVE_PAGE':
       return { ...state, activePageId: action.pageId }
+    case 'TOGGLE_SHORTCUTS_MODAL':
+      return { ...state, showShortcutsModal: !state.showShortcutsModal }
 
     // ── Undo/Redo (handled by history wrapper) ─────────────────────────
     case 'UNDO':
