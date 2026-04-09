@@ -123,10 +123,13 @@ export function getParentContentOrigin(
   const parentId = parentMap[shapeId]
   if (!parentId) return { x: 0, y: 0 }
 
+  const parent = shapes[parentId]
+  // Pages don't offset their children — shapes use absolute canvas coordinates
+  if (parent?.type === 'page') return { x: 0, y: 0 }
+
   const parentAbs = getAbsoluteTransform(parentId, shapes, parentMap)
   if (!parentAbs) return { x: 0, y: 0 }
 
-  const parent = shapes[parentId]
   let contentOffsetY = 0
   if (parent?.type === 'panel' && parent.title) {
     contentOffsetY = parent.title.fontSize + 12
@@ -151,10 +154,13 @@ export function getAbsoluteTransform(
   const parentId = parentMap[shapeId]
   if (!parentId) return { ...shape.transform }
 
+  const parent = shapes[parentId]
+  // Pages don't offset their children — shapes use absolute canvas coordinates
+  if (parent?.type === 'page') return { ...shape.transform }
+
   const parentAbs = getAbsoluteTransform(parentId, shapes, parentMap)
   if (!parentAbs) return { ...shape.transform }
 
-  const parent = shapes[parentId]
   let contentOffsetY = 0
   if (parent?.type === 'panel' && parent.title) {
     contentOffsetY = parent.title.fontSize + 12

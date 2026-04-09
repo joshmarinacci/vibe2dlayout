@@ -1,3 +1,10 @@
+## 2026-04-09
+
+### Bug Fixes
+
+- **Selection handles offset on new pages**: `getAbsoluteTransform` and `getParentContentOrigin` were adding the page's own `transform.x/y` as a coordinate offset for all child shapes. Since shapes are stored in absolute canvas coordinates (not page-relative), the page parent is now skipped when walking the transform chain. Was invisible on Page 1 (`x:0, y:0`) but caused a visible offset on any page created with a non-zero position.
+- **New page default position**: `createShape('page')` now defaults to `x:0, y:0` instead of the generic `x:50, y:50`.
+
 ## 2026-04-08 13:38
 
 ### Bug Fixes

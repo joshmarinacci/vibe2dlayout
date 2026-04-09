@@ -55,7 +55,7 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
     case 'page':
       return {
         ...base, type: 'page',
-        transform: defaultTransform(x, y, 800, 600),
+        transform: defaultTransform(0, 0, 800, 600),
         fixedSize: null,
         background: '#f8f8f8',
         clipChildren: false,
