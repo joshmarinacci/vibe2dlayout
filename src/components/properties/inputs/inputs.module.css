@@ -93,6 +93,35 @@
   color: #666;
 }
 
+.iconBtnGroup {
+  display: flex;
+  gap: 2px;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 24px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #555;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: #f0f0f0;
+  border-color: #aaa;
+}
+
+.iconBtnActive {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
 .contentTextarea {
   width: 100%;
   background: #1a1a1a;

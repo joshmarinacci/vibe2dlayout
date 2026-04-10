@@ -1,3 +1,10 @@
+## 2026-04-10 (3)
+
+### UI
+
+- **Text alignment icon buttons**: Replaced the Align and V-Align dropdowns in the Text properties section with icon button groups. Align uses `AlignLeft/Center/Right`; V-Align uses `AlignVerticalJustifyStart/Center/End`. Active value highlighted in blue.
+- Added `.iconBtnGroup`, `.iconBtn`, `.iconBtnActive` CSS classes to `inputs.module.css` for reuse.
+
 ## 2026-04-10 (2)
 
 ### Bug Fixes

@@ -1,7 +1,9 @@
 import type { TextStyle } from '@model/shapes'
+import { AlignLeft, AlignCenter, AlignRight, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd } from 'lucide-react'
 import { ColorInput } from '../inputs/ColorInput'
 import { SelectInput } from '../inputs/SelectInput'
 import styles from '../PropertiesPanel.module.css'
+import inputStyles from '../inputs/inputs.module.css'
 
 const FONT_SIZES: { value: number; label: string }[] = [
   { value: 10, label: 'XS' },
@@ -33,26 +35,44 @@ export function TextSection({ text, onChange }: Props) {
         options={sizeOptions}
         onChange={v => onChange({ ...text, fontSize: Number(v) })}
       />
-      <SelectInput
-        label="Align"
-        value={text.align}
-        options={[
-          { value: 'left', label: 'Left' },
-          { value: 'center', label: 'Center' },
-          { value: 'right', label: 'Right' },
-        ]}
-        onChange={v => onChange({ ...text, align: v as TextStyle['align'] })}
-      />
-      <SelectInput
-        label="V-Align"
-        value={text.verticalAlign}
-        options={[
-          { value: 'top', label: 'Top' },
-          { value: 'middle', label: 'Middle' },
-          { value: 'bottom', label: 'Bottom' },
-        ]}
-        onChange={v => onChange({ ...text, verticalAlign: v as TextStyle['verticalAlign'] })}
-      />
+      <div className={inputStyles.field}>
+        <span className={inputStyles.label}>Align</span>
+        <div className={inputStyles.iconBtnGroup}>
+          {([
+            { value: 'left',   Icon: AlignLeft },
+            { value: 'center', Icon: AlignCenter },
+            { value: 'right',  Icon: AlignRight },
+          ] as const).map(({ value, Icon }) => (
+            <button
+              key={value}
+              className={`${inputStyles.iconBtn} ${text.align === value ? inputStyles.iconBtnActive : ''}`}
+              title={value.charAt(0).toUpperCase() + value.slice(1)}
+              onClick={() => onChange({ ...text, align: value })}
+            >
+              <Icon size={13} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className={inputStyles.field}>
+        <span className={inputStyles.label}>V-Align</span>
+        <div className={inputStyles.iconBtnGroup}>
+          {([
+            { value: 'top',    Icon: AlignVerticalJustifyStart },
+            { value: 'middle', Icon: AlignVerticalJustifyCenter },
+            { value: 'bottom', Icon: AlignVerticalJustifyEnd },
+          ] as const).map(({ value, Icon }) => (
+            <button
+              key={value}
+              className={`${inputStyles.iconBtn} ${text.verticalAlign === value ? inputStyles.iconBtnActive : ''}`}
+              title={value.charAt(0).toUpperCase() + value.slice(1)}
+              onClick={() => onChange({ ...text, verticalAlign: value })}
+            >
+              <Icon size={13} />
+            </button>
+          ))}
+        </div>
+      </div>
       <SelectInput
         label="Weight"
         value={text.fontWeight}
