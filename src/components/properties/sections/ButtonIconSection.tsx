@@ -1,4 +1,7 @@
-import { BUTTON_ICONS } from '@utils/buttonIcons'
+import { useState } from 'react'
+import { DEFAULT_BUTTON_ICON } from '@utils/buttonIcons'
+import { lookupIcon } from '@utils/allLucideIcons'
+import { IconPickerDialog } from '../IconPickerDialog'
 import type { ButtonShape } from '@model/shapes'
 import styles from '../PropertiesPanel.module.css'
 
@@ -8,6 +11,10 @@ interface Props {
 }
 
 export function ButtonIconSection({ icon, onChange }: Props) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  const CurrentIcon = icon ? lookupIcon(icon.name) : null
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionTitle}>Icon</div>
@@ -19,7 +26,7 @@ export function ButtonIconSection({ icon, onChange }: Props) {
             name="iconSide"
             value="left"
             checked={icon?.side === 'left'}
-            onChange={() => onChange(icon ? { ...icon, side: 'left' } : { name: BUTTON_ICONS[0].name, side: 'left' })}
+            onChange={() => onChange(icon ? { ...icon, side: 'left' } : { name: DEFAULT_BUTTON_ICON, side: 'left' })}
           />
           Left
         </label>
@@ -29,7 +36,7 @@ export function ButtonIconSection({ icon, onChange }: Props) {
             name="iconSide"
             value="right"
             checked={icon?.side === 'right'}
-            onChange={() => onChange(icon ? { ...icon, side: 'right' } : { name: BUTTON_ICONS[0].name, side: 'right' })}
+            onChange={() => onChange(icon ? { ...icon, side: 'right' } : { name: DEFAULT_BUTTON_ICON, side: 'right' })}
           />
           Right
         </label>
@@ -43,18 +50,20 @@ export function ButtonIconSection({ icon, onChange }: Props) {
         </button>
       </div>
 
-      <div className={styles.iconGrid}>
-        {BUTTON_ICONS.map(({ name, label, Icon }) => (
-          <button
-            key={name}
-            title={label}
-            className={`${styles.iconGridItem} ${icon?.name === name ? styles.iconGridItemActive : ''}`}
-            onClick={() => onChange({ name, side: icon?.side ?? 'left' })}
-          >
-            <Icon size={16} strokeWidth={1.5} />
-          </button>
-        ))}
-      </div>
+      <button className={styles.iconPickerBtn} onClick={() => setPickerOpen(true)}>
+        {CurrentIcon
+          ? <><CurrentIcon size={15} strokeWidth={1.5} /><span>{icon!.name}</span></>
+          : <span>Choose icon…</span>
+        }
+      </button>
+
+      {pickerOpen && (
+        <IconPickerDialog
+          currentIcon={icon?.name ?? null}
+          onSelect={name => onChange({ name, side: icon?.side ?? 'left' })}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </div>
   )
 }

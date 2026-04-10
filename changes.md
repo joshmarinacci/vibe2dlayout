@@ -1,3 +1,13 @@
+## 2026-04-10 (4)
+
+### Features
+
+- **Full lucide icon picker for Button icon**: Replaced the inline 35-icon grid with a dialog that lists all ~1000 lucide-react icons. Type to search by name; active icon highlighted; click to select.
+- New `src/utils/allLucideIcons.ts` enumerates every exported lucide icon at runtime.
+- New `src/components/properties/IconPickerDialog.tsx` — searchable 8-column grid modal.
+- `getButtonIcon` now resolves any lucide icon name (not just the original 35).
+- Bundle size increases from ~316KB to ~1.2MB uncompressed (~251KB gzip) due to including all icons.
+
 ## 2026-04-10 (3)
 
 ### UI
