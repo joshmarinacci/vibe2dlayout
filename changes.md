@@ -1,3 +1,15 @@
+## 2026-04-10 (2)
+
+### Bug Fixes
+
+- **Label vertical alignment**: `LabelShape` was ignoring `text.verticalAlign` — its display div used `alignItems: center` (hardcoded) instead of `flexDirection: column` + `justifyContent`. Now matches `TextShape` behaviour.
+
+### Refactoring
+
+- Extracted `useTextEdit` hook (`src/components/canvas/shapes/useTextEdit.ts`) containing the `useRef`/`useEffect` edit-state logic and textarea event handlers previously duplicated across 6 shapes.
+- Extracted `vAlignToJustify` helper into the same file.
+- `TextShape`, `LabelShape`, `ButtonShape`, `CheckboxShape`, `RadioShape`, `ToggleShape` all use `useTextEdit` — no more copy-pasted boilerplate.
+
 ## 2026-04-10
 
 ### Features

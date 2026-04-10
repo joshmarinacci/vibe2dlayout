@@ -1,9 +1,10 @@
-import { useRef, useEffect, type Dispatch, type CSSProperties } from 'react'
+import { type Dispatch, type CSSProperties } from 'react'
 import type { ButtonShape, TextStyle } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { getButtonIcon } from '@utils/buttonIcons'
+import { useTextEdit, vAlignToJustify } from './useTextEdit'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -18,26 +19,9 @@ interface Props {
 export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, fill, stroke, text, icon } = shape
   const { x, y, width, height, rotation } = transform
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const editValueRef = useRef(text.content)
-  const cancelRef = useRef(false)
-  const wasEditingRef = useRef(false)
-
-  useEffect(() => {
-    if (isEditing && !wasEditingRef.current) {
-      wasEditingRef.current = true
-      editValueRef.current = text.content
-      cancelRef.current = false
-      textareaRef.current?.focus()
-      textareaRef.current?.select()
-    } else if (!isEditing && wasEditingRef.current) {
-      wasEditingRef.current = false
-      if (!cancelRef.current) {
-        dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: editValueRef.current })
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing])
+  const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
+    content: text.content, isEditing, shapeId: shape.id, dispatch,
+  })
 
   const pad = 2
   const roughPaths = roughRect(pad, pad, width - pad * 2, height - pad * 2, {
@@ -51,7 +35,7 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
     strokeWidth: stroke.width,
   })
 
-  const vJustify = text.verticalAlign === 'top' ? 'flex-start' : text.verticalAlign === 'bottom' ? 'flex-end' : 'center'
+  const vJustify = vAlignToJustify(text.verticalAlign)
 
   return (
     <div
@@ -96,20 +80,9 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
             padding: '4px 8px',
             pointerEvents: 'all',
           }}
-          onChange={e => { editValueRef.current = e.target.value }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-              dispatch({ type: 'STOP_TEXT_EDIT' })
-              e.preventDefault(); e.stopPropagation(); return
-            }
-            if (e.key === 'Escape') {
-              cancelRef.current = true
-              dispatch({ type: 'STOP_TEXT_EDIT' })
-              e.preventDefault(); e.stopPropagation(); return
-            }
-            e.stopPropagation()
-          }}
-          onClick={e => e.stopPropagation()}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onClick={onClickTextarea}
         />
       ) : (
         <div style={{

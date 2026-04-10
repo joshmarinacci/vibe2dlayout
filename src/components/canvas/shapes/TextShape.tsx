@@ -1,6 +1,7 @@
-import { useRef, useEffect, type Dispatch } from 'react'
+import type { Dispatch } from 'react'
 import type { TextShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
+import { useTextEdit, vAlignToJustify } from './useTextEdit'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -15,28 +16,9 @@ interface Props {
 export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, text, fill } = shape
   const { x, y, width, height, rotation } = transform
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const editValueRef = useRef(text.content)
-  const cancelRef = useRef(false)
-  const wasEditingRef = useRef(false)
-
-  useEffect(() => {
-    if (isEditing && !wasEditingRef.current) {
-      wasEditingRef.current = true
-      editValueRef.current = text.content
-      cancelRef.current = false
-      textareaRef.current?.focus()
-      textareaRef.current?.select()
-    } else if (!isEditing && wasEditingRef.current) {
-      wasEditingRef.current = false
-      if (!cancelRef.current) {
-        dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: editValueRef.current })
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing])
-
-  const vJustify = text.verticalAlign === 'top' ? 'flex-start' : text.verticalAlign === 'bottom' ? 'flex-end' : 'center'
+  const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
+    content: text.content, isEditing, shapeId: shape.id, dispatch,
+  })
 
   const textStyle: React.CSSProperties = {
     fontFamily: text.fontFamily,
@@ -87,20 +69,9 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
             outline: 'none',
             padding: '4px 8px',
           }}
-          onChange={e => { editValueRef.current = e.target.value }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-              dispatch({ type: 'STOP_TEXT_EDIT' })
-              e.preventDefault(); e.stopPropagation(); return
-            }
-            if (e.key === 'Escape') {
-              cancelRef.current = true
-              dispatch({ type: 'STOP_TEXT_EDIT' })
-              e.preventDefault(); e.stopPropagation(); return
-            }
-            e.stopPropagation()
-          }}
-          onClick={e => e.stopPropagation()}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onClick={onClickTextarea}
         />
       ) : (
         <div style={{
@@ -108,7 +79,7 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
           inset: 0,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: vJustify,
+          justifyContent: vAlignToJustify(text.verticalAlign),
           padding: '4px 8px',
           overflow: 'hidden',
         }}>

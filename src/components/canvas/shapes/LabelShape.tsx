@@ -1,8 +1,9 @@
-import { useRef, useEffect, type Dispatch } from 'react'
+import type { Dispatch } from 'react'
 import type { LabelShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
+import { useTextEdit, vAlignToJustify } from './useTextEdit'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -17,26 +18,9 @@ interface Props {
 export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, text } = shape
   const { x, y, width, height, rotation } = transform
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const editValueRef = useRef(text.content)
-  const cancelRef = useRef(false)
-  const wasEditingRef = useRef(false)
-
-  useEffect(() => {
-    if (isEditing && !wasEditingRef.current) {
-      wasEditingRef.current = true
-      editValueRef.current = text.content
-      cancelRef.current = false
-      textareaRef.current?.focus()
-      textareaRef.current?.select()
-    } else if (!isEditing && wasEditingRef.current) {
-      wasEditingRef.current = false
-      if (!cancelRef.current) {
-        dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: editValueRef.current })
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing])
+  const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
+    content: text.content, isEditing, shapeId: shape.id, dispatch,
+  })
 
   const seed = seedFromId(shape.id)
   const underline = roughLine(0, height - 1, width, height - 1, {
@@ -45,6 +29,19 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
     stroke: '#bbbbbb',
     strokeWidth: 0.8,
   })
+
+  const textStyle: React.CSSProperties = {
+    fontFamily: text.fontFamily,
+    fontSize: text.fontSize,
+    fontWeight: text.fontWeight,
+    fontStyle: text.fontStyle,
+    color: text.color,
+    textAlign: text.align,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    width: '100%',
+    userSelect: 'none',
+  }
 
   return (
     <div
@@ -82,49 +79,27 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
             fontFamily: text.fontFamily,
             fontSize: text.fontSize,
             fontWeight: text.fontWeight,
+            fontStyle: text.fontStyle,
             color: text.color,
             textAlign: text.align,
             outline: 'none',
             padding: '0 2px',
-            width: '100%',
           }}
-          onChange={e => { editValueRef.current = e.target.value }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-              dispatch({ type: 'STOP_TEXT_EDIT' })
-              e.preventDefault(); e.stopPropagation(); return
-            }
-            if (e.key === 'Escape') {
-              cancelRef.current = true
-              dispatch({ type: 'STOP_TEXT_EDIT' })
-              e.preventDefault(); e.stopPropagation(); return
-            }
-            e.stopPropagation()
-          }}
-          onClick={e => e.stopPropagation()}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onClick={onClickTextarea}
         />
       ) : (
         <div style={{
           position: 'absolute',
           inset: 0,
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: 'column',
+          justifyContent: vAlignToJustify(text.verticalAlign),
           padding: '0 2px',
+          overflow: 'hidden',
         }}>
-          <span style={{
-            flex: 1,
-            fontFamily: text.fontFamily,
-            fontSize: text.fontSize,
-            fontWeight: text.fontWeight,
-            fontStyle: text.fontStyle,
-            color: text.color,
-            textAlign: text.align,
-            userSelect: 'none',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-          }}>
-            {text.content}
-          </span>
+          <div style={textStyle}>{text.content}</div>
         </div>
       )}
     </div>
