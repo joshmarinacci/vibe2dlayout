@@ -28,7 +28,11 @@ export function TextSection({ text, onChange }: Props) {
   return (
     <div className={styles.section}>
       <div className={styles.sectionTitle}>Text</div>
-      <ColorInput label="Color" value={text.color} onChange={v => onChange({ ...text, color: v })} />
+      <ColorInput
+        label="Color"
+        value={{ color: text.color, paletteColorId: text.paletteColorId }}
+        onChange={ref => onChange({ ...text, color: ref.color, paletteColorId: ref.paletteColorId })}
+      />
       <SelectInput
         label="Size"
         value={String(text.fontSize)}

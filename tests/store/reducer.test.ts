@@ -38,6 +38,29 @@ describe('DELETE_SHAPES', () => {
     const page = next.document.rootNodes.find(n => n.id === pageId)
     expect(page?.children.some(c => c.id === shapeId)).toBe(false)
   })
+  it('removes multiple shapes at once', () => {
+    const pageId = initialState.document.rootNodes[0].id
+    const s1 = createShape('rect', 10, 10)
+    const s2 = createShape('circle', 50, 50)
+    let state = appReducer(initialState, { type: 'ADD_SHAPE', parentId: pageId, shape: s1 })
+    state = appReducer(state, { type: 'ADD_SHAPE', parentId: pageId, shape: s2 })
+    const next = appReducer(state, { type: 'DELETE_SHAPES', ids: [s1.id, s2.id] })
+    expect(next.document.shapes[s1.id]).toBeUndefined()
+    expect(next.document.shapes[s2.id]).toBeUndefined()
+  })
+})
+
+describe('DUPLICATE_SHAPES', () => {
+  it('duplicates multiple shapes', () => {
+    const pageId = initialState.document.rootNodes[0].id
+    const s1 = createShape('rect', 10, 10)
+    const s2 = createShape('circle', 50, 50)
+    let state = appReducer(initialState, { type: 'ADD_SHAPE', parentId: pageId, shape: s1 })
+    state = appReducer(state, { type: 'ADD_SHAPE', parentId: pageId, shape: s2 })
+    const before = Object.keys(state.document.shapes).length
+    const next = appReducer(state, { type: 'DUPLICATE_SHAPES', ids: [s1.id, s2.id] })
+    expect(Object.keys(next.document.shapes).length).toBe(before + 2)
+  })
 })
 
 describe('MOVE_SHAPES', () => {

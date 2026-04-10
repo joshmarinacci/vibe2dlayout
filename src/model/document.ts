@@ -1,4 +1,5 @@
 import type { Shape } from './shapes'
+import type { ColorPalette } from './palette'
 
 /**
  * The document tree stores topology separately from shape data.
@@ -14,6 +15,7 @@ export interface VibeDocument {
   version: number             // serialization format version
   rootNodes: TreeNode[]       // top-level pages
   shapes: Record<string, Shape>
+  palettes: ColorPalette[]
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

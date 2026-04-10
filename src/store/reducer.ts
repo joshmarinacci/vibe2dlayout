@@ -3,6 +3,8 @@ import type { VibeDocument, TreeNode } from '@model/document'
 import type { Shape } from '@model/shapes'
 import { findNode, findParent, removeNode, insertNode, getAllIds } from '@model/document'
 import { generateId } from '@utils/idgen'
+import { computeAlignedTransforms } from '@utils/alignment'
+import { DEFAULT_PALETTE } from '@model/palette'
 
 function cloneSubtree(
   node: TreeNode,
@@ -222,12 +224,113 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       return newDoc
     }
 
+    case 'ALIGN_SHAPES': {
+      const updates = computeAlignedTransforms(action.ids, doc.shapes, doc.rootNodes, action.alignment)
+      let newShapes = { ...doc.shapes }
+      for (const { id, transform } of updates) {
+        const shape = newShapes[id]
+        if (shape && shape.type !== 'line') {
+          newShapes = { ...newShapes, [id]: { ...shape, transform } as Shape }
+        }
+      }
+      return { ...doc, shapes: newShapes }
+    }
+
     case 'LOAD_DOCUMENT':
       return action.document
+
+    case 'ADD_PALETTE':
+      return { ...doc, palettes: [...doc.palettes, action.palette] }
+
+    case 'DELETE_PALETTE':
+      return { ...doc, palettes: doc.palettes.filter(p => p.id !== action.paletteId) }
+
+    case 'RENAME_PALETTE':
+      return {
+        ...doc,
+        palettes: doc.palettes.map(p =>
+          p.id === action.paletteId ? { ...p, name: action.name } : p
+        ),
+      }
+
+    case 'ADD_PALETTE_COLOR':
+      return {
+        ...doc,
+        palettes: doc.palettes.map(p =>
+          p.id === action.paletteId ? { ...p, colors: [...p.colors, action.color] } : p
+        ),
+      }
+
+    case 'DELETE_PALETTE_COLOR':
+      return {
+        ...doc,
+        palettes: doc.palettes.map(p =>
+          p.id === action.paletteId
+            ? { ...p, colors: p.colors.filter(c => c.id !== action.colorId) }
+            : p
+        ),
+      }
+
+    case 'UPDATE_PALETTE_COLOR': {
+      const newPalettes = doc.palettes.map(p =>
+        p.id === action.paletteId
+          ? {
+              ...p,
+              colors: p.colors.map(c =>
+                c.id === action.colorId
+                  ? { ...c, ...(action.color !== undefined && { color: action.color }), ...(action.name !== undefined && { name: action.name }) }
+                  : c
+              ),
+            }
+          : p
+      )
+      const newShapes = action.color !== undefined
+        ? applyPaletteColorToShapes(doc.shapes, action.colorId, action.color)
+        : doc.shapes
+      return { ...doc, palettes: newPalettes, shapes: newShapes }
+    }
 
     default:
       return doc
   }
+}
+
+// Updates every color field in every shape that references the given paletteColorId.
+function applyPaletteColorToShapes(
+  shapes: Record<string, Shape>,
+  colorId: string,
+  newHex: string,
+): Record<string, Shape> {
+  const result = { ...shapes }
+  for (const id of Object.keys(result)) {
+    const shape = result[id]
+    let updated: Shape = shape
+
+    if ('fill' in shape && shape.fill.paletteColorId === colorId) {
+      updated = { ...updated, fill: { ...shape.fill, color: newHex } } as Shape
+    }
+    if ('stroke' in shape && shape.stroke.paletteColorId === colorId) {
+      updated = { ...updated, stroke: { ...shape.stroke, color: newHex } } as Shape
+    }
+    if ('trackFill' in shape && shape.trackFill.paletteColorId === colorId) {
+      updated = { ...updated, trackFill: { ...shape.trackFill, color: newHex } } as Shape
+    }
+    if ('thumbFill' in shape && shape.thumbFill.paletteColorId === colorId) {
+      updated = { ...updated, thumbFill: { ...shape.thumbFill, color: newHex } } as Shape
+    }
+    if ('text' in shape && shape.text.paletteColorId === colorId) {
+      updated = { ...updated, text: { ...shape.text, color: newHex } } as Shape
+    }
+    if ('title' in shape && shape.title && typeof shape.title === 'object' && (shape.title as { paletteColorId?: string }).paletteColorId === colorId) {
+      updated = { ...updated, title: { ...(shape.title as object), color: newHex } } as Shape
+    }
+    if (shape.type === 'page' && shape.backgroundPaletteColorId === colorId) {
+      updated = { ...updated, background: newHex } as Shape
+    }
+
+    if (updated !== shape) result[id] = updated
+  }
+  return result
 }
 
 // ─── Initial state ─────────────────────────────────────────────────────────
@@ -235,7 +338,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
 export function createInitialDocument(): VibeDocument {
   const pageId = generateId()
   return {
-    version: 1,
+    version: 2,
     rootNodes: [{ id: pageId, children: [] }],
     shapes: {
       [pageId]: {
@@ -250,6 +353,7 @@ export function createInitialDocument(): VibeDocument {
         clipChildren: false,
       },
     },
+    palettes: [{ ...DEFAULT_PALETTE, colors: [...DEFAULT_PALETTE.colors] }],
   }
 }
 
@@ -262,6 +366,7 @@ export const initialState: AppState = {
   toolMode: 'select',
   activePageId: initialDocument.rootNodes[0]?.id ?? null,
   showShortcutsModal: false,
+  showPaletteModal: false,
   documentId: null,
   documentName: 'Untitled',
 }
@@ -282,7 +387,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'REORDER_SHAPE':
     case 'COMMIT_TEXT_EDIT':
     case 'DUPLICATE_SHAPES':
+    case 'ALIGN_SHAPES':
     case 'LOAD_DOCUMENT':
+    case 'ADD_PALETTE':
+    case 'DELETE_PALETTE':
+    case 'RENAME_PALETTE':
+    case 'ADD_PALETTE_COLOR':
+    case 'DELETE_PALETTE_COLOR':
+    case 'UPDATE_PALETTE_COLOR':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -341,6 +453,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, activePageId: action.pageId }
     case 'TOGGLE_SHORTCUTS_MODAL':
       return { ...state, showShortcutsModal: !state.showShortcutsModal }
+    case 'TOGGLE_PALETTE_MODAL':
+      return { ...state, showPaletteModal: !state.showPaletteModal }
     case 'SET_DOCUMENT_META':
       return { ...state, documentId: action.id, documentName: action.name }
 

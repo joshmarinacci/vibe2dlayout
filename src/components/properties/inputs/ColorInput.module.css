@@ -1,0 +1,56 @@
+.paletteTabs {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.paletteTab {
+  padding: 2px 7px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  color: #666;
+  cursor: pointer;
+  line-height: 16px;
+}
+
+.paletteTab:hover {
+  border-color: #aaa;
+  color: #333;
+}
+
+.paletteTabActive {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.swatchRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 2px 0;
+}
+
+.paletteSwatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.1s;
+}
+
+.paletteSwatch:hover {
+  transform: scale(1.2);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+.paletteSwatchActive {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+  border-color: transparent;
+}

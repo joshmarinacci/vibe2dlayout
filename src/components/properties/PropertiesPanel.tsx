@@ -2,6 +2,7 @@ import { useAppState, useAppDispatch } from '@store/context'
 import { selectSelectedShapes } from '@store/selectors'
 import { NumberInput } from './inputs/NumberInput'
 import { ToggleInput } from './inputs/ToggleInput'
+import { ColorInput } from './inputs/ColorInput'
 import { TransformSection } from './sections/TransformSection'
 import { FillSection } from './sections/FillSection'
 import { StrokeSection } from './sections/StrokeSection'
@@ -12,8 +13,14 @@ import { PageSection } from './sections/PageSection'
 import { ContentSection } from './sections/ContentSection'
 import { ButtonIconSection } from './sections/ButtonIconSection'
 import type { BoundingBox } from '@model/transform'
-import type { FillStyle, StrokeStyle, Shape } from '@model/shapes'
+import type { FillStyle, StrokeStyle, TextStyle, Shape } from '@model/shapes'
 import styles from './PropertiesPanel.module.css'
+
+function commonValue<T>(vals: T[]): T | null {
+  if (vals.length === 0) return null
+  const first = vals[0]
+  return vals.every(v => JSON.stringify(v) === JSON.stringify(first)) ? first : null
+}
 
 export function PropertiesPanel() {
   const { state } = useAppState()
@@ -29,10 +36,47 @@ export function PropertiesPanel() {
   }
 
   if (selected.length > 1) {
+    // Shapes with a transform (non-line, non-page)
+    const transformable = selected.filter(s => s.type !== 'line' && s.type !== 'page') as Extract<Shape, { transform: BoundingBox }>[]
+    const cx = commonValue(transformable.map(s => s.transform.x))
+    const cy = commonValue(transformable.map(s => s.transform.y))
+    const cw = commonValue(transformable.map(s => s.transform.width))
+    const ch = commonValue(transformable.map(s => s.transform.height))
+
+    const applyTransformField = (key: keyof BoundingBox, val: number) => {
+      for (const s of transformable) {
+        dispatch({ type: 'SET_TRANSFORM', id: s.id, transform: { ...s.transform, [key]: val } })
+      }
+    }
+
+    // Shapes with fill (show section if any have it; apply only to those that do)
+    const withFill = selected.filter(s => 'fill' in s) as Extract<Shape, { fill: FillStyle }>[]
+    const commonFillColor = commonValue(withFill.map(s => s.fill.color))
+    const commonFillOpacity = commonValue(withFill.map(s => s.fill.opacity))
+
+    // Shapes with stroke (show section if any have it; apply only to those that do)
+    const withStroke = selected.filter(s => 'stroke' in s) as Extract<Shape, { stroke: StrokeStyle }>[]
+    const commonStrokeColor = commonValue(withStroke.map(s => s.stroke.color))
+    const commonStrokeWidth = commonValue(withStroke.map(s => s.stroke.width))
+    const commonStrokeOpacity = commonValue(withStroke.map(s => s.stroke.opacity))
+
+    // Shapes with text style (show section if any have it; apply only to those that do)
+    const withText = selected.filter(s => 'text' in s) as Extract<Shape, { text: TextStyle }>[]
+    // Use first shape's text as representative; on change, apply only the changed fields to each shape
+    const repText = withText[0]?.text
+    const onChangeText = (newText: TextStyle) => {
+      const delta = (Object.keys(newText) as (keyof TextStyle)[]).reduce((acc, k) => {
+        if (newText[k] !== repText[k]) acc[k] = newText[k] as never
+        return acc
+      }, {} as Partial<TextStyle>)
+      for (const s of withText) {
+        dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { text: { ...s.text, ...delta } } as Partial<Shape> })
+      }
+    }
+
     return (
       <div className={styles.panel}>
         <div className={styles.header}>{selected.length} shapes selected</div>
-        {/* Multi-select: only move/visibility controls */}
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Common</div>
           <ToggleInput
@@ -50,6 +94,85 @@ export function PropertiesPanel() {
             )}
           />
         </div>
+        {transformable.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Transform</div>
+            <div className={styles.transformGrid}>
+              {(['x', 'y', 'width', 'height'] as (keyof BoundingBox)[]).map((key, i) => {
+                const label = ['X', 'Y', 'W', 'H'][i]
+                const val = [cx, cy, cw, ch][i]
+                return (
+                  <div key={key} className={styles.tfield}>
+                    <span className={styles.tlabel}>{label}</span>
+                    <input
+                      type="number"
+                      className={styles.tinput}
+                      value={val !== null ? Math.round(val) : ''}
+                      placeholder="—"
+                      step={1}
+                      min={key === 'width' || key === 'height' ? 1 : undefined}
+                      onChange={e => {
+                        const v = parseFloat(e.target.value)
+                        if (!isNaN(v)) applyTransformField(key, v)
+                      }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        {withFill.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Fill</div>
+            <ColorInput
+              label="Color"
+              value={{ color: commonFillColor ?? '#808080' }}
+              onChange={ref => withFill.forEach(s =>
+                dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { fill: { ...s.fill, color: ref.color, paletteColorId: ref.paletteColorId } } as Partial<Shape> })
+              )}
+            />
+            <NumberInput
+              label="Opacity"
+              value={commonFillOpacity !== null ? Math.round(commonFillOpacity * 100) : 0}
+              min={0} max={100} unit="%"
+              onChange={v => withFill.forEach(s =>
+                dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { fill: { ...s.fill, opacity: v / 100 } } as Partial<Shape> })
+              )}
+            />
+          </div>
+        )}
+        {withStroke.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Stroke</div>
+            <ColorInput
+              label="Color"
+              value={{ color: commonStrokeColor ?? '#808080' }}
+              onChange={ref => withStroke.forEach(s =>
+                dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { stroke: { ...s.stroke, color: ref.color, paletteColorId: ref.paletteColorId } } as Partial<Shape> })
+              )}
+            />
+            <NumberInput
+              label="Width"
+              value={commonStrokeWidth ?? 0}
+              min={0} step={0.5} unit="px"
+              onChange={v => withStroke.forEach(s =>
+                dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { stroke: { ...s.stroke, width: v } } as Partial<Shape> })
+              )}
+            />
+            <NumberInput
+              label="Opacity"
+              value={commonStrokeOpacity !== null ? Math.round(commonStrokeOpacity * 100) : 0}
+              min={0} max={100} unit="%"
+              onChange={v => withStroke.forEach(s =>
+                dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { stroke: { ...s.stroke, opacity: v / 100 } } as Partial<Shape> })
+              )}
+            />
+          </div>
+        )}
+        {repText && (
+          <TextSection text={repText} onChange={onChangeText} />
+        )}
       </div>
     )
   }

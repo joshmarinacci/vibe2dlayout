@@ -10,7 +10,11 @@ import type { CanvasContextMenuState } from './useCanvasPointer'
 import {
   Copy, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
   Eye, EyeOff, Lock, Unlock, Trash2,
+  AlignLeft, AlignCenter, AlignRight,
+  AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
+  ArrowLeftRight, ArrowUpDown,
 } from 'lucide-react'
+import type { AlignType } from '@store/types'
 
 interface Props {
   menuState: CanvasContextMenuState
@@ -49,8 +53,9 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
 ]
 
 export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose }: Props) {
-  const { screenX, screenY, canvasX, canvasY, shapeId } = menuState
+  const { screenX, screenY, canvasX, canvasY, shapeId, selectedIds } = menuState
   const shape = shapeId ? shapes[shapeId] : null
+  const isMultiSelect = selectedIds.length > 1
 
   const addShape = (type: ShapeType, parentId: string | null) => {
     let localX = canvasX
@@ -104,9 +109,50 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
     },
   ]
 
+  const align = (alignment: AlignType) => dispatch({ type: 'ALIGN_SHAPES', ids: selectedIds, alignment })
+
+  const multiSelectGroups: ContextMenuGroup[] = [
+    {
+      items: [
+        {
+          label: 'Duplicate',
+          icon: <Copy size={14} />,
+          onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: selectedIds }),
+        },
+      ],
+    },
+    {
+      items: [
+        { label: 'Align Left',     icon: <AlignLeft size={14} />,                  onClick: () => align('left') },
+        { label: 'Align Center',   icon: <AlignCenter size={14} />,                onClick: () => align('center-h') },
+        { label: 'Align Right',    icon: <AlignRight size={14} />,                 onClick: () => align('right') },
+        { label: 'Align Top',      icon: <AlignVerticalJustifyStart size={14} />,  onClick: () => align('top') },
+        { label: 'Align Middle',   icon: <AlignVerticalJustifyCenter size={14} />, onClick: () => align('middle-v') },
+        { label: 'Align Bottom',   icon: <AlignVerticalJustifyEnd size={14} />,    onClick: () => align('bottom') },
+        { label: 'Match Width',    icon: <ArrowLeftRight size={14} />,             onClick: () => align('match-width') },
+        { label: 'Match Height',   icon: <ArrowUpDown size={14} />,               onClick: () => align('match-height') },
+      ],
+    },
+    {
+      items: [
+        {
+          label: 'Delete',
+          icon: <Trash2 size={14} />,
+          danger: true,
+          onClick: () => {
+            dispatch({ type: 'DELETE_SHAPES', ids: selectedIds })
+            dispatch({ type: 'DESELECT_ALL' })
+          },
+        },
+      ],
+    },
+  ]
+
   let groups: ContextMenuGroup[]
 
-  if (shape && shape.type !== 'page') {
+  if (isMultiSelect) {
+    groups = multiSelectGroups
+  } else if (shape && shape.type !== 'page') {
     groups = [
       ...addShapeGroups,
       {

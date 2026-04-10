@@ -6,6 +6,7 @@ import type { ConnectorEndpoint, ConnectorRoute } from './connector'
 export interface FillStyle {
   color: string    // CSS color string
   opacity: number  // 0–1
+  paletteColorId?: string
 }
 
 export interface StrokeStyle {
@@ -13,6 +14,7 @@ export interface StrokeStyle {
   width: number
   dash: number[]   // [] = solid, [5,3] = dashed
   opacity: number
+  paletteColorId?: string
 }
 
 export type FontWeight = 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900'
@@ -24,6 +26,7 @@ export interface TextStyle {
   fontWeight: FontWeight
   fontStyle: 'normal' | 'italic'
   color: string
+  paletteColorId?: string
   align: 'left' | 'center' | 'right'
   verticalAlign: 'top' | 'middle' | 'bottom'
 }
@@ -90,6 +93,7 @@ export interface PageShape extends ShapeBase {
   transform: BoundingBox
   fixedSize: { width: number; height: number } | null  // null = infinite
   background: string  // CSS color
+  backgroundPaletteColorId?: string
   clipChildren: boolean
 }
 

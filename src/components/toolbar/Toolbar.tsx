@@ -5,7 +5,7 @@ import {
   Tag, TextCursorInput, CheckSquare, ToggleLeft, ChevronDown,
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
-  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File,
+  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
@@ -15,6 +15,7 @@ import { saveDoc } from '@utils/localStorageDB'
 import { createInitialDocument } from '@store/reducer'
 import type { VibeDocument } from '@model/document'
 import { DocumentsModal } from '@components/layout/DocumentsModal'
+import { PaletteEditorModal } from '@components/palette/PaletteEditorModal'
 import styles from './Toolbar.module.css'
 
 interface ToolButton {
@@ -148,6 +149,11 @@ export function Toolbar() {
               </button>
               <button className={styles.formMenuItem} onClick={() => openDocumentsModal('save-as')}>
                 <FilePlus2 size={13} /><span>Save As...</span>
+              </button>
+              <div className={styles.formMenuDivider} />
+              <div className={styles.formMenuDivider} />
+              <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_PALETTE_MODAL' }); setShowFileMenu(false) }}>
+                <Palette size={13} /><span>Edit Palettes...</span>
               </button>
               <div className={styles.formMenuDivider} />
               <button className={styles.formMenuItem} onClick={() => { handleImportJSON(); setShowFileMenu(false) }}>
@@ -379,6 +385,9 @@ export function Toolbar() {
           onLoad={handleLoadDoc}
           onSave={handleSaveAs}
         />
+      )}
+      {state.showPaletteModal && (
+        <PaletteEditorModal onClose={() => dispatch({ type: 'TOGGLE_PALETTE_MODAL' })} />
       )}
     </div>
   )

@@ -3,6 +3,7 @@ import type { VibeDocument } from '@model/document'
 import type { ConnectorEndpoint } from '@model/connector'
 import type { Point, BoundingBox } from '@model/transform'
 import type { SelectionState } from '@model/selection'
+import type { ColorPalette, PaletteColor } from '@model/palette'
 
 // ─── View ──────────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ export interface AppState {
   // current page being viewed/edited
   activePageId: string | null
   showShortcutsModal: boolean
+  showPaletteModal: boolean
   // current document identity (localStorage)
   documentId: string | null
   documentName: string
@@ -65,7 +67,19 @@ export type DocumentAction =
   | { type: 'REORDER_SHAPE'; id: string; direction: 'up' | 'down' | 'to-front' | 'to-back' }
   | { type: 'COMMIT_TEXT_EDIT'; id: string; content: string }
   | { type: 'DUPLICATE_SHAPES'; ids: string[]; rootIds?: string[] }
+  | { type: 'ALIGN_SHAPES'; ids: string[]; alignment: AlignType }
   | { type: 'LOAD_DOCUMENT'; document: VibeDocument }
+  | { type: 'ADD_PALETTE'; palette: ColorPalette }
+  | { type: 'DELETE_PALETTE'; paletteId: string }
+  | { type: 'RENAME_PALETTE'; paletteId: string; name: string }
+  | { type: 'ADD_PALETTE_COLOR'; paletteId: string; color: PaletteColor }
+  | { type: 'DELETE_PALETTE_COLOR'; paletteId: string; colorId: string }
+  | { type: 'UPDATE_PALETTE_COLOR'; paletteId: string; colorId: string; color?: string; name?: string }
+
+export type AlignType =
+  | 'left' | 'center-h' | 'right'
+  | 'top'  | 'middle-v' | 'bottom'
+  | 'match-width' | 'match-height'
 
 // Selection mutations — NOT pushed to undo history
 export type SelectionAction =
@@ -83,6 +97,7 @@ export type ViewAction =
   | { type: 'RESET_VIEW' }
   | { type: 'SET_ACTIVE_PAGE'; pageId: string | null }
   | { type: 'TOGGLE_SHORTCUTS_MODAL' }
+  | { type: 'TOGGLE_PALETTE_MODAL' }
   | { type: 'SET_DOCUMENT_META'; id: string | null; name: string }
 
 // Undo/redo

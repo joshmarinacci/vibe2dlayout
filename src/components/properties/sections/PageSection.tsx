@@ -22,8 +22,8 @@ export function PageSection({ shape, dispatch }: Props) {
       <div className={styles.sectionTitle}>Page</div>
       <ColorInput
         label="Background"
-        value={shape.background}
-        onChange={v => patch({ background: v })}
+        value={{ color: shape.background, paletteColorId: shape.backgroundPaletteColorId }}
+        onChange={ref => patch({ background: ref.color, backgroundPaletteColorId: ref.paletteColorId })}
       />
       <ToggleInput
         label="Fixed Size"

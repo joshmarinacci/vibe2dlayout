@@ -1,3 +1,33 @@
+## 2026-04-10 (6)
+
+### Features
+
+- **Color palettes**: Documents now include named color palettes (multiple palettes supported). A default "Colors" palette ships with 14 swatches (black, white, grays, blue, green, red, yellow, orange, purple, brown, teal, pink).
+- **Palette-linked colors**: Every color field (fill, stroke, text color, track/thumb fills, page background) can be linked to a palette swatch via `paletteColorId`. Editing a palette color instantly updates all linked shapes on the canvas.
+- **Swatches in color pickers**: Every `ColorInput` shows a row of circular swatches from all palettes. Click a swatch to link the color; using the system picker or hex field sets a raw color and unlinks any palette reference.
+- **Palette editor**: File → Edit Palettes opens a two-column modal to add/rename/delete palettes and their colors. Editing a color dispatches `UPDATE_PALETTE_COLOR` which propagates to all linked shapes.
+- **Document migration**: v1 documents (no `palettes` field) are automatically migrated to v2 with the default palette on load. Document version is now 2.
+- **Undo/redo**: All palette actions (`ADD/DELETE/RENAME_PALETTE`, `ADD/DELETE/UPDATE_PALETTE_COLOR`) are fully undoable.
+
+### Tests
+
+- New `tests/store/palette.test.ts` — 11 tests covering all palette actions, shape color propagation, non-linked shape immunity, name-only updates, and undo.
+
+## 2026-04-10 (5)
+
+### Features
+
+- **Multi-selection properties**: When 2+ shapes are selected the Properties panel now shows Transform (x/y/w/h with mixed-value placeholder), Fill, and Stroke sections in addition to Visible/Locked toggles. Changing a field applies to all selected shapes.
+- **Shape alignment**: New `ALIGN_SHAPES` document action (undoable) aligns selected shapes in 8 modes: left, center-h, right, top, middle-v, bottom, match-width, match-height. Uses canvas-space coordinate math via `computeAlignedTransforms()` in `src/utils/alignment.ts`.
+- **Multi-select context menu**: Right-clicking when 2+ shapes are selected (and the target is already in the selection) preserves the multi-selection and shows a dedicated menu: Duplicate, 8 alignment actions, Delete.
+- **Bug fix**: `ALIGN_SHAPES` and `DUPLICATE_SHAPES` were not tracked in `DOCUMENT_ACTION_TYPES`, so undo/redo did not work for them. Both are now registered.
+
+### Tests
+
+- New `tests/utils/alignment.test.ts`: covers all 8 alignment types plus line-shape exclusion and empty-ids edge case.
+- New `tests/store/alignment.test.ts`: tests `ALIGN_SHAPES` via `appReducer` and undo via `historyReducer`.
+- Extended `tests/store/reducer.test.ts`: multi-shape `DELETE_SHAPES` and `DUPLICATE_SHAPES` test cases added.
+
 ## 2026-04-10 (4)
 
 ### Features

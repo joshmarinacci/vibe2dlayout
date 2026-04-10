@@ -1,6 +1,7 @@
 import type { VibeDocument } from '@model/document'
+import { DEFAULT_PALETTE } from '@model/palette'
 
-const CURRENT_VERSION = 1
+const CURRENT_VERSION = 2
 
 export function toJSON(doc: VibeDocument): string {
   return JSON.stringify({ ...doc, version: CURRENT_VERSION }, null, 2)
@@ -16,7 +17,13 @@ export function fromJSON(json: string): VibeDocument {
   if (!isVibeDocument(parsed)) {
     throw new Error('Invalid document format')
   }
-  return parsed
+  // Migrate v1 → v2: add default palette
+  const docObj = parsed as unknown as Record<string, unknown>
+  if (docObj.version === 1) {
+    docObj.palettes = [{ ...DEFAULT_PALETTE, colors: [...DEFAULT_PALETTE.colors] }]
+    docObj.version = 2
+  }
+  return parsed as VibeDocument
 }
 
 function isVibeDocument(obj: unknown): obj is VibeDocument {

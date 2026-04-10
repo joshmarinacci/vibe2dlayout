@@ -22,6 +22,7 @@ export interface CanvasContextMenuState {
   canvasX: number
   canvasY: number
   shapeId: string | null
+  selectedIds: string[]
 }
 
 // Map tool mode to shape type
@@ -358,11 +359,19 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     e.preventDefault()
     const pos = getMouseCanvasPos(e)
     const shapeId = hitTestShapes(pos.x, pos.y)
-    if (shapeId) {
-      dispatch({ type: 'SELECT_SHAPES', ids: [shapeId], additive: false })
+    const currentIds = state.selection.ids
+    const isAlreadyInMultiSelect = shapeId !== null && currentIds.length > 1 && currentIds.includes(shapeId)
+    let selectedIds: string[]
+    if (isAlreadyInMultiSelect) {
+      selectedIds = currentIds
+    } else {
+      if (shapeId) {
+        dispatch({ type: 'SELECT_SHAPES', ids: [shapeId], additive: false })
+      }
+      selectedIds = shapeId ? [shapeId] : []
     }
-    setContextMenu({ screenX: e.clientX, screenY: e.clientY, canvasX: pos.x, canvasY: pos.y, shapeId })
-  }, [getMouseCanvasPos, hitTestShapes, dispatch])
+    setContextMenu({ screenX: e.clientX, screenY: e.clientY, canvasX: pos.x, canvasY: pos.y, shapeId, selectedIds })
+  }, [getMouseCanvasPos, hitTestShapes, dispatch, state.selection.ids])
 
   return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null), spaceHeld }
 }
