@@ -6,7 +6,8 @@
 - New `src/utils/allLucideIcons.ts` enumerates every exported lucide icon at runtime.
 - New `src/components/properties/IconPickerDialog.tsx` — searchable 8-column grid modal.
 - `getButtonIcon` now resolves any lucide icon name (not just the original 35).
-- Bundle size increases from ~316KB to ~1.2MB uncompressed (~251KB gzip) due to including all icons.
+- Bundle size increases from ~316KB to ~1.1MB uncompressed (~226KB gzip) due to including all icons.
+- **Bug fix**: Initial implementation filtered lucide exports by `typeof === 'function'`, which excluded all icons because lucide wraps them with `React.forwardRef()` (returns an object, not a function). Fixed by using lucide-react's built-in `icons` named export instead.
 
 ## 2026-04-10 (3)
 
