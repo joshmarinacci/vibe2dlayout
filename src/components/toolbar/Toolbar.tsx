@@ -5,12 +5,16 @@ import {
   Tag, TextCursorInput, CheckSquare, ToggleLeft, ChevronDown,
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
-  HelpCircle, LayoutPanelLeft,
+  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
 import { createShape } from '@utils/shapeFactory'
 import { downloadJSON, uploadJSON, fromJSON } from '@utils/serialization'
+import { saveDoc } from '@utils/localStorageDB'
+import { createInitialDocument } from '@store/reducer'
+import type { VibeDocument } from '@model/document'
+import { DocumentsModal } from '@components/layout/DocumentsModal'
 import styles from './Toolbar.module.css'
 
 interface ToolButton {
@@ -53,28 +57,142 @@ export function Toolbar() {
   const dispatch = useAppDispatch()
   const [showShapesMenu, setShowShapesMenu] = useState(false)
   const [showComponentMenu, setShowComponentMenu] = useState(false)
+  const [showFileMenu, setShowFileMenu] = useState(false)
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false)
+  const [documentsModalMode, setDocumentsModalMode] = useState<'open' | 'save-as'>('open')
+  const [editingName, setEditingName] = useState(false)
+  const [nameInputValue, setNameInputValue] = useState('')
 
   const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode)
   const activeComponentTool = ALL_COMPONENT_TOOLS.find(t => t.mode === state.toolMode)
 
   const handleSave = () => {
-    downloadJSON(state.document)
+    try {
+      const entry = saveDoc(state.documentId, state.documentName, state.document)
+      dispatch({ type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name })
+    } catch (err) {
+      alert('Save failed: ' + (err instanceof Error ? err.message : String(err)))
+    }
   }
 
-  const handleLoad = async () => {
+  const handleImportJSON = async () => {
     try {
       const json = await uploadJSON()
       const doc = fromJSON(json)
       dispatch({ type: 'LOAD_DOCUMENT', document: doc })
       const firstPage = doc.rootNodes[0]?.id ?? null
       dispatch({ type: 'SET_ACTIVE_PAGE', pageId: firstPage })
+      dispatch({ type: 'SET_DOCUMENT_META', id: null, name: 'Untitled' })
     } catch (err) {
       alert('Failed to load document: ' + (err instanceof Error ? err.message : String(err)))
     }
   }
 
+  const handleLoadDoc = (id: string, name: string, doc: VibeDocument) => {
+    dispatch({ type: 'LOAD_DOCUMENT', document: doc })
+    dispatch({ type: 'SET_ACTIVE_PAGE', pageId: doc.rootNodes[0]?.id ?? null })
+    dispatch({ type: 'SET_DOCUMENT_META', id, name })
+    setShowDocumentsModal(false)
+  }
+
+  const handleSaveAs = (id: string | null, name: string) => {
+    try {
+      const entry = saveDoc(id, name, state.document)
+      dispatch({ type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name })
+      setShowDocumentsModal(false)
+    } catch (err) {
+      alert('Save failed: ' + (err instanceof Error ? err.message : String(err)))
+    }
+  }
+
+  const handleNew = () => {
+    const doc = createInitialDocument()
+    dispatch({ type: 'LOAD_DOCUMENT', document: doc })
+    dispatch({ type: 'SET_ACTIVE_PAGE', pageId: doc.rootNodes[0]?.id ?? null })
+    dispatch({ type: 'SET_DOCUMENT_META', id: null, name: 'Untitled' })
+    setShowFileMenu(false)
+  }
+
+  const openDocumentsModal = (mode: 'open' | 'save-as') => {
+    setDocumentsModalMode(mode)
+    setShowDocumentsModal(true)
+    setShowFileMenu(false)
+  }
+
   return (
     <div className={styles.toolbar}>
+
+      {/* File menu */}
+      <div className={styles.group}>
+        <div style={{ position: 'relative' }}>
+          <button
+            className={`${styles.btn} ${styles.formBtn}`}
+            title="File"
+            onClick={() => setShowFileMenu(v => !v)}
+          >
+            <FolderOpen size={14} />
+            <span style={{ fontSize: 12 }}>File</span>
+            <ChevronDown size={10} />
+          </button>
+          {showFileMenu && (
+            <div className={styles.formMenu} style={{ minWidth: 160 }}>
+              <button className={styles.formMenuItem} onClick={handleNew}>
+                <File size={13} /><span>New</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => openDocumentsModal('open')}>
+                <FolderOpen size={13} /><span>Open...</span>
+              </button>
+              <div className={styles.formMenuDivider} />
+              <button className={styles.formMenuItem} onClick={() => { handleSave(); setShowFileMenu(false) }}>
+                <Save size={13} /><span>Save</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => openDocumentsModal('save-as')}>
+                <FilePlus2 size={13} /><span>Save As...</span>
+              </button>
+              <div className={styles.formMenuDivider} />
+              <button className={styles.formMenuItem} onClick={() => { handleImportJSON(); setShowFileMenu(false) }}>
+                <Upload size={13} /><span>Import JSON...</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => { downloadJSON(state.document); setShowFileMenu(false) }}>
+                <Download size={13} /><span>Export JSON...</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.separator} />
+
+      {/* Document name */}
+      {editingName ? (
+        <input
+          autoFocus
+          value={nameInputValue}
+          onChange={e => setNameInputValue(e.target.value)}
+          onBlur={() => {
+            const name = nameInputValue.trim() || state.documentName
+            dispatch({ type: 'SET_DOCUMENT_META', id: state.documentId, name })
+            setEditingName(false)
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+            if (e.key === 'Escape') { setEditingName(false) }
+          }}
+          style={{ fontSize: 12, fontWeight: 'bold', width: 140, height: 24, border: '1px solid #3b82f6', borderRadius: 4, padding: '0 6px', outline: 'none', color: '#111' }}
+        />
+      ) : (
+        <span
+          title="Click to rename"
+          onClick={() => { setNameInputValue(state.documentName); setEditingName(true) }}
+          style={{ fontWeight: 'bold', color: '#333', fontSize: 12, padding: '0 8px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+        >
+          {state.documentName}
+        </span>
+      )}
+
+      <div className={styles.spacer} />
+
+      {/* Undo / Redo */}
       <div className={styles.group}>
         <button
           className={styles.btn}
@@ -92,8 +210,8 @@ export function Toolbar() {
 
       <div className={styles.separator} />
 
+      {/* Select + Pan | Shapes + other tools */}
       <div className={styles.group}>
-        {/* Select + Pan */}
         <button
           className={`${styles.btn} ${state.toolMode === 'select' ? styles.active : ''}`}
           onClick={() => dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })}
@@ -104,8 +222,12 @@ export function Toolbar() {
           onClick={() => dispatch({ type: 'SET_TOOL_MODE', mode: 'pan' })}
           title="Pan (H)"
         ><Hand size={15} /></button>
+      </div>
 
-        {/* Shapes dropdown (Rect / Circle / Line) */}
+      <div className={styles.separator} />
+
+      <div className={styles.group}>
+        {/* Shapes dropdown */}
         <div style={{ position: 'relative' }}>
           <button
             className={`${styles.btn} ${styles.formBtn} ${SHAPE_MODES.has(state.toolMode) ? styles.active : ''}`}
@@ -131,7 +253,7 @@ export function Toolbar() {
           )}
         </div>
 
-        {/* Text + Image + Page (individual) */}
+        {/* Text + Image + Page */}
         <button
           className={`${styles.btn} ${state.toolMode === 'insert-text' ? styles.active : ''}`}
           onClick={() => dispatch({ type: 'SET_TOOL_MODE', mode: 'insert-text' })}
@@ -152,7 +274,7 @@ export function Toolbar() {
           title="Add Page"
         ><FileText size={15} /></button>
 
-        {/* Components dropdown (Containers + Form Controls) */}
+        {/* Components dropdown */}
         <div style={{ position: 'relative' }}>
           <button
             className={`${styles.btn} ${styles.formBtn} ${COMPONENT_MODES.has(state.toolMode) ? styles.active : ''}`}
@@ -194,6 +316,7 @@ export function Toolbar() {
 
       <div className={styles.separator} />
 
+      {/* Zoom controls */}
       <div className={styles.group}>
         <button
           className={styles.btn}
@@ -239,15 +362,24 @@ export function Toolbar() {
 
       <div className={styles.spacer} />
 
+      {/* Help */}
       <div className={styles.group}>
-        <button className={styles.btn} onClick={handleLoad} title="Load document"><FolderOpen size={15} /></button>
-        <button className={styles.btn} onClick={handleSave} title="Save document"><Save size={15} /></button>
         <button
           className={styles.btn}
           onClick={() => dispatch({ type: 'TOGGLE_SHORTCUTS_MODAL' })}
           title="Keyboard shortcuts (?)"
         ><HelpCircle size={15} /></button>
       </div>
+
+      {showDocumentsModal && (
+        <DocumentsModal
+          mode={documentsModalMode}
+          currentName={state.documentName}
+          onClose={() => setShowDocumentsModal(false)}
+          onLoad={handleLoadDoc}
+          onSave={handleSaveAs}
+        />
+      )}
     </div>
   )
 }

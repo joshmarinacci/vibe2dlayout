@@ -45,6 +45,9 @@ export interface AppState {
   // current page being viewed/edited
   activePageId: string | null
   showShortcutsModal: boolean
+  // current document identity (localStorage)
+  documentId: string | null
+  documentName: string
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -80,6 +83,7 @@ export type ViewAction =
   | { type: 'RESET_VIEW' }
   | { type: 'SET_ACTIVE_PAGE'; pageId: string | null }
   | { type: 'TOGGLE_SHORTCUTS_MODAL' }
+  | { type: 'SET_DOCUMENT_META'; id: string | null; name: string }
 
 // Undo/redo
 export type HistoryAction =

@@ -1,3 +1,19 @@
+## 2026-04-10
+
+### Features
+
+- **localStorage document persistence**: Documents can now be saved to and loaded from browser localStorage. The Load/Save toolbar buttons are replaced by a "File" dropdown menu containing:
+  - **Open...** — shows a list of previously saved documents; click any to load it
+  - **Save** — saves the current document (overwrites if previously saved, otherwise prompts via Save As)
+  - **Save As...** — save with a new name or overwrite an existing document
+  - **Import JSON...** / **Export JSON...** — existing file-based import/export, unchanged
+- Document name is displayed in the toolbar to show which document is active.
+- New files: `src/utils/localStorageDB.ts`, `src/components/layout/DocumentsModal.tsx/.module.css`
+- `AppState` gains `documentId` and `documentName` fields; new `SET_DOCUMENT_META` action.
+- **New document**: File menu includes a "New" item that creates a blank document without reloading the browser.
+- **Inline rename**: Clicking the document name in the toolbar makes it editable in-place (Enter or blur to confirm, Escape to cancel).
+- **Toolbar reorganisation**: File menu and document name moved to the far left; spacer pushes drawing tools to the centre; help button anchored to the far right; separator added between Pan and Shapes tools.
+
 ## 2026-04-09
 
 ### Bug Fixes

@@ -232,7 +232,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
 
 // ─── Initial state ─────────────────────────────────────────────────────────
 
-function createInitialDocument(): VibeDocument {
+export function createInitialDocument(): VibeDocument {
   const pageId = generateId()
   return {
     version: 1,
@@ -262,6 +262,8 @@ export const initialState: AppState = {
   toolMode: 'select',
   activePageId: initialDocument.rootNodes[0]?.id ?? null,
   showShortcutsModal: false,
+  documentId: null,
+  documentName: 'Untitled',
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -339,6 +341,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, activePageId: action.pageId }
     case 'TOGGLE_SHORTCUTS_MODAL':
       return { ...state, showShortcutsModal: !state.showShortcutsModal }
+    case 'SET_DOCUMENT_META':
+      return { ...state, documentId: action.id, documentName: action.name }
 
     // ── Undo/Redo (handled by history wrapper) ─────────────────────────
     case 'UNDO':
