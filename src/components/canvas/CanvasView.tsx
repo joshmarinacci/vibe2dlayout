@@ -7,6 +7,7 @@ import { SelectionOverlay } from './SelectionOverlay'
 import { useCanvasPointer } from './useCanvasPointer'
 import { CanvasContextMenu } from './CanvasContextMenu'
 import { CanvasRuler, RULER_SIZE } from './CanvasRuler'
+import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import styles from './CanvasView.module.css'
 
 export function CanvasView() {
@@ -101,6 +102,29 @@ export function CanvasView() {
 
         {/* Selection overlay (inside transform so coords match) */}
         <SelectionOverlay containerRef={containerRef} />
+
+        {/* Drill-in scope border */}
+        {state.drilledInContainerId && (() => {
+          const parentMap = buildParentMap(state.document.rootNodes)
+          const abs = getAbsoluteTransform(
+            state.drilledInContainerId, state.document.shapes, parentMap)
+          if (!abs) return null
+          const pad = 2 / zoom
+          return (
+            <div style={{
+              position: 'absolute',
+              left: abs.x - pad,
+              top: abs.y - pad,
+              width: abs.width + pad * 2,
+              height: abs.height + pad * 2,
+              border: `${2 / zoom}px solid rgba(251, 146, 60, 0.85)`,
+              borderRadius: 2 / zoom,
+              pointerEvents: 'none',
+              zIndex: 9999,
+              boxSizing: 'border-box',
+            }} />
+          )
+        })()}
       </div>
 
       {/* Ghost rect for insert tool */}
@@ -127,6 +151,31 @@ export function CanvasView() {
           }}
         />
       )}
+
+      {/* Drill-in breadcrumb label */}
+      {state.drilledInContainerId && (() => {
+        const shape = state.document.shapes[state.drilledInContainerId]
+        const label = shape && 'name' in shape ? (shape as { name: string }).name : 'Container'
+        return (
+          <div style={{
+            position: 'absolute',
+            top: RULER_SIZE + 8,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(251, 146, 60, 0.9)',
+            color: 'white',
+            fontSize: 12,
+            padding: '3px 10px',
+            borderRadius: 4,
+            pointerEvents: 'none',
+            zIndex: 10000,
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+          }}>
+            Editing: {label}
+          </div>
+        )
+      })()}
 
       {contextMenu && (
         <CanvasContextMenu

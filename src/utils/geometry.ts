@@ -111,6 +111,28 @@ export function buildParentMap(nodes: TreeNode[]): Record<string, string> {
 }
 
 /**
+ * Returns the canvas-space origin of the content area of the given shape (as a parent).
+ * Use this to convert a canvas-space position into local coordinates for a new child.
+ * Returns (0, 0) for null (top-level/page).
+ */
+export function getContentOrigin(
+  parentId: string | null,
+  shapes: Record<string, Shape>,
+  parentMap: Record<string, string>,
+): { x: number; y: number } {
+  if (!parentId) return { x: 0, y: 0 }
+  const parent = shapes[parentId]
+  if (!parent || parent.type === 'page') return { x: 0, y: 0 }
+  const abs = getAbsoluteTransform(parentId, shapes, parentMap)
+  if (!abs) return { x: 0, y: 0 }
+  let contentOffsetY = 0
+  if (parent.type === 'panel' && parent.title) {
+    contentOffsetY = parent.title.fontSize + 12
+  }
+  return { x: abs.x, y: abs.y + contentOffsetY }
+}
+
+/**
  * Returns the canvas-space origin of the parent's content area for a shape.
  * Subtract this from a canvas-space position to get the shape's local coordinate.
  * Returns (0, 0) for top-level shapes.

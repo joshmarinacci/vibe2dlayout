@@ -5,7 +5,9 @@ import { screenToCanvas } from '@store/reducer'
 import type { ShapeType } from '@model/shapes'
 import { createShape } from '@utils/shapeFactory'
 import { generateId } from '@utils/idgen'
-import { pointInBox, pointNearLine, buildParentMap, getAbsoluteTransform } from '@utils/geometry'
+import { pointInBox, pointNearLine, buildParentMap, getAbsoluteTransform, getContentOrigin } from '@utils/geometry'
+import { findNode, getAllIds } from '@model/document'
+import type { VibeDocument } from '@model/document'
 import { resolveEndpoint } from '@utils/connectors'
 import { RULER_SIZE } from './CanvasRuler'
 
@@ -45,6 +47,46 @@ const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-select': 'select',
   'insert-progress': 'progress',
   'insert-stepper': 'stepper',
+}
+
+/**
+ * Find the deepest frame or panel whose bounding box contains (cx, cy),
+ * excluding the dragged shape and its descendants. Returns null when the
+ * shape belongs at the page level (no container found).
+ */
+function findDropTarget(
+  cx: number,
+  cy: number,
+  draggedId: string,
+  doc: VibeDocument,
+  parentMap: Record<string, string>,
+): string | null {
+  const draggedNode = findNode(doc.rootNodes, draggedId)
+  const excluded = new Set(draggedNode ? getAllIds(draggedNode.children) : [])
+  excluded.add(draggedId)
+
+  const candidates: string[] = []
+  function walk(nodes: typeof doc.rootNodes) {
+    for (const n of nodes) {
+      const shape = doc.shapes[n.id]
+      if (shape && (shape.type === 'frame' || shape.type === 'panel')) {
+        candidates.push(n.id)
+      }
+      walk(n.children)
+    }
+  }
+  for (const page of doc.rootNodes) walk(page.children)
+
+  let best: string | null = null
+  for (const id of candidates) {
+    if (excluded.has(id)) continue
+    const abs = getAbsoluteTransform(id, doc.shapes, parentMap)
+    if (!abs) continue
+    if (cx >= abs.x && cx <= abs.x + abs.width && cy >= abs.y && cy <= abs.y + abs.height) {
+      best = id
+    }
+  }
+  return best
 }
 
 export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>) {
@@ -101,6 +143,12 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     const activeNode = state.document.rootNodes.find(n => n.id === state.activePageId)
     if (!activeNode) return null
 
+    // When drilled in, scope hit testing to the drilled container's children only
+    const scopeNode = state.drilledInContainerId
+      ? findNode(activeNode.children, state.drilledInContainerId)
+      : null
+    const childrenToTest = scopeNode ? scopeNode.children : activeNode.children
+
     // Check children in reverse order (top shape first)
     const allIds: string[] = []
     function collect(nodes: { id: string; children: typeof nodes }[]) {
@@ -109,7 +157,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         collect(n.children)
       }
     }
-    collect(activeNode.children)
+    collect(childrenToTest)
 
     const parentMap = buildParentMap(state.document.rootNodes)
 
@@ -132,7 +180,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       }
     }
     return null
-  }, [state.document, state.activePageId, state.viewTransform.zoom])
+  }, [state.document, state.activePageId, state.drilledInContainerId, state.viewTransform.zoom])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return
@@ -302,11 +350,17 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
 
       const activeNode = state.document.rootNodes.find(n => n.id === state.activePageId)
       if (activeNode) {
+        // When drilled in, scope marquee to the drilled container's children
+        const scopeNode = state.drilledInContainerId
+          ? findNode(activeNode.children, state.drilledInContainerId)
+          : null
+        const childrenToMarquee = scopeNode ? scopeNode.children : activeNode.children
+
         const allIds: string[] = []
         const collect = (nodes: { id: string; children: typeof nodes }[]) => {
           for (const n of nodes) { allIds.push(n.id); collect(n.children) }
         }
-        collect(activeNode.children)
+        collect(childrenToMarquee)
 
         const parentMap = buildParentMap(state.document.rootNodes)
         const selected = allIds.filter(id => {
@@ -318,6 +372,33 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         })
         if (selected.length > 0) {
           dispatch({ type: 'SELECT_SHAPES', ids: selected, additive: e.shiftKey })
+        }
+      }
+    }
+
+    // Canvas drag-to-reparent: check if shapes moved into or out of a frame/panel
+    if (isDragging.current && draggingIds.current.length > 0 && state.activePageId) {
+      const parentMap = buildParentMap(state.document.rootNodes)
+      for (const shapeId of draggingIds.current) {
+        const currentParentId = parentMap[shapeId] ?? null
+        const currentParent = currentParentId ? state.document.shapes[currentParentId] : null
+        const effectiveCurrentParent = currentParent?.type === 'page' ? null : currentParentId
+
+        const abs = getAbsoluteTransform(shapeId, state.document.shapes, parentMap)
+        if (!abs) continue
+        const centerX = abs.x + abs.width / 2
+        const centerY = abs.y + abs.height / 2
+
+        const newParentId = findDropTarget(centerX, centerY, shapeId, state.document, parentMap)
+
+        if (newParentId !== effectiveCurrentParent) {
+          const origin = getContentOrigin(newParentId, state.document.shapes, parentMap)
+          const newX = abs.x - origin.x
+          const newY = abs.y - origin.y
+          const resolvedParentId = newParentId ?? state.activePageId
+          const parentNode = findNode(state.document.rootNodes, resolvedParentId)
+          const index = parentNode ? parentNode.children.length : 0
+          dispatch({ type: 'REPARENT_SHAPE', id: shapeId, newParentId: resolvedParentId, index, x: newX, y: newY })
         }
       }
     }
@@ -341,16 +422,42 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     return screenToCanvas(state.viewTransform, sx - RULER_SIZE, sy - RULER_SIZE)
   }, [state.viewTransform, containerRef])
 
+  const DRILLABLE = new Set(['frame', 'panel', 'dialog'])
   const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select'])
 
   const onDoubleClick = useCallback((e: React.MouseEvent) => {
     if (state.toolMode !== 'select') return
     const pos = getMouseCanvasPos(e)
-    const hitId = hitTestShapes(pos.x, pos.y)
-    if (hitId) {
-      const shape = state.document.shapes[hitId]
-      if (shape && TEXT_EDITABLE.has(shape.type)) {
-        dispatch({ type: 'START_TEXT_EDIT', id: hitId })
+
+    if (state.drilledInContainerId) {
+      // Already drilled in — hitTestShapes is scoped to container children
+      const hitId = hitTestShapes(pos.x, pos.y)
+      if (hitId) {
+        const shape = state.document.shapes[hitId]
+        if (shape && TEXT_EDITABLE.has(shape.type)) {
+          dispatch({ type: 'START_TEXT_EDIT', id: hitId })
+        }
+      } else {
+        // Missed all children — check if click was outside the container bounds
+        const parentMap = buildParentMap(state.document.rootNodes)
+        const containerAbs = getAbsoluteTransform(
+          state.drilledInContainerId, state.document.shapes, parentMap)
+        if (!containerAbs || !pointInBox({ x: pos.x, y: pos.y }, containerAbs)) {
+          dispatch({ type: 'EXIT_DRILL_MODE' })
+        }
+        // Click on empty space inside container: do nothing
+      }
+    } else {
+      // Not drilled in — normal hit test against the full page
+      const hitId = hitTestShapes(pos.x, pos.y)
+      if (hitId) {
+        const shape = state.document.shapes[hitId]
+        if (!shape) return
+        if (DRILLABLE.has(shape.type)) {
+          dispatch({ type: 'ENTER_DRILL_MODE', containerId: hitId })
+        } else if (TEXT_EDITABLE.has(shape.type)) {
+          dispatch({ type: 'START_TEXT_EDIT', id: hitId })
+        }
       }
     }
   }, [state, dispatch, getMouseCanvasPos, hitTestShapes])

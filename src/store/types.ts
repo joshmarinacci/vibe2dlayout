@@ -47,6 +47,7 @@ export interface AppState {
   activePageId: string | null
   showShortcutsModal: boolean
   showPaletteModal: boolean
+  drilledInContainerId: string | null
   // current document identity (localStorage)
   documentId: string | null
   documentName: string
@@ -63,7 +64,7 @@ export type DocumentAction =
   | { type: 'SET_CONNECTOR_START'; id: string; endpoint: ConnectorEndpoint }
   | { type: 'SET_CONNECTOR_END'; id: string; endpoint: ConnectorEndpoint }
   | { type: 'PATCH_SHAPE'; id: string; patch: Partial<Shape> }
-  | { type: 'REPARENT_SHAPE'; id: string; newParentId: string | null; index: number }
+  | { type: 'REPARENT_SHAPE'; id: string; newParentId: string | null; index: number; x?: number; y?: number }
   | { type: 'REORDER_SHAPE'; id: string; direction: 'up' | 'down' | 'to-front' | 'to-back' }
   | { type: 'COMMIT_TEXT_EDIT'; id: string; content: string }
   | { type: 'DUPLICATE_SHAPES'; ids: string[]; rootIds?: string[] }
@@ -99,6 +100,8 @@ export type ViewAction =
   | { type: 'TOGGLE_SHORTCUTS_MODAL' }
   | { type: 'TOGGLE_PALETTE_MODAL' }
   | { type: 'SET_DOCUMENT_META'; id: string | null; name: string }
+  | { type: 'ENTER_DRILL_MODE'; containerId: string }
+  | { type: 'EXIT_DRILL_MODE' }
 
 // Undo/redo
 export type HistoryAction =

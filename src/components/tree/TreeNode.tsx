@@ -12,6 +12,7 @@ import type { TreeNode } from '@model/document'
 import { findAncestorPage } from '@model/document'
 import type { Shape, ShapeType } from '@model/shapes'
 import type { AppAction } from '@store/types'
+import { buildParentMap, getAbsoluteTransform, getContentOrigin } from '@utils/geometry'
 import { createShape } from '@utils/shapeFactory'
 import { ContextMenu, type ContextMenuGroup } from './ContextMenu'
 import styles from './TreeNode.module.css'
@@ -161,7 +162,16 @@ export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, acti
       }
     }
 
-    dispatch({ type: 'REPARENT_SHAPE', id: drag.id, newParentId, index: insertIndex })
+    const parentMap = buildParentMap(rootNodes)
+    const abs = getAbsoluteTransform(drag.id, shapes, parentMap)
+    let newX: number | undefined
+    let newY: number | undefined
+    if (abs) {
+      const origin = getContentOrigin(newParentId, shapes, parentMap)
+      newX = abs.x - origin.x
+      newY = abs.y - origin.y
+    }
+    dispatch({ type: 'REPARENT_SHAPE', id: drag.id, newParentId, index: insertIndex, x: newX, y: newY })
   }
 
   const handleClick = (e: React.MouseEvent) => {

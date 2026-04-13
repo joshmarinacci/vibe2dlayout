@@ -1,3 +1,37 @@
+## 2026-04-10 (8)
+
+### Features
+
+- **Drill-in container editing**: Double-clicking a frame, panel, or dialog on the canvas enters a focused editing mode for that container. While drilled in, all canvas interactions (hit-testing, drag-marquee selection, shape movement) are scoped exclusively to the container's children.
+- **Visual feedback**: An orange border highlights the active container and a small "Editing: [name]" label appears at the top of the canvas while in drill mode.
+- **Exit options**: Double-click outside the container or press Escape to return to normal page-level editing.
+- **Auto-exit on page change**: Switching the active page automatically clears drill mode.
+
+### Technical
+
+- Added `drilledInContainerId: string | null` to `AppState` (view-only, non-undoable).
+- Added `ENTER_DRILL_MODE` and `EXIT_DRILL_MODE` `ViewAction` variants; handled in reducer alongside `SET_ACTIVE_PAGE` reset.
+- `useCanvasPointer.ts`: `hitTestShapes` and marquee selection both scope to the drilled container's `TreeNode.children` when `drilledInContainerId` is set. `onDoubleClick` routes to drill-in vs. text-edit based on shape type and current drill state.
+- `useDocumentShortcuts.ts`: Escape priority chain is now text-edit → drill-exit → deselect.
+
+---
+
+## 2026-04-10 (7)
+
+### Features
+
+- **Reparent with position compensation**: Moving a shape to a different parent (via the layer tree or by dragging on the canvas) now preserves its visual position. The shape's local coordinates are recalculated so it appears at the same canvas location after the parent changes.
+- **Canvas drag-to-reparent**: Dragging a shape on the canvas so its center lands inside a frame or panel automatically reparents it into that container. Dragging it out of all containers reparents it back to the active page. Position is compensated in both cases.
+- **Tree panel reparent fix**: Drag-and-drop reordering in the layer panel now adjusts local coordinates when the parent changes, so the shape stays visually in place.
+
+### Technical
+
+- Added `getContentOrigin(parentId, shapes, parentMap)` to `src/utils/geometry.ts` — returns the canvas-space content origin of a given parent shape (used to compute new local coords when reparenting).
+- Extended `REPARENT_SHAPE` action with optional `x?: number; y?: number` fields; reducer applies them atomically with the tree move (single undo step).
+- `useCanvasPointer.ts`: on pointer-up after a drag, checks whether each dragged shape has moved into or out of a frame/panel and dispatches `REPARENT_SHAPE` with adjusted coordinates if needed.
+
+---
+
 ## 2026-04-10 (6)
 
 ### Features

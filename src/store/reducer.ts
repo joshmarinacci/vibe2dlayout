@@ -132,7 +132,13 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       if (!node) return doc
       const withoutNode = removeNode(doc.rootNodes, action.id)
       const withNode = insertNode(withoutNode, action.newParentId, node, action.index)
-      return { ...doc, rootNodes: withNode }
+      if (action.x === undefined && action.y === undefined) {
+        return { ...doc, rootNodes: withNode }
+      }
+      const shape = doc.shapes[action.id]
+      if (!shape || !('transform' in shape)) return { ...doc, rootNodes: withNode }
+      const updatedShape = { ...shape, transform: { ...shape.transform, x: action.x ?? shape.transform.x, y: action.y ?? shape.transform.y } }
+      return { ...doc, rootNodes: withNode, shapes: { ...doc.shapes, [action.id]: updatedShape } }
     }
 
     case 'REORDER_SHAPE': {
@@ -367,6 +373,7 @@ export const initialState: AppState = {
   activePageId: initialDocument.rootNodes[0]?.id ?? null,
   showShortcutsModal: false,
   showPaletteModal: false,
+  drilledInContainerId: null,
   documentId: null,
   documentName: 'Untitled',
 }
@@ -450,13 +457,19 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'RESET_VIEW':
       return { ...state, viewTransform: { panX: 0, panY: 0, zoom: 1 } }
     case 'SET_ACTIVE_PAGE':
-      return { ...state, activePageId: action.pageId }
+      return { ...state, activePageId: action.pageId, drilledInContainerId: null }
     case 'TOGGLE_SHORTCUTS_MODAL':
       return { ...state, showShortcutsModal: !state.showShortcutsModal }
     case 'TOGGLE_PALETTE_MODAL':
       return { ...state, showPaletteModal: !state.showPaletteModal }
     case 'SET_DOCUMENT_META':
       return { ...state, documentId: action.id, documentName: action.name }
+    case 'ENTER_DRILL_MODE':
+      return { ...state, drilledInContainerId: action.containerId,
+               selection: { ids: [], editingTextId: null } }
+    case 'EXIT_DRILL_MODE':
+      return { ...state, drilledInContainerId: null,
+               selection: { ids: [], editingTextId: null } }
 
     // ── Undo/Redo (handled by history wrapper) ─────────────────────────
     case 'UNDO':
