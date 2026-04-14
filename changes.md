@@ -1,3 +1,9 @@
+## 2026-04-14 (2)
+
+### Features
+
+- **Export page as PNG**: Added "Export PNG..." to the File menu. Renders the active page off-screen at 1:1 scale (using html2canvas) and downloads it as `<document-name>.png`. Requires the page to have a fixed size set; shows a helpful message if the page uses infinite canvas mode.
+
 ## 2026-04-14
 
 ### Features

@@ -5,12 +5,13 @@ import {
   Tag, TextCursorInput, CheckSquare, ToggleLeft, ChevronDown,
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
-  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings,
+  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
 import { createShape } from '@utils/shapeFactory'
 import { downloadJSON, uploadJSON, fromJSON } from '@utils/serialization'
+import { exportPageAsPng } from '@utils/exportPng'
 import { saveDoc } from '@utils/localStorageDB'
 import { createInitialDocument } from '@store/reducer'
 import type { VibeDocument } from '@model/document'
@@ -164,6 +165,9 @@ export function Toolbar() {
               </button>
               <button className={styles.formMenuItem} onClick={() => { downloadJSON(state.document); setShowFileMenu(false) }}>
                 <Download size={13} /><span>Export JSON...</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => { exportPageAsPng(state); setShowFileMenu(false) }}>
+                <FileImage size={13} /><span>Export PNG...</span>
               </button>
             </div>
           )}
