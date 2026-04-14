@@ -12,6 +12,7 @@ import type { ToolMode } from '@store/types'
 import { createShape } from '@utils/shapeFactory'
 import { downloadJSON, uploadJSON, fromJSON } from '@utils/serialization'
 import { exportPageAsPng } from '@utils/exportPng'
+import { exportDocumentAsPdf } from '@utils/exportPdf'
 import { saveDoc } from '@utils/localStorageDB'
 import { createInitialDocument } from '@store/reducer'
 import type { VibeDocument } from '@model/document'
@@ -168,6 +169,9 @@ export function Toolbar() {
               </button>
               <button className={styles.formMenuItem} onClick={() => { exportPageAsPng(state); setShowFileMenu(false) }}>
                 <FileImage size={13} /><span>Export PNG...</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => { exportDocumentAsPdf(state); setShowFileMenu(false) }}>
+                <Download size={13} /><span>Export PDF...</span>
               </button>
             </div>
           )}

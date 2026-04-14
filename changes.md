@@ -1,3 +1,9 @@
+## 2026-04-14 (3)
+
+### Features
+
+- **Export document as PDF**: Added "Export PDF..." to the File menu. Renders all fixed-size pages in document order, one per PDF page, and downloads as `<document-name>.pdf`. Each page uses its own dimensions. Pages without a fixed size are skipped.
+
 ## 2026-04-14 (2)
 
 ### Features
