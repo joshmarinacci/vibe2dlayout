@@ -5,7 +5,7 @@ import {
   Tag, TextCursorInput, CheckSquare, ToggleLeft, ChevronDown,
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
-  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette,
+  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
@@ -154,6 +154,9 @@ export function Toolbar() {
               <div className={styles.formMenuDivider} />
               <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_PALETTE_MODAL' }); setShowFileMenu(false) }}>
                 <Palette size={13} /><span>Edit Palettes...</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_SETTINGS_MODAL' }); setShowFileMenu(false) }}>
+                <Settings size={13} /><span>Settings...</span>
               </button>
               <div className={styles.formMenuDivider} />
               <button className={styles.formMenuItem} onClick={() => { handleImportJSON(); setShowFileMenu(false) }}>

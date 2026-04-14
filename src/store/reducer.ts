@@ -1,4 +1,5 @@
 import type { AppState, AppAction, DocumentAction, ViewTransform } from './types'
+import { DEFAULT_SETTINGS } from './types'
 import type { VibeDocument, TreeNode } from '@model/document'
 import type { Shape } from '@model/shapes'
 import { findNode, findParent, removeNode, insertNode, getAllIds } from '@model/document'
@@ -373,6 +374,8 @@ export const initialState: AppState = {
   activePageId: initialDocument.rootNodes[0]?.id ?? null,
   showShortcutsModal: false,
   showPaletteModal: false,
+  showSettingsModal: false,
+  settings: { ...DEFAULT_SETTINGS },
   drilledInContainerId: null,
   documentId: null,
   documentName: 'Untitled',
@@ -462,6 +465,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, showShortcutsModal: !state.showShortcutsModal }
     case 'TOGGLE_PALETTE_MODAL':
       return { ...state, showPaletteModal: !state.showPaletteModal }
+    case 'TOGGLE_SETTINGS_MODAL':
+      return { ...state, showSettingsModal: !state.showSettingsModal }
+    case 'UPDATE_SETTINGS':
+      return { ...state, settings: { ...state.settings, ...action.patch } }
     case 'SET_DOCUMENT_META':
       return { ...state, documentId: action.id, documentName: action.name }
     case 'ENTER_DRILL_MODE':

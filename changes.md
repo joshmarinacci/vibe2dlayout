@@ -1,3 +1,10 @@
+## 2026-04-14
+
+### Features
+
+- **Settings dialog**: Added a Settings modal (File → Settings...) with configurable zoom speeds. Pinch zoom speed (trackpad gesture) and scroll wheel zoom step (mouse wheel) can each be adjusted via sliders, with a "Reset to defaults" button. Settings are stored in app state.
+- **Smarter pinch detection**: `usePanZoom` now distinguishes pinch gestures (`deltaMode === 0`) from mouse wheel clicks (`deltaMode === 1`) and applies separate configurable multipliers to each.
+
 ## 2026-04-10 (8)
 
 ### Features

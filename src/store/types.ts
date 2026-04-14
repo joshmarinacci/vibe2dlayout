@@ -36,6 +36,18 @@ export type ToolMode =
   | 'insert-stepper'
   | 'insert-page'
 
+// ─── Settings ──────────────────────────────────────────────────────────────
+
+export interface UserSettings {
+  pinchZoomSpeed: number   // multiplier applied to deltaY for pinch gesture, default 0.005
+  wheelZoomStep: number    // fractional zoom step per mouse-wheel click, default 0.1 (= 10%)
+}
+
+export const DEFAULT_SETTINGS: UserSettings = {
+  pinchZoomSpeed: 0.005,
+  wheelZoomStep: 0.1,
+}
+
 // ─── App State ─────────────────────────────────────────────────────────────
 
 export interface AppState {
@@ -47,6 +59,8 @@ export interface AppState {
   activePageId: string | null
   showShortcutsModal: boolean
   showPaletteModal: boolean
+  showSettingsModal: boolean
+  settings: UserSettings
   drilledInContainerId: string | null
   // current document identity (localStorage)
   documentId: string | null
@@ -99,6 +113,8 @@ export type ViewAction =
   | { type: 'SET_ACTIVE_PAGE'; pageId: string | null }
   | { type: 'TOGGLE_SHORTCUTS_MODAL' }
   | { type: 'TOGGLE_PALETTE_MODAL' }
+  | { type: 'TOGGLE_SETTINGS_MODAL' }
+  | { type: 'UPDATE_SETTINGS'; patch: Partial<UserSettings> }
   | { type: 'SET_DOCUMENT_META'; id: string | null; name: string }
   | { type: 'ENTER_DRILL_MODE'; containerId: string }
   | { type: 'EXIT_DRILL_MODE' }

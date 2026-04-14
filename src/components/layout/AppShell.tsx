@@ -7,6 +7,7 @@ import { CanvasView } from '@components/canvas/CanvasView'
 import { PropertiesPanel } from '@components/properties/PropertiesPanel'
 import { StatusBar } from './StatusBar'
 import { ShortcutsModal } from './ShortcutsModal'
+import { SettingsModal } from './SettingsModal'
 
 const MIN_SIDEBAR = 150
 const MAX_SIDEBAR = 500
@@ -58,6 +59,7 @@ export function AppShell() {
         onToggleRight={() => setRightCollapsed(c => !c)}
       />
       <ShortcutsModal />
+      <SettingsModal />
     </div>
   )
 }
