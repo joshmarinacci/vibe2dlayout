@@ -1,5 +1,6 @@
 import type { Shape } from './shapes'
 import type { ColorPalette } from './palette'
+import type { Theme } from './theme'
 
 /**
  * The document tree stores topology separately from shape data.
@@ -16,6 +17,8 @@ export interface VibeDocument {
   rootNodes: TreeNode[]       // top-level pages
   shapes: Record<string, Shape>
   palettes: ColorPalette[]
+  themes: Theme[]             // custom + built-in themes for this document
+  activeThemeId: string       // which theme applies to new shapes
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

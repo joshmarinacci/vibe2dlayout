@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import html2canvas from 'html2canvas'
 import { ShapeRenderer } from '@components/canvas/ShapeRenderer'
 import type { AppState } from '@store/types'
+import { getActiveTheme } from '@model/theme'
 
 export async function exportPageAsPng(state: AppState): Promise<void> {
   const pageId = state.activePageId
@@ -46,6 +47,8 @@ export async function exportPageAsPng(state: AppState): Promise<void> {
           selectedIds: [],
           editingTextId: null,
           dispatch: () => {},
+          handDrawn: getActiveTheme(state.document).handDrawn,
+          themeFontFamily: getActiveTheme(state.document).fontFamily,
         })
       )
       // Two rAFs: first lets React flush, second lets the browser paint

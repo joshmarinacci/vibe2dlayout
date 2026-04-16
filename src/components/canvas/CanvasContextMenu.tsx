@@ -4,6 +4,8 @@ import type { AppAction } from '@store/types'
 import type { Shape, ShapeType } from '@model/shapes'
 import type { TreeNode } from '@model/document'
 import { createShape } from '@utils/shapeFactory'
+import { getActiveTheme } from '@model/theme'
+import { useAppState } from '@store/context'
 import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { ContextMenu, type ContextMenuGroup } from '../tree/ContextMenu'
 import type { CanvasContextMenuState } from './useCanvasPointer'
@@ -53,6 +55,7 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
 ]
 
 export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose }: Props) {
+  const { state } = useAppState()
   const { screenX, screenY, canvasX, canvasY, shapeId, selectedIds } = menuState
   const shape = shapeId ? shapes[shapeId] : null
   const isMultiSelect = selectedIds.length > 1
@@ -70,7 +73,7 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
         localY = canvasY - parentAbs.y - contentOffsetY
       }
     }
-    const newShape = createShape(type, localX, localY)
+    const newShape = createShape(type, localX, localY, getActiveTheme(state.document))
     dispatch({ type: 'ADD_SHAPE', parentId, shape: newShape })
     dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
   }

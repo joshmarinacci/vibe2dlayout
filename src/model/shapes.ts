@@ -41,6 +41,7 @@ interface ShapeBase {
   name: string
   locked: boolean
   visible: boolean
+  handDrawn?: boolean  // undefined = inherit from active theme
 }
 
 // ─── Concrete shape types ─────────────────────────────────────────────────
@@ -178,6 +179,8 @@ export interface DialogShape extends ShapeBase {
   stroke: StrokeStyle
   title: string
   titleFontSize: number
+  titleFontFamily: string
+  titleColor: string
   okLabel: string
   cancelLabel: string
 }

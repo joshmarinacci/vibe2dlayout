@@ -6,11 +6,14 @@ import { ShapeRenderer } from '@components/canvas/ShapeRenderer'
 import type { AppState } from '@store/types'
 import type { PageShape } from '@model/shapes'
 import type { TreeNode } from '@model/document'
+import { getActiveTheme } from '@model/theme'
 
 async function renderPageToCanvas(
   page: PageShape,
   pageNode: TreeNode,
   shapes: AppState['document']['shapes'],
+  handDrawn: boolean,
+  themeFontFamily: string,
 ): Promise<HTMLCanvasElement> {
   const { width, height } = page.fixedSize!
 
@@ -36,6 +39,8 @@ async function renderPageToCanvas(
           selectedIds: [],
           editingTextId: null,
           dispatch: () => {},
+          handDrawn,
+          themeFontFamily,
         })
       )
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
@@ -57,6 +62,9 @@ async function renderPageToCanvas(
 
 export async function exportDocumentAsPdf(state: AppState): Promise<void> {
   const { rootNodes, shapes } = state.document
+  const activeTheme = getActiveTheme(state.document)
+  const handDrawn = activeTheme.handDrawn
+  const themeFontFamily = activeTheme.fontFamily
 
   // Collect all fixed-size pages in document order
   const pages = rootNodes
@@ -74,7 +82,7 @@ export async function exportDocumentAsPdf(state: AppState): Promise<void> {
 
   for (const { node, shape } of pages) {
     const { width, height } = shape.fixedSize!
-    const canvas = await renderPageToCanvas(shape, node, shapes)
+    const canvas = await renderPageToCanvas(shape, node, shapes, handDrawn, themeFontFamily)
     const imgData = canvas.toDataURL('image/png')
 
     if (pdf === null) {

@@ -1,5 +1,7 @@
 import { useAppState, useAppDispatch } from '@store/context'
 import { selectSelectedShapes } from '@store/selectors'
+import { getActiveTheme } from '@model/theme'
+import { RotateCcw } from 'lucide-react'
 import { NumberInput } from './inputs/NumberInput'
 import { ToggleInput } from './inputs/ToggleInput'
 import { ColorInput } from './inputs/ColorInput'
@@ -74,9 +76,16 @@ export function PropertiesPanel() {
       }
     }
 
+    const resetToTheme = () => dispatch({ type: 'RESET_SHAPES_TO_THEME', ids: selected.map(s => s.id) })
+
     return (
       <div className={styles.panel}>
         <div className={styles.header}>{selected.length} shapes selected</div>
+        <div className={styles.resetRow}>
+          <button className={styles.resetThemeBtn} onClick={resetToTheme} title="Reset selected shapes to active theme values">
+            <RotateCcw size={11} /> Reset to theme ({getActiveTheme(state.document).name})
+          </button>
+        </div>
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Common</div>
           <ToggleInput
@@ -178,12 +187,19 @@ export function PropertiesPanel() {
   }
 
   const shape = selected[0]
+  const resetToTheme = () => dispatch({ type: 'RESET_SHAPES_TO_THEME', ids: [shape.id] })
 
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
         <span className={styles.shapeType}>{shape.type}</span>
         <span className={styles.shapeName}>{shape.name}</span>
+      </div>
+
+      <div className={styles.resetRow}>
+        <button className={styles.resetThemeBtn} onClick={resetToTheme} disabled={shape.locked} title="Reset this shape to active theme values">
+          <RotateCcw size={11} /> Reset to theme ({getActiveTheme(state.document).name})
+        </button>
       </div>
 
       {shape.locked && (

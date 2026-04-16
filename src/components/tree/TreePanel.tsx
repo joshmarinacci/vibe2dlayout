@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ShapeType } from '@model/shapes'
 import { createShape } from '@utils/shapeFactory'
+import { getActiveTheme } from '@model/theme'
 import { TreeNodeComp } from './TreeNode'
 import styles from './TreePanel.module.css'
 
@@ -40,7 +41,7 @@ export function TreePanel() {
   const { rootNodes, shapes } = state.document
 
   const addShape = (type: ShapeType) => {
-    const shape = createShape(type)
+    const shape = createShape(type, 50, 50, getActiveTheme(state.document))
     dispatch({ type: 'ADD_SHAPE', parentId: state.activePageId, shape })
     dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: false })
     setShowAddMenu(false)

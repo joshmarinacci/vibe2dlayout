@@ -4,6 +4,7 @@ import type { ConnectorEndpoint } from '@model/connector'
 import type { Point, BoundingBox } from '@model/transform'
 import type { SelectionState } from '@model/selection'
 import type { ColorPalette, PaletteColor } from '@model/palette'
+import type { Theme } from '@model/theme'
 
 // ─── View ──────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ export interface AppState {
   showShortcutsModal: boolean
   showPaletteModal: boolean
   showSettingsModal: boolean
+  showThemeModal: boolean
   settings: UserSettings
   drilledInContainerId: string | null
   // current document identity (localStorage)
@@ -90,6 +92,12 @@ export type DocumentAction =
   | { type: 'ADD_PALETTE_COLOR'; paletteId: string; color: PaletteColor }
   | { type: 'DELETE_PALETTE_COLOR'; paletteId: string; colorId: string }
   | { type: 'UPDATE_PALETTE_COLOR'; paletteId: string; colorId: string; color?: string; name?: string }
+  | { type: 'ADD_THEME'; theme: Theme }
+  | { type: 'UPDATE_THEME'; theme: Theme }
+  | { type: 'DELETE_THEME'; themeId: string }
+  | { type: 'SET_ACTIVE_THEME'; themeId: string }
+  | { type: 'APPLY_THEME_TO_ALL_SHAPES' }
+  | { type: 'RESET_SHAPES_TO_THEME'; ids: string[] }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'
@@ -118,6 +126,7 @@ export type ViewAction =
   | { type: 'SET_DOCUMENT_META'; id: string | null; name: string }
   | { type: 'ENTER_DRILL_MODE'; containerId: string }
   | { type: 'EXIT_DRILL_MODE' }
+  | { type: 'TOGGLE_THEME_MODAL' }
 
 // Undo/redo
 export type HistoryAction =

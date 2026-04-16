@@ -5,7 +5,7 @@ import {
   Tag, TextCursorInput, CheckSquare, ToggleLeft, ChevronDown,
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
-  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage,
+  HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage, Paintbrush,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
@@ -18,6 +18,7 @@ import { createInitialDocument } from '@store/reducer'
 import type { VibeDocument } from '@model/document'
 import { DocumentsModal } from '@components/layout/DocumentsModal'
 import { PaletteEditorModal } from '@components/palette/PaletteEditorModal'
+import { ThemeEditorModal } from '@components/layout/ThemeEditorModal'
 import styles from './Toolbar.module.css'
 
 interface ToolButton {
@@ -156,6 +157,9 @@ export function Toolbar() {
               <div className={styles.formMenuDivider} />
               <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_PALETTE_MODAL' }); setShowFileMenu(false) }}>
                 <Palette size={13} /><span>Edit Palettes...</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_THEME_MODAL' }); setShowFileMenu(false) }}>
+                <Paintbrush size={13} /><span>Edit Themes...</span>
               </button>
               <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_SETTINGS_MODAL' }); setShowFileMenu(false) }}>
                 <Settings size={13} /><span>Settings...</span>
@@ -400,6 +404,7 @@ export function Toolbar() {
       {state.showPaletteModal && (
         <PaletteEditorModal onClose={() => dispatch({ type: 'TOGGLE_PALETTE_MODAL' })} />
       )}
+      <ThemeEditorModal />
     </div>
   )
 }

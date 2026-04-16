@@ -6,6 +6,8 @@ import { findNode, findParent, removeNode, insertNode, getAllIds } from '@model/
 import { generateId } from '@utils/idgen'
 import { computeAlignedTransforms } from '@utils/alignment'
 import { DEFAULT_PALETTE } from '@model/palette'
+import { BUILT_IN_THEMES, getActiveTheme } from '@model/theme'
+import type { Theme } from '@model/theme'
 
 function cloneSubtree(
   node: TreeNode,
@@ -243,8 +245,60 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       return { ...doc, shapes: newShapes }
     }
 
-    case 'LOAD_DOCUMENT':
-      return action.document
+    case 'LOAD_DOCUMENT': {
+      const d = action.document
+      return {
+        ...d,
+        themes: d.themes ?? [...BUILT_IN_THEMES],
+        activeThemeId: d.activeThemeId ?? 'hand-drawn',
+      }
+    }
+
+    case 'ADD_THEME':
+      return { ...doc, themes: [...doc.themes, action.theme] }
+
+    case 'UPDATE_THEME':
+      return {
+        ...doc,
+        themes: doc.themes.map(t => t.id === action.theme.id ? action.theme : t),
+      }
+
+    case 'DELETE_THEME': {
+      const remaining = doc.themes.filter(t => t.id !== action.themeId)
+      const activeId = doc.activeThemeId === action.themeId
+        ? (remaining[0]?.id ?? 'hand-drawn')
+        : doc.activeThemeId
+      return { ...doc, themes: remaining, activeThemeId: activeId }
+    }
+
+    case 'SET_ACTIVE_THEME':
+      return { ...doc, activeThemeId: action.themeId }
+
+    case 'APPLY_THEME_TO_ALL_SHAPES': {
+      const theme = getActiveTheme(doc)
+      const newShapes = { ...doc.shapes }
+      for (const id of Object.keys(newShapes)) {
+        const patch = buildThemeResetPatch(newShapes[id], theme)
+        if (Object.keys(patch).length > 0) {
+          newShapes[id] = { ...newShapes[id], ...patch } as Shape
+        }
+      }
+      return { ...doc, shapes: newShapes }
+    }
+
+    case 'RESET_SHAPES_TO_THEME': {
+      const theme = getActiveTheme(doc)
+      let newShapes = { ...doc.shapes }
+      for (const id of action.ids) {
+        const shape = newShapes[id]
+        if (!shape) continue
+        const patch = buildThemeResetPatch(shape, theme)
+        if (Object.keys(patch).length > 0) {
+          newShapes = { ...newShapes, [id]: { ...shape, ...patch } as Shape }
+        }
+      }
+      return { ...doc, shapes: newShapes }
+    }
 
     case 'ADD_PALETTE':
       return { ...doc, palettes: [...doc.palettes, action.palette] }
@@ -300,6 +354,36 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
     default:
       return doc
   }
+}
+
+// Builds a partial patch that resets a shape's theme-managed properties to current theme values.
+function buildThemeResetPatch(shape: Shape, theme: Theme): Partial<Shape> {
+  const patch: Record<string, unknown> = {}
+
+  if ('fill' in shape && shape.fill) {
+    patch.fill = { ...shape.fill, color: theme.background }
+  }
+  if ('stroke' in shape && shape.stroke) {
+    patch.stroke = { ...shape.stroke, color: theme.border, width: theme.borderWidth }
+  }
+  if ('cornerRadius' in shape) {
+    patch.cornerRadius = theme.borderRadius
+  }
+  if ('text' in shape && shape.text && typeof shape.text === 'object') {
+    patch.text = { ...shape.text, fontFamily: theme.fontFamily, fontSize: theme.fontSize, color: theme.foreground }
+  }
+  if ('title' in shape && shape.title && typeof shape.title === 'object') {
+    patch.title = { ...(shape.title as object), fontFamily: theme.fontFamily, fontSize: theme.fontSize, color: theme.foreground }
+  }
+  if ('titleFontFamily' in shape) {
+    patch.titleFontFamily = theme.fontFamily
+    patch.titleFontSize = theme.fontSize
+    patch.titleColor = theme.foreground
+  }
+  // Reset handDrawn override so shape inherits from theme
+  patch.handDrawn = undefined
+
+  return patch as Partial<Shape>
 }
 
 // Updates every color field in every shape that references the given paletteColorId.
@@ -361,6 +445,8 @@ export function createInitialDocument(): VibeDocument {
       },
     },
     palettes: [{ ...DEFAULT_PALETTE, colors: [...DEFAULT_PALETTE.colors] }],
+    themes: [...BUILT_IN_THEMES],
+    activeThemeId: 'hand-drawn',
   }
 }
 
@@ -375,6 +461,7 @@ export const initialState: AppState = {
   showShortcutsModal: false,
   showPaletteModal: false,
   showSettingsModal: false,
+  showThemeModal: false,
   settings: { ...DEFAULT_SETTINGS },
   drilledInContainerId: null,
   documentId: null,
@@ -405,6 +492,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'ADD_PALETTE_COLOR':
     case 'DELETE_PALETTE_COLOR':
     case 'UPDATE_PALETTE_COLOR':
+    case 'ADD_THEME':
+    case 'UPDATE_THEME':
+    case 'DELETE_THEME':
+    case 'SET_ACTIVE_THEME':
+    case 'APPLY_THEME_TO_ALL_SHAPES':
+    case 'RESET_SHAPES_TO_THEME':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -467,6 +560,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, showPaletteModal: !state.showPaletteModal }
     case 'TOGGLE_SETTINGS_MODAL':
       return { ...state, showSettingsModal: !state.showSettingsModal }
+    case 'TOGGLE_THEME_MODAL':
+      return { ...state, showThemeModal: !state.showThemeModal }
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.patch } }
     case 'SET_DOCUMENT_META':

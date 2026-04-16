@@ -13,9 +13,10 @@ interface Props {
   dispatch: Dispatch<AppAction>
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
+  handDrawn: boolean
 }
 
-export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, checked, text, fill, stroke } = shape
   const { x, y, width, height, rotation } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
@@ -26,7 +27,7 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
   const boxY = (height - boxSize) / 2
 
   const seed = seedFromId(shape.id)
-  const boxPaths = roughRect(1, boxY, boxSize, boxSize, {
+  const boxPaths = handDrawn ? roughRect(1, boxY, boxSize, boxSize, {
     seed,
     roughness: 1.2,
     bowing: 0.5,
@@ -35,9 +36,9 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const checkPaths = checked ? [
+  const checkPaths = handDrawn && checked ? [
     ...roughLine(3, boxY + boxSize * 0.5, boxSize * 0.42, boxY + boxSize * 0.78, {
       seed: seed + 1,
       roughness: 1.5,
@@ -69,14 +70,36 @@ export function CheckboxShapeComp({ shape, isSelected, isEditing, dispatch, onCl
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={boxPaths} />
-        <RoughSvgPaths paths={checkPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={boxPaths} />
+          <RoughSvgPaths paths={checkPaths} />
+        </svg>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          left: 1,
+          top: boxY,
+          width: boxSize,
+          height: boxSize,
+          background: fill.color === 'transparent' ? 'transparent' : fill.color,
+          border: `${stroke.width}px solid ${stroke.color}`,
+          borderRadius: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          {checked && (
+            <svg width={boxSize - 4} height={boxSize - 4} viewBox="0 0 12 12">
+              <polyline points="2,6 5,9 10,3" fill="none" stroke={stroke.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
+      )}
 
       {isEditing ? (
         <textarea

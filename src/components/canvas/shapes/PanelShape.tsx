@@ -13,9 +13,10 @@ interface Props {
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
   children?: React.ReactNode
+  handDrawn: boolean
 }
 
-export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, children }: Props) {
+export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, children, handDrawn }: Props) {
   const { transform, fill, stroke, title, clipChildren } = shape
   const { x, y, width, height, rotation } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -43,7 +44,7 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
   const pad = 2
 
   const seed = seedFromId(shape.id)
-  const bodyPaths = roughRect(pad, pad, width - pad * 2, height - pad * 2, {
+  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
     seed,
     roughness: 1.4,
     bowing: 1,
@@ -52,9 +53,9 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const dividerPaths = title ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
+  const dividerPaths = handDrawn && title ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
     seed: seed + 1,
     roughness: 1,
     stroke: stroke.color,
@@ -78,15 +79,36 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      {/* Rough background SVG */}
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={bodyPaths} />
-        <RoughSvgPaths paths={dividerPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={dividerPaths} />
+        </svg>
+      ) : (
+        <>
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: fill.color === 'transparent' ? 'transparent' : fill.color,
+            border: `${stroke.width}px solid ${stroke.color}`,
+            borderRadius: shape.cornerRadius ?? 0,
+          }} />
+          {title && (
+            <div style={{
+              position: 'absolute',
+              top: stroke.width,
+              left: stroke.width,
+              right: stroke.width,
+              height: titleBarHeight,
+              borderBottom: `${stroke.width * 0.75}px solid ${stroke.color}`,
+            }} />
+          )}
+        </>
+      )}
 
       {/* Title bar */}
       {title && (

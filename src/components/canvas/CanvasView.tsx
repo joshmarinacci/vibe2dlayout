@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
+import { getActiveTheme } from '@model/theme'
 import { usePanZoom } from '@hooks/usePanZoom'
 import { useDocumentShortcuts } from '@hooks/useDocumentShortcuts'
 import { ShapeRenderer } from './ShapeRenderer'
@@ -97,6 +98,8 @@ export function CanvasView() {
             selectedIds={state.selection.ids}
             editingTextId={state.selection.editingTextId}
             dispatch={dispatch}
+            handDrawn={getActiveTheme(state.document).handDrawn}
+            themeFontFamily={getActiveTheme(state.document).fontFamily}
           />
         )}
 

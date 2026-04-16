@@ -1,29 +1,48 @@
 import type { Shape, ShapeType } from '@model/shapes'
 import {
-  defaultFill, defaultStroke, defaultText, defaultTransform,
+  defaultStroke, defaultText, defaultTransform,
 } from '@model/shapes'
 import { generateId } from './idgen'
+import type { Theme } from '@model/theme'
 
-export function createShape(type: ShapeType, x = 50, y = 50): Shape {
+export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Shape {
   const id = generateId()
   const base = { id, name: type, locked: false, visible: true }
+
+  // Theme-derived defaults (fall back to original hand-drawn defaults)
+  const fg    = theme?.foreground   ?? '#333333'
+  const bg    = theme?.background   ?? '#ffffff'
+  const bdr   = theme?.border       ?? '#333333'
+  const bdrW  = theme?.borderWidth  ?? 1.5
+  const bdrR  = theme?.borderRadius ?? 4
+  const font  = theme?.fontFamily   ?? 'Caveat, cursive'
+  const size  = theme?.fontSize     ?? 16
+
+  const themeStroke = () => ({ ...defaultStroke(), color: bdr, width: bdrW })
+  const themeFill   = () => ({ color: bg, opacity: 1 })
+  const themeText   = (content: string) => ({
+    ...defaultText(content),
+    fontFamily: font,
+    fontSize: size,
+    color: fg,
+  })
 
   switch (type) {
     case 'rect':
       return {
         ...base, type: 'rect',
         transform: defaultTransform(x, y, 120, 80),
-        fill: defaultFill(),
-        stroke: defaultStroke(),
-        cornerRadius: 0,
+        fill: themeFill(),
+        stroke: themeStroke(),
+        cornerRadius: bdrR,
         clipChildren: false,
       }
     case 'circle':
       return {
         ...base, type: 'circle',
         transform: defaultTransform(x, y, 80, 80),
-        fill: defaultFill(),
-        stroke: defaultStroke(),
+        fill: themeFill(),
+        stroke: themeStroke(),
         clipChildren: false,
       }
     case 'line':
@@ -32,7 +51,7 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         start: { kind: 'free', point: { x, y } },
         end: { kind: 'free', point: { x: x + 100, y: y + 60 } },
         route: { mode: 'straight', waypoints: [] },
-        stroke: { ...defaultStroke(), width: 2 },
+        stroke: { ...themeStroke(), width: Math.max(bdrW, 2) },
         startArrow: 'none',
         endArrow: 'arrow',
       }
@@ -40,7 +59,7 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
       return {
         ...base, type: 'text',
         transform: defaultTransform(x, y, 150, 40),
-        text: defaultText('Text'),
+        text: { ...themeText('Text'), align: 'left' },
         fill: { color: 'transparent', opacity: 0 },
       }
     case 'image':
@@ -64,20 +83,20 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
       return {
         ...base, type: 'button',
         transform: defaultTransform(x, y, 100, 36),
-        fill: { color: '#3b82f6', opacity: 1 },
-        stroke: defaultStroke(),
-        cornerRadius: 6,
-        text: { ...defaultText('Button'), fontFamily: 'Caveat, cursive', fontSize: 16, color: '#ffffff' },
+        fill: { color: theme ? bg : '#3b82f6', opacity: 1 },
+        stroke: themeStroke(),
+        cornerRadius: bdrR,
+        text: { ...themeText('Button'), color: theme ? fg : '#ffffff' },
         icon: null,
       }
     case 'panel':
       return {
         ...base, type: 'panel',
         transform: defaultTransform(x, y, 200, 150),
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
-        cornerRadius: 4,
-        title: { ...defaultText('Panel'), fontFamily: 'Caveat, cursive', align: 'left', fontSize: 15, fontWeight: 'bold' },
+        fill: themeFill(),
+        stroke: themeStroke(),
+        cornerRadius: bdrR,
+        title: { ...themeText('Panel'), align: 'left', fontWeight: 'bold' },
         clipChildren: false,
       }
     case 'slider':
@@ -86,60 +105,62 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         transform: defaultTransform(x, y, 160, 24),
         value: 0.5,
         trackFill: { color: '#e5e7eb', opacity: 1 },
-        thumbFill: { color: '#3b82f6', opacity: 1 },
-        stroke: defaultStroke(),
+        thumbFill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
+        stroke: themeStroke(),
       }
     case 'label':
       return {
         ...base, type: 'label',
         transform: defaultTransform(x, y, 100, 20),
-        text: { ...defaultText('Label'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#555555' },
+        text: { ...themeText('Label'), align: 'left', color: theme ? fg : '#555555' },
       }
     case 'textfield':
       return {
         ...base, type: 'textfield',
         transform: defaultTransform(x, y, 160, 32),
         placeholder: 'Placeholder...',
-        text: { ...defaultText(''), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
+        text: { ...themeText(''), align: 'left', color: theme ? fg : '#333333' },
+        fill: themeFill(),
+        stroke: themeStroke(),
       }
     case 'checkbox':
       return {
         ...base, type: 'checkbox',
         transform: defaultTransform(x, y, 120, 20),
         checked: false,
-        text: { ...defaultText('Checkbox'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
+        text: { ...themeText('Checkbox'), align: 'left', color: theme ? fg : '#333333' },
+        fill: themeFill(),
+        stroke: themeStroke(),
       }
     case 'toggle':
       return {
         ...base, type: 'toggle',
         transform: defaultTransform(x, y, 130, 24),
         checked: false,
-        text: { ...defaultText('Toggle'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
+        text: { ...themeText('Toggle'), align: 'left', color: theme ? fg : '#333333' },
         trackFill: { color: '#e5e7eb', opacity: 1 },
-        thumbFill: { color: '#3b82f6', opacity: 1 },
-        stroke: defaultStroke(),
+        thumbFill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
+        stroke: themeStroke(),
       }
     case 'frame':
       return {
         ...base, name: 'Frame', type: 'frame',
         transform: defaultTransform(x, y, 200, 150),
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
-        cornerRadius: 4,
+        fill: themeFill(),
+        stroke: themeStroke(),
+        cornerRadius: bdrR,
         clipChildren: false,
       }
     case 'dialog':
       return {
         ...base, name: 'Dialog', type: 'dialog',
         transform: defaultTransform(x, y, 320, 220),
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
+        fill: themeFill(),
+        stroke: themeStroke(),
         title: 'Dialog',
-        titleFontSize: 15,
+        titleFontSize: size,
+        titleFontFamily: font,
+        titleColor: fg,
         okLabel: 'OK',
         cancelLabel: 'Cancel',
       }
@@ -148,9 +169,9 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         ...base, name: 'Radio', type: 'radio',
         transform: defaultTransform(x, y, 120, 20),
         checked: false,
-        text: { ...defaultText('Option'), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
+        text: { ...themeText('Option'), align: 'left', color: theme ? fg : '#333333' },
+        fill: themeFill(),
+        stroke: themeStroke(),
       }
     case 'select':
       return {
@@ -158,27 +179,27 @@ export function createShape(type: ShapeType, x = 50, y = 50): Shape {
         transform: defaultTransform(x, y, 160, 32),
         value: '',
         placeholder: 'Select...',
-        text: { ...defaultText(''), fontFamily: 'Caveat, cursive', fontSize: 15, align: 'left', color: '#333333' },
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
+        text: { ...themeText(''), align: 'left', color: theme ? fg : '#333333' },
+        fill: themeFill(),
+        stroke: themeStroke(),
       }
     case 'progress':
       return {
         ...base, name: 'Progress', type: 'progress',
         transform: defaultTransform(x, y, 200, 16),
         value: 60,
-        fill: { color: '#3b82f6', opacity: 1 },
+        fill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
         trackFill: { color: '#e5e7eb', opacity: 1 },
-        stroke: defaultStroke(),
+        stroke: themeStroke(),
       }
     case 'stepper':
       return {
         ...base, name: 'Stepper', type: 'stepper',
         transform: defaultTransform(x, y, 140, 32),
         value: 0,
-        text: { ...defaultText('0'), fontFamily: 'Caveat, cursive', fontSize: 15, color: '#333333', align: 'center', verticalAlign: 'middle' },
-        fill: { color: '#ffffff', opacity: 1 },
-        stroke: defaultStroke(),
+        text: { ...themeText('0'), color: theme ? fg : '#333333', align: 'center', verticalAlign: 'middle' },
+        fill: themeFill(),
+        stroke: themeStroke(),
       }
   }
 }

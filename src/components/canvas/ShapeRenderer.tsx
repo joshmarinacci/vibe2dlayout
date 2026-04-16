@@ -28,9 +28,11 @@ interface Props {
   selectedIds: string[]
   editingTextId: string | null
   dispatch: Dispatch<AppAction>
+  handDrawn: boolean
+  themeFontFamily: string
 }
 
-export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispatch }: Props) {
+export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily }: Props) {
   return (
     <>
       {nodes.map(node => {
@@ -45,6 +47,8 @@ export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispa
             selectedIds={selectedIds}
             editingTextId={editingTextId}
             dispatch={dispatch}
+            handDrawn={handDrawn}
+            themeFontFamily={themeFontFamily}
           />
         )
       })}
@@ -59,11 +63,15 @@ interface ShapeNodeProps {
   selectedIds: string[]
   editingTextId: string | null
   dispatch: Dispatch<AppAction>
+  handDrawn: boolean
+  themeFontFamily: string
 }
 
-function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch }: ShapeNodeProps) {
+function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily }: ShapeNodeProps) {
   const isSelected = selectedIds.includes(shape.id)
   const isEditingText = editingTextId === shape.id
+  // Per-shape override takes precedence over theme-level setting
+  const effectiveHandDrawn = shape.handDrawn ?? handDrawn
 
   const onClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -86,6 +94,8 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch }
       selectedIds={selectedIds}
       editingTextId={editingTextId}
       dispatch={dispatch}
+      handDrawn={handDrawn}
+      themeFontFamily={themeFontFamily}
     />
   ) : null
 
@@ -105,30 +115,30 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch }
     case 'page':
       return <PageShapeComp shape={shape} {...commonProps}>{children}</PageShapeComp>
     case 'button':
-      return <ButtonShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+      return <ButtonShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'panel':
-      return <PanelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps}>{children}</PanelShapeComp>
+      return <PanelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps}>{children}</PanelShapeComp>
     case 'slider':
-      return <SliderShapeComp shape={shape} {...commonProps} />
+      return <SliderShapeComp shape={shape} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'label':
-      return <LabelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+      return <LabelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'textfield':
-      return <TextFieldShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+      return <TextFieldShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'checkbox':
-      return <CheckboxShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+      return <CheckboxShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'toggle':
-      return <ToggleShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+      return <ToggleShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'frame':
-      return <FrameShapeComp shape={shape} dispatch={dispatch} {...commonProps}>{children}</FrameShapeComp>
+      return <FrameShapeComp shape={shape} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps}>{children}</FrameShapeComp>
     case 'dialog':
-      return <DialogShapeComp shape={shape} dispatch={dispatch} {...commonProps}>{children}</DialogShapeComp>
+      return <DialogShapeComp shape={shape} dispatch={dispatch} handDrawn={effectiveHandDrawn} themeFontFamily={themeFontFamily} {...commonProps}>{children}</DialogShapeComp>
     case 'radio':
-      return <RadioShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+      return <RadioShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'select':
-      return <SelectShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} {...commonProps} />
+      return <SelectShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'progress':
-      return <ProgressShapeComp shape={shape} dispatch={dispatch} {...commonProps} />
+      return <ProgressShapeComp shape={shape} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'stepper':
-      return <StepperShapeComp shape={shape} dispatch={dispatch} {...commonProps} />
+      return <StepperShapeComp shape={shape} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
   }
 }

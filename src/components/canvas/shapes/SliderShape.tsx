@@ -8,9 +8,10 @@ interface Props {
   isSelected: boolean
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
+  handDrawn: boolean
 }
 
-export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick }: Props) {
+export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, value, trackFill, thumbFill } = shape
   const { x, y, width, height, rotation } = transform
   const thumbSize = height
@@ -20,7 +21,7 @@ export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick }: P
   const trackX = thumbSize / 2
 
   const seed = seedFromId(shape.id)
-  const trackPaths = roughRect(trackX, trackY, width - thumbSize, trackHeight, {
+  const trackPaths = handDrawn ? roughRect(trackX, trackY, width - thumbSize, trackHeight, {
     seed,
     roughness: 1.2,
     bowing: 0.5,
@@ -29,11 +30,11 @@ export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick }: P
     fillWeight: 1,
     stroke: trackFill.color === 'transparent' ? '#999' : trackFill.color,
     strokeWidth: 1.5,
-  })
+  }) : []
 
   const thumbCx = thumbX + thumbSize / 2
   const thumbCy = height / 2
-  const thumbPaths = roughCircle(thumbCx, thumbCy, thumbSize, {
+  const thumbPaths = handDrawn ? roughCircle(thumbCx, thumbCy, thumbSize, {
     seed: seed + 1,
     roughness: 1.4,
     bowing: 1,
@@ -42,7 +43,7 @@ export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick }: P
     fillWeight: 1,
     stroke: thumbFill.color === 'transparent' ? '#555' : thumbFill.color,
     strokeWidth: 1.5,
-  })
+  }) : []
 
   return (
     <div
@@ -59,14 +60,40 @@ export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick }: P
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={trackPaths} />
-        <RoughSvgPaths paths={thumbPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={trackPaths} />
+          <RoughSvgPaths paths={thumbPaths} />
+        </svg>
+      ) : (
+        <>
+          {/* Plain track */}
+          <div style={{
+            position: 'absolute',
+            left: trackX,
+            top: trackY,
+            width: width - thumbSize,
+            height: trackHeight,
+            background: trackFill.color,
+            borderRadius: trackHeight / 2,
+          }} />
+          {/* Plain thumb */}
+          <div style={{
+            position: 'absolute',
+            left: thumbX,
+            top: 0,
+            width: thumbSize,
+            height: thumbSize,
+            background: thumbFill.color,
+            borderRadius: '50%',
+            border: `1.5px solid ${thumbFill.color}`,
+          }} />
+        </>
+      )}
     </div>
   )
 }

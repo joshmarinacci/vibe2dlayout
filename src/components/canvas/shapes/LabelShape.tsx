@@ -13,9 +13,10 @@ interface Props {
   dispatch: Dispatch<AppAction>
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
+  handDrawn: boolean
 }
 
-export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, text } = shape
   const { x, y, width, height, rotation } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
@@ -23,12 +24,12 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
   })
 
   const seed = seedFromId(shape.id)
-  const underline = roughLine(0, height - 1, width, height - 1, {
+  const underline = handDrawn ? roughLine(0, height - 1, width, height - 1, {
     seed,
     roughness: 0.8,
     stroke: '#bbbbbb',
     strokeWidth: 0.8,
-  })
+  }) : []
 
   const textStyle: React.CSSProperties = {
     fontFamily: text.fontFamily,
@@ -58,13 +59,23 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={underline} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={underline} />
+        </svg>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          borderBottom: '1px solid #cccccc',
+        }} />
+      )}
 
       {isEditing ? (
         <textarea

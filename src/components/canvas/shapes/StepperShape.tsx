@@ -11,18 +11,19 @@ interface Props {
   dispatch: Dispatch<AppAction>
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
+  handDrawn: boolean
 }
 
 const BTN_W = 30
 
-export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick }: Props) {
+export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, value, text, fill, stroke } = shape
   const { x, y, width, height, rotation } = transform
 
   const seed = seedFromId(shape.id)
   const pad = 2
 
-  const minusPaths = roughRect(pad, pad, BTN_W - pad * 2, height - pad * 2, {
+  const minusPaths = handDrawn ? roughRect(pad, pad, BTN_W - pad * 2, height - pad * 2, {
     seed,
     roughness: 1.2,
     bowing: 0.5,
@@ -31,9 +32,9 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick }: 
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const plusPaths = roughRect(width - BTN_W + pad, pad, BTN_W - pad * 2, height - pad * 2, {
+  const plusPaths = handDrawn ? roughRect(width - BTN_W + pad, pad, BTN_W - pad * 2, height - pad * 2, {
     seed: seed + 1,
     roughness: 1.2,
     bowing: 0.5,
@@ -42,16 +43,18 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick }: 
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const valuePaths = roughRect(BTN_W + pad, pad, width - BTN_W * 2 - pad * 2, height - pad * 2, {
+  const valuePaths = handDrawn ? roughRect(BTN_W + pad, pad, width - BTN_W * 2 - pad * 2, height - pad * 2, {
     seed: seed + 2,
     roughness: 0.8,
     bowing: 0.3,
     fill: undefined,
     stroke: stroke.color,
     strokeWidth: stroke.width * 0.6,
-  })
+  }) : []
+
+  const btnBg = fill.color === 'transparent' ? undefined : fill.color
 
   return (
     <div
@@ -68,15 +71,23 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick }: 
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={minusPaths} />
-        <RoughSvgPaths paths={valuePaths} />
-        <RoughSvgPaths paths={plusPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={minusPaths} />
+          <RoughSvgPaths paths={valuePaths} />
+          <RoughSvgPaths paths={plusPaths} />
+        </svg>
+      ) : (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', border: `${stroke.width}px solid ${stroke.color}`, borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ width: BTN_W, background: btnBg, borderRight: `${stroke.width}px solid ${stroke.color}`, flexShrink: 0 }} />
+          <div style={{ flex: 1 }} />
+          <div style={{ width: BTN_W, background: btnBg, borderLeft: `${stroke.width}px solid ${stroke.color}`, flexShrink: 0 }} />
+        </div>
+      )}
 
       {/* − button label */}
       <div style={{

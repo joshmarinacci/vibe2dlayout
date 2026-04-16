@@ -13,9 +13,10 @@ interface Props {
   dispatch: Dispatch<AppAction>
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
+  handDrawn: boolean
 }
 
-export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, checked, text, trackFill, thumbFill, stroke } = shape
   const { x, y, width, height, rotation } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
@@ -36,7 +37,7 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
     ? (thumbFill.color === 'transparent' ? '#3b82f6' : thumbFill.color)
     : (trackFill.color === 'transparent' ? '#e5e7eb' : trackFill.color)
 
-  const trackPaths = roughRect(1, trackY, trackW - 2, trackH - 2, {
+  const trackPaths = handDrawn ? roughRect(1, trackY, trackW - 2, trackH - 2, {
     seed,
     roughness: 0.8,
     bowing: 3,
@@ -45,9 +46,9 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const thumbPaths = roughCircle(thumbCx, thumbCy, thumbDia, {
+  const thumbPaths = handDrawn ? roughCircle(thumbCx, thumbCy, thumbDia, {
     seed: seed + 1,
     roughness: 1.2,
     fill: '#ffffff',
@@ -55,7 +56,7 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
   const labelLeft = trackW + 8
 
@@ -74,14 +75,41 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={trackPaths} />
-        <RoughSvgPaths paths={thumbPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={trackPaths} />
+          <RoughSvgPaths paths={thumbPaths} />
+        </svg>
+      ) : (
+        <>
+          {/* Plain track */}
+          <div style={{
+            position: 'absolute',
+            left: 1,
+            top: trackY,
+            width: trackW - 2,
+            height: trackH - 2,
+            background: trackColor,
+            borderRadius: trackH / 2,
+            border: `${stroke.width}px solid ${stroke.color}`,
+          }} />
+          {/* Plain thumb */}
+          <div style={{
+            position: 'absolute',
+            left: thumbCx - thumbDia / 2,
+            top: thumbCy - thumbDia / 2,
+            width: thumbDia,
+            height: thumbDia,
+            background: '#ffffff',
+            borderRadius: '50%',
+            border: `${stroke.width}px solid ${stroke.color}`,
+          }} />
+        </>
+      )}
 
       {isEditing ? (
         <textarea

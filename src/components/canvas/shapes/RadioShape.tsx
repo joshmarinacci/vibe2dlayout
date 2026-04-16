@@ -13,9 +13,10 @@ interface Props {
   dispatch: Dispatch<AppAction>
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
+  handDrawn: boolean
 }
 
-export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, checked, text, fill, stroke } = shape
   const { x, y, width, height, rotation } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
@@ -27,7 +28,7 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
   const cy = height / 2
 
   const seed = seedFromId(shape.id)
-  const circlePaths = roughCircle(cx, cy, boxSize, {
+  const circlePaths = handDrawn ? roughCircle(cx, cy, boxSize, {
     seed,
     roughness: 1.2,
     bowing: 0.5,
@@ -36,9 +37,9 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const dotPaths = checked ? roughCircle(cx, cy, boxSize * 0.45, {
+  const dotPaths = handDrawn && checked ? roughCircle(cx, cy, boxSize * 0.45, {
     seed: seed + 1,
     roughness: 1,
     fill: stroke.color,
@@ -65,14 +66,39 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={circlePaths} />
-        <RoughSvgPaths paths={dotPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={circlePaths} />
+          <RoughSvgPaths paths={dotPaths} />
+        </svg>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          left: 1,
+          top: cy - boxSize / 2,
+          width: boxSize,
+          height: boxSize,
+          background: fill.color === 'transparent' ? 'transparent' : fill.color,
+          border: `${stroke.width}px solid ${stroke.color}`,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          {checked && (
+            <div style={{
+              width: boxSize * 0.45,
+              height: boxSize * 0.45,
+              background: stroke.color,
+              borderRadius: '50%',
+            }} />
+          )}
+        </div>
+      )}
 
       {isEditing ? (
         <textarea

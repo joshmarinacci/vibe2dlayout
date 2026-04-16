@@ -4,6 +4,7 @@ import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
 import type { ShapeType } from '@model/shapes'
 import { createShape } from '@utils/shapeFactory'
+import { getActiveTheme } from '@model/theme'
 import { generateId } from '@utils/idgen'
 import { pointInBox, pointNearLine, buildParentMap, getAbsoluteTransform, getContentOrigin } from '@utils/geometry'
 import { findNode, getAllIds } from '@model/document'
@@ -298,6 +299,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
 
     const pos = getCanvasPos(e)
     const shapeType = TOOL_SHAPE[state.toolMode]
+    const activeTheme = getActiveTheme(state.document)
 
     if (shapeType && isDragging.current) {
       // Commit insert
@@ -309,7 +311,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const h = Math.max(20, Math.abs(pos.y - startCy))
 
       if (shapeType === 'line') {
-        const shape = createShape('line', startCx, startCy)
+        const shape = createShape('line', startCx, startCy, activeTheme)
         if (shape.type === 'line') {
           const newShape = {
             ...shape,
@@ -320,7 +322,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
           dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
         }
       } else {
-        const shape = createShape(shapeType, x, y)
+        const shape = createShape(shapeType, x, y, activeTheme)
         if (shape.type !== 'line') {
           const newShape = { ...shape, transform: { ...shape.transform, x, y, width: w, height: h } }
           const parentId = shapeType === 'page' ? null : state.activePageId
@@ -332,7 +334,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
     } else if (shapeType && !isDragging.current) {
       // Single click insert with default size
-      const shape = createShape(shapeType, pos.x - 60, pos.y - 30)
+      const shape = createShape(shapeType, pos.x - 60, pos.y - 30, activeTheme)
       const parentId = shapeType === 'page' ? null : state.activePageId
       dispatch({ type: 'ADD_SHAPE', parentId, shape })
       dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: false })

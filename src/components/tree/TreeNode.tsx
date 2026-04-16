@@ -14,6 +14,8 @@ import type { Shape, ShapeType } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { buildParentMap, getAbsoluteTransform, getContentOrigin } from '@utils/geometry'
 import { createShape } from '@utils/shapeFactory'
+import { getActiveTheme } from '@model/theme'
+import { useAppState } from '@store/context'
 import { ContextMenu, type ContextMenuGroup } from './ContextMenu'
 import styles from './TreeNode.module.css'
 
@@ -88,6 +90,7 @@ interface Props {
 }
 
 export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, activePageId, dispatch, parentId, nodeIndex }: Props) {
+  const { state } = useAppState()
   const shape = shapes[node.id]
   if (!shape) return null
 
@@ -209,11 +212,11 @@ export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, acti
   }
 
   const addShapeTo = useCallback((parentId: string, type: ShapeType) => {
-    const newShape = createShape(type)
+    const newShape = createShape(type, 50, 50, getActiveTheme(state.document))
     dispatch({ type: 'ADD_SHAPE', parentId, shape: newShape })
     dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
     if (!expanded) setExpanded(true)
-  }, [dispatch, expanded])
+  }, [dispatch, expanded, state.document])
 
   const buildContextMenuGroups = (): ContextMenuGroup[] => {
     const basicItems = BASIC_SHAPES.map(opt => ({

@@ -12,10 +12,12 @@ interface Props {
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
   children?: React.ReactNode
+  handDrawn: boolean
+  themeFontFamily: string
 }
 
-export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, children }: Props) {
-  const { transform, fill, stroke, title, titleFontSize, okLabel, cancelLabel } = shape
+export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, children, handDrawn, themeFontFamily }: Props) {
+  const { transform, fill, stroke, title, titleFontSize, titleColor, okLabel, cancelLabel } = shape
   const { x, y, width, height, rotation } = transform
 
   const titleBarHeight = titleFontSize + 12
@@ -24,7 +26,7 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
 
   const seed = seedFromId(shape.id)
 
-  const bodyPaths = roughRect(pad, pad, width - pad * 2, height - pad * 2, {
+  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
     seed,
     roughness: 1.4,
     bowing: 1,
@@ -33,42 +35,46 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const titleDivider = roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
+  const titleDivider = handDrawn ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
     seed: seed + 1,
     roughness: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width * 0.75,
-  })
+  }) : []
 
-  const footerDivider = roughLine(pad, height - footerHeight, width - pad, height - footerHeight, {
+  const footerDivider = handDrawn ? roughLine(pad, height - footerHeight, width - pad, height - footerHeight, {
     seed: seed + 2,
     roughness: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width * 0.75,
-  })
+  }) : []
 
   const btnW = 80
   const btnH = 28
   const btnY = height - footerHeight + (footerHeight - btnH) / 2
 
-  const cancelBtnPaths = roughRect(12, btnY, btnW, btnH, {
+  const cancelBtnPaths = handDrawn ? roughRect(12, btnY, btnW, btnH, {
     seed: seed + 3,
     roughness: 1.2,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
-  const okBtnPaths = roughRect(width - btnW - 12, btnY, btnW, btnH, {
+  const okBtnPaths = handDrawn ? roughRect(width - btnW - 12, btnY, btnW, btnH, {
     seed: seed + 4,
     roughness: 1.2,
-    fill: '#3b82f6',
+    fill: stroke.color,
     fillStyle: 'solid',
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
+
+  const titleFont = shape.titleFontFamily ?? themeFontFamily
+  const textColor = titleColor ?? stroke.color
+  const okTextColor = handDrawn ? '#ffffff' : fill.color
 
   return (
     <div
@@ -86,17 +92,57 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={bodyPaths} />
-        <RoughSvgPaths paths={titleDivider} />
-        <RoughSvgPaths paths={footerDivider} />
-        <RoughSvgPaths paths={cancelBtnPaths} />
-        <RoughSvgPaths paths={okBtnPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={titleDivider} />
+          <RoughSvgPaths paths={footerDivider} />
+          <RoughSvgPaths paths={cancelBtnPaths} />
+          <RoughSvgPaths paths={okBtnPaths} />
+        </svg>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: fill.color === 'transparent' ? 'transparent' : fill.color,
+          border: `${stroke.width}px solid ${stroke.color}`,
+          borderRadius: 6,
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          {/* Title bar divider */}
+          <div style={{ height: titleBarHeight, borderBottom: `${stroke.width * 0.75}px solid ${stroke.color}`, flexShrink: 0 }} />
+          {/* Body */}
+          <div style={{ flex: 1 }} />
+          {/* Footer divider */}
+          <div style={{ height: footerHeight, borderTop: `${stroke.width * 0.75}px solid ${stroke.color}`, flexShrink: 0, position: 'relative' }}>
+            {/* Cancel button */}
+            <div style={{
+              position: 'absolute',
+              left: 12,
+              top: (footerHeight - btnH) / 2,
+              width: btnW,
+              height: btnH,
+              border: `${stroke.width}px solid ${stroke.color}`,
+              borderRadius: 4,
+            }} />
+            {/* OK button */}
+            <div style={{
+              position: 'absolute',
+              right: 12,
+              top: (footerHeight - btnH) / 2,
+              width: btnW,
+              height: btnH,
+              background: stroke.color,
+              borderRadius: 4,
+            }} />
+          </div>
+        </div>
+      )}
 
       {/* Title */}
       <div style={{
@@ -108,10 +154,10 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
         display: 'flex',
         alignItems: 'center',
         padding: '0 10px',
-        fontFamily: 'Caveat, cursive',
+        fontFamily: titleFont,
         fontSize: titleFontSize,
         fontWeight: 'bold',
-        color: '#222',
+        color: textColor,
         userSelect: 'none',
         overflow: 'hidden',
         zIndex: 1,
@@ -148,9 +194,9 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
           left: 12,
           width: btnW,
           textAlign: 'center',
-          fontFamily: 'Caveat, cursive',
+          fontFamily: titleFont,
           fontSize: 14,
-          color: '#333',
+          color: textColor,
           userSelect: 'none',
         }}>{cancelLabel}</span>
         <span style={{
@@ -158,9 +204,9 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
           right: 12,
           width: btnW,
           textAlign: 'center',
-          fontFamily: 'Caveat, cursive',
+          fontFamily: titleFont,
           fontSize: 14,
-          color: '#ffffff',
+          color: okTextColor,
           userSelect: 'none',
         }}>{okLabel}</span>
       </div>

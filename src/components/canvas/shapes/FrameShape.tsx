@@ -12,15 +12,16 @@ interface Props {
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
   children?: React.ReactNode
+  handDrawn: boolean
 }
 
-export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, children }: Props) {
+export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, children, handDrawn }: Props) {
   const { transform, fill, stroke, clipChildren } = shape
   const { x, y, width, height, rotation } = transform
 
   const seed = seedFromId(shape.id)
   const pad = 2
-  const paths = roughRect(pad, pad, width - pad * 2, height - pad * 2, {
+  const paths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
     seed,
     roughness: 1.4,
     bowing: 1,
@@ -29,7 +30,7 @@ export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, chil
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : []
 
   return (
     <div
@@ -48,13 +49,23 @@ export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, chil
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={paths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={paths} />
+        </svg>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: fill.color === 'transparent' ? 'transparent' : fill.color,
+          border: `${stroke.width}px solid ${stroke.color}`,
+          borderRadius: shape.cornerRadius ?? 0,
+        }} />
+      )}
       <div style={{ position: 'absolute', inset: 0 }}>
         {children}
       </div>

@@ -14,9 +14,10 @@ interface Props {
   dispatch: Dispatch<AppAction>
   onClick: (e: React.MouseEvent) => void
   onDoubleClick: (e: React.MouseEvent) => void
+  handDrawn: boolean
 }
 
-export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
+export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, text, icon } = shape
   const { x, y, width, height, rotation } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
@@ -24,7 +25,7 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
   })
 
   const pad = 2
-  const roughPaths = roughRect(pad, pad, width - pad * 2, height - pad * 2, {
+  const roughPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
     seed: seedFromId(shape.id),
     roughness: 1.4,
     bowing: 1,
@@ -33,7 +34,7 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
     fillWeight: 1,
     stroke: stroke.color,
     strokeWidth: stroke.width,
-  })
+  }) : null
 
   const vJustify = vAlignToJustify(text.verticalAlign)
 
@@ -53,13 +54,23 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        width={width}
-        height={height}
-      >
-        <RoughSvgPaths paths={roughPaths} />
-      </svg>
+      {handDrawn ? (
+        <svg
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
+          width={width}
+          height={height}
+        >
+          <RoughSvgPaths paths={roughPaths!} />
+        </svg>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: fill.color === 'transparent' ? 'transparent' : fill.color,
+          border: `${stroke.width}px solid ${stroke.color}`,
+          borderRadius: shape.cornerRadius ?? 0,
+        }} />
+      )}
 
       {isEditing ? (
         <textarea

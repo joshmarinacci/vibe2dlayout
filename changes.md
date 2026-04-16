@@ -1,3 +1,25 @@
+## 2026-04-16 (2)
+
+### Bug fixes
+
+- **TextField and Select shapes now respect handDrawn theme**: Both components were missing the `handDrawn` prop and always rendered with RoughJS. Added plain CSS rendering (border, border-radius, background) when the active theme has `handDrawn: false`.
+- **Dialog title font now follows active theme**: `DialogShape` model gained `titleFontFamily` and `titleColor` fields. New dialogs are created with the active theme's font and foreground color. Existing dialogs without those fields fall back to the active theme font passed through `ShapeRenderer` (`themeFontFamily` prop), so switching themes updates them without requiring a manual reset.
+- **Dialog text color separated from border color**: Title text, Cancel label, and OK label now use `titleColor` (theme foreground) rather than `stroke.color`, matching how the Panel shape separates text from border colors. "Reset to theme" also updates `titleColor`.
+- **Inter web font loaded**: Added Inter (weights 400/500/600) to the Google Fonts request in `index.html` so the Plain Light and Plain Dark themes render with the correct font rather than falling back to the system font.
+- **Theme editor duplicate button**: Built-in themes now show an explicit "Duplicate to customize" button in the read-only notice. The sidebar "Add theme" button also changes to "Duplicate" (with a copy icon) when a built-in theme is selected.
+
+## 2026-04-16
+
+### Features
+
+- **Document themes**: Added a theming system with three built-in themes — Hand Drawn, Plain Light, and Plain Dark.
+- **Theme model** (`src/model/theme.ts`): `Theme` interface defines foreground, background, border color/width/radius, hand-drawn toggle, and font family/size. `getActiveTheme()` helper reads active theme from document.
+- **Theme Editor** (File → "Edit Themes..."): Left sidebar lists themes (built-ins are locked/read-only with a lock icon; custom themes are deletable). Right panel lets you edit all theme properties. "Set as active theme" applies the theme to new shapes; "Apply to all shapes" resets all existing shapes in the document to the theme's values.
+- **New shapes use active theme**: All shape creation paths (canvas draw, context menu, tree panel, toolbar) use `getActiveTheme(doc)` to initialize colors, fonts, border styles, and corner radii.
+- **Reset to theme**: A "Reset to theme (…)" button in the Properties Panel resets the selected shape(s) to the active theme's values (fill color, stroke color/width, corner radius, font family/size, text color). Does not affect content (text, images, etc.).
+- **handDrawn toggle**: Each of the 11 rough-rendered shape components (Button, Panel, Dialog, Checkbox, Radio, Slider, Toggle, Frame, Label, Progress, Stepper) now supports a `handDrawn: boolean` prop — when false, renders with plain CSS (border, border-radius, background) instead of RoughJS SVG paths. The active theme's `handDrawn` setting is applied document-wide; individual shapes can override it via `shape.handDrawn`.
+- **Document migration**: Existing documents that don't have `themes`/`activeThemeId` fields are automatically migrated to the built-in themes on load.
+
 ## 2026-04-14 (3)
 
 ### Features
