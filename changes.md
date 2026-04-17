@@ -1,3 +1,9 @@
+## 2026-04-16 (3)
+
+### Build
+
+- **Configurable base URL**: Added `base` option to `vite.config.ts` using `process.env.VITE_BASE_PATH` (defaults to `/`). Set `VITE_BASE_PATH=/your-path/` at build time to deploy to a subdirectory. Installed `@types/node` to support `process.env` in the Vite config.
+
 ## 2026-04-16 (2)
 
 ### Bug fixes
