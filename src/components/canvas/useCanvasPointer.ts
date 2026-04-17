@@ -215,6 +215,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const alreadySelected = state.selection.ids.includes(hitId)
       if (!alreadySelected) {
         dispatch({ type: 'SELECT_SHAPES', ids: [hitId], additive: e.shiftKey })
+      } else if (e.shiftKey) {
+        dispatch({ type: 'SELECT_SHAPES', ids: state.selection.ids.filter(id => id !== hitId), additive: false })
       }
       draggingIds.current = e.shiftKey && alreadySelected
         ? state.selection.ids.filter(id => id !== hitId)

@@ -1,3 +1,9 @@
+## 2026-04-17
+
+### Bug fixes
+
+- **Shift+click now removes items from selection**: Shift+clicking an already-selected shape on the canvas now deselects it. Previously, `draggingIds` was filtered correctly but no dispatch was made to update the selection state, so the item stayed selected.
+
 ## 2026-04-16 (3)
 
 ### Build
