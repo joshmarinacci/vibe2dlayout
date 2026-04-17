@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "publish-build": "VITE_BASE_PATH=/draw/ vite build",
+    "publish-upload": "scp -r -i ../../WebstormProjects/deployman_private.key dist/** deployman@apps.josh.earth:/sites/apps.josh.earth/draw/",
+    "publish-full": "npm run clean && npm run publish-build && npm run publish-upload",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"
@@ -23,6 +26,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^25.6.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
