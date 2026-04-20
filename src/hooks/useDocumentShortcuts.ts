@@ -50,7 +50,7 @@ export function useDocumentShortcuts() {
       if (e.key === 'Escape') {
         if (state.selection.editingTextId) {
           dispatch({ type: 'STOP_TEXT_EDIT' })
-        } else if (state.drilledInContainerId) {
+        } else if (state.drilledInContainerStack.length > 0) {
           dispatch({ type: 'EXIT_DRILL_MODE' })
         } else {
           dispatch({ type: 'DESELECT_ALL' })
@@ -78,5 +78,5 @@ export function useDocumentShortcuts() {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [state.selection, state.drilledInContainerId, dispatch])
+  }, [state.selection, state.drilledInContainerStack, dispatch])
 }

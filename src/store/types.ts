@@ -68,7 +68,7 @@ export interface AppState {
   showSettingsModal: boolean
   showThemeModal: boolean
   settings: UserSettings
-  drilledInContainerId: string | null
+  drilledInContainerStack: string[]  // innermost (current) is last element
   // current document identity (localStorage)
   documentId: string | null
   documentName: string

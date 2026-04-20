@@ -665,7 +665,7 @@ export const initialState: AppState = {
   showSettingsModal: false,
   showThemeModal: false,
   settings: { ...DEFAULT_SETTINGS },
-  drilledInContainerId: null,
+  drilledInContainerStack: [],
   documentId: null,
   documentName: 'Untitled',
 }
@@ -757,7 +757,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'RESET_VIEW':
       return { ...state, viewTransform: { panX: 0, panY: 0, zoom: 1 } }
     case 'SET_ACTIVE_PAGE':
-      return { ...state, activePageId: action.pageId, drilledInContainerId: null }
+      return { ...state, activePageId: action.pageId, drilledInContainerStack: [] }
     case 'TOGGLE_SHORTCUTS_MODAL':
       return { ...state, showShortcutsModal: !state.showShortcutsModal }
     case 'TOGGLE_PALETTE_MODAL':
@@ -771,11 +771,17 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_DOCUMENT_META':
       return { ...state, documentId: action.id, documentName: action.name }
     case 'ENTER_DRILL_MODE':
-      return { ...state, drilledInContainerId: action.containerId,
-               selection: { ids: [], editingTextId: null } }
+      return {
+        ...state,
+        drilledInContainerStack: [...state.drilledInContainerStack, action.containerId],
+        selection: { ids: [], editingTextId: null },
+      }
     case 'EXIT_DRILL_MODE':
-      return { ...state, drilledInContainerId: null,
-               selection: { ids: [], editingTextId: null } }
+      return {
+        ...state,
+        drilledInContainerStack: state.drilledInContainerStack.slice(0, -1),
+        selection: { ids: [], editingTextId: null },
+      }
 
     // ── Undo/Redo (handled by history wrapper) ─────────────────────────
     case 'UNDO':

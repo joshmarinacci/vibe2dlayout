@@ -99,6 +99,9 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const { state } = useAppState()
   const dispatch = useAppDispatch()
 
+  // Current innermost drilled container (top of stack), or null if not drilled in
+  const drilledInContainerId = state.drilledInContainerStack[state.drilledInContainerStack.length - 1] ?? null
+
   const dragStart = useRef<{ sx: number; sy: number; cx: number; cy: number } | null>(null)
   const draggingIds = useRef<string[]>([])
   const lastCanvasPos = useRef<{ x: number; y: number } | null>(null)
@@ -150,8 +153,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     if (!activeNode) return null
 
     // When drilled in, scope hit testing to the drilled container's children only
-    const scopeNode = state.drilledInContainerId
-      ? findNode(activeNode.children, state.drilledInContainerId)
+    const scopeNode = drilledInContainerId
+      ? findNode(activeNode.children, drilledInContainerId)
       : null
     const childrenToTest = scopeNode ? scopeNode.children : activeNode.children
 
@@ -190,7 +193,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
           if (!parentId) break
           const parent = state.document.shapes[parentId]
           if (!parent || parent.type === 'page') break
-          if (parent.type === 'group' && parentId !== state.drilledInContainerId) {
+          if (parent.type === 'group' && parentId !== drilledInContainerId) {
             resultId = parentId
           }
           current = parentId
@@ -199,7 +202,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       }
     }
     return null
-  }, [state.document, state.activePageId, state.drilledInContainerId, state.viewTransform.zoom])
+  }, [state.document, state.activePageId, state.drilledInContainerStack, state.viewTransform.zoom])
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return
@@ -331,7 +334,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const h = Math.max(20, Math.abs(pos.y - startCy))
 
       // When drilled into a container, add shapes as children of that container
-      const drillParentId = shapeType === 'page' ? null : (state.drilledInContainerId ?? state.activePageId)
+      const drillParentId = shapeType === 'page' ? null : (drilledInContainerId ?? state.activePageId)
       const parentMap = buildParentMap(state.document.rootNodes)
       const origin = getContentOrigin(drillParentId, state.document.shapes, parentMap)
 
@@ -360,7 +363,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
     } else if (shapeType && !isDragging.current) {
       // Single click insert with default size
-      const drillParentId = shapeType === 'page' ? null : (state.drilledInContainerId ?? state.activePageId)
+      const drillParentId = shapeType === 'page' ? null : (drilledInContainerId ?? state.activePageId)
       const parentMap = buildParentMap(state.document.rootNodes)
       const origin = getContentOrigin(drillParentId, state.document.shapes, parentMap)
       const lx = pos.x - 60 - origin.x
@@ -383,8 +386,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const activeNode = state.document.rootNodes.find(n => n.id === state.activePageId)
       if (activeNode) {
         // When drilled in, scope marquee to the drilled container's children
-        const scopeNode = state.drilledInContainerId
-          ? findNode(activeNode.children, state.drilledInContainerId)
+        const scopeNode = drilledInContainerId
+          ? findNode(activeNode.children, drilledInContainerId)
           : null
         const childrenToMarquee = scopeNode ? scopeNode.children : activeNode.children
 
@@ -461,7 +464,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     if (state.toolMode !== 'select') return
     const pos = getMouseCanvasPos(e)
 
-    if (state.drilledInContainerId) {
+    if (drilledInContainerId) {
       // Already drilled in — hitTestShapes is scoped to container children
       const hitId = hitTestShapes(pos.x, pos.y)
       if (hitId) {
@@ -473,7 +476,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         // Missed all children — check if click was outside the container bounds
         const parentMap = buildParentMap(state.document.rootNodes)
         const containerAbs = getAbsoluteTransform(
-          state.drilledInContainerId, state.document.shapes, parentMap)
+          drilledInContainerId, state.document.shapes, parentMap)
         if (!containerAbs || !pointInBox({ x: pos.x, y: pos.y }, containerAbs)) {
           dispatch({ type: 'EXIT_DRILL_MODE' })
         }

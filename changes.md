@@ -1,3 +1,13 @@
+## 2026-04-20 (2)
+
+### Nested group drill-mode stack
+
+- Drill mode now supports arbitrary nesting depth using a stack instead of a single `drilledInContainerId`
+- Double-clicking a nested group while already drilled in pushes the inner group onto the stack
+- Pressing Escape pops one level at a time, returning to the parent group rather than jumping to the top level
+- The breadcrumb label shows the full drill path with `›` separators (e.g. "Editing: Outer Group › Inner Group")
+- Outer drill levels remain visible with a faded orange border; the innermost active level shows a solid orange border
+
 ## 2026-04-20
 
 ### Group feature

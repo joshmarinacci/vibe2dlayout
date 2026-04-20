@@ -106,28 +106,28 @@ export function CanvasView() {
         {/* Selection overlay (inside transform so coords match) */}
         <SelectionOverlay containerRef={containerRef} />
 
-        {/* Drill-in scope border */}
-        {state.drilledInContainerId && (() => {
+        {/* Drill-in scope border — one per level in the stack */}
+        {state.drilledInContainerStack.map((containerId, i) => {
           const parentMap = buildParentMap(state.document.rootNodes)
-          const abs = getAbsoluteTransform(
-            state.drilledInContainerId, state.document.shapes, parentMap)
+          const abs = getAbsoluteTransform(containerId, state.document.shapes, parentMap)
           if (!abs) return null
           const pad = 2 / zoom
+          const isInnermost = i === state.drilledInContainerStack.length - 1
           return (
-            <div style={{
+            <div key={containerId} style={{
               position: 'absolute',
               left: abs.x - pad,
               top: abs.y - pad,
               width: abs.width + pad * 2,
               height: abs.height + pad * 2,
-              border: `${2 / zoom}px solid rgba(251, 146, 60, 0.85)`,
+              border: `${2 / zoom}px solid ${isInnermost ? 'rgba(251, 146, 60, 0.85)' : 'rgba(251, 146, 60, 0.35)'}`,
               borderRadius: 2 / zoom,
               pointerEvents: 'none',
               zIndex: 9999,
               boxSizing: 'border-box',
             }} />
           )
-        })()}
+        })}
       </div>
 
       {/* Ghost rect for insert tool */}
@@ -156,9 +156,11 @@ export function CanvasView() {
       )}
 
       {/* Drill-in breadcrumb label */}
-      {state.drilledInContainerId && (() => {
-        const shape = state.document.shapes[state.drilledInContainerId]
-        const label = shape && 'name' in shape ? (shape as { name: string }).name : 'Container'
+      {state.drilledInContainerStack.length > 0 && (() => {
+        const labels = state.drilledInContainerStack.map(id => {
+          const shape = state.document.shapes[id]
+          return shape && 'name' in shape ? (shape as { name: string }).name : 'Container'
+        })
         return (
           <div style={{
             position: 'absolute',
@@ -175,7 +177,7 @@ export function CanvasView() {
             userSelect: 'none',
             whiteSpace: 'nowrap',
           }}>
-            Editing: {label}
+            Editing: {labels.join(' › ')}
           </div>
         )
       })()}
