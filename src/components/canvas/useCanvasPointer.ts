@@ -469,7 +469,9 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const hitId = hitTestShapes(pos.x, pos.y)
       if (hitId) {
         const shape = state.document.shapes[hitId]
-        if (shape && TEXT_EDITABLE.has(shape.type)) {
+        if (shape && DRILLABLE.has(shape.type)) {
+          dispatch({ type: 'ENTER_DRILL_MODE', containerId: hitId })
+        } else if (shape && TEXT_EDITABLE.has(shape.type)) {
           dispatch({ type: 'START_TEXT_EDIT', id: hitId })
         }
       } else {
