@@ -1,4 +1,11 @@
-## 2026-04-20 (2)
+## 2026-04-20 (4)
+
+### Bug fixes for nested group editing
+
+- Fixed: double-clicking a nested group while already drilled into a parent group now correctly enters the inner group's drill mode
+- Fixed: moving a shape inside an inner group was incorrectly moving the outer group instead; hit-test bubble-up now exempts all containers in the drill stack, not just the innermost one
+
+## 2026-04-20 (3)
 
 ### Nested group drill-mode stack
 
