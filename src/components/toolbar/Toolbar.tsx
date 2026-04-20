@@ -6,6 +6,7 @@ import {
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
   HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage, Paintbrush,
+  StickyNote, ScrollText, ListOrdered, Table2,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
@@ -35,9 +36,11 @@ const SHAPE_TOOLS: ToolButton[] = [
 const SHAPE_MODES = new Set(SHAPE_TOOLS.map(t => t.mode))
 
 const CONTAINER_CONTROLS: ToolButton[] = [
-  { mode: 'insert-panel',  icon: <PanelLeft size={14} />,     title: 'Titled Panel' },
-  { mode: 'insert-frame',  icon: <LayoutPanelLeft size={14} />, title: 'Panel' },
-  { mode: 'insert-dialog', icon: <AppWindow size={14} />,     title: 'Dialog' },
+  { mode: 'insert-panel',       icon: <PanelLeft size={14} />,        title: 'Titled Panel' },
+  { mode: 'insert-frame',       icon: <LayoutPanelLeft size={14} />,  title: 'Panel' },
+  { mode: 'insert-dialog',      icon: <AppWindow size={14} />,        title: 'Dialog' },
+  { mode: 'insert-stickynote',  icon: <StickyNote size={14} />,       title: 'Sticky Note' },
+  { mode: 'insert-scrollpanel', icon: <ScrollText size={14} />,       title: 'Scroll Panel' },
 ]
 
 const FORM_CONTROLS: ToolButton[] = [
@@ -51,6 +54,8 @@ const FORM_CONTROLS: ToolButton[] = [
   { mode: 'insert-select',    icon: <List size={14} />,                title: 'Select' },
   { mode: 'insert-progress',  icon: <GanttChart size={14} />,          title: 'Progress Bar' },
   { mode: 'insert-stepper',   icon: <Hash size={14} />,                title: 'Number Stepper' },
+  { mode: 'insert-list',      icon: <ListOrdered size={14} />,         title: 'List' },
+  { mode: 'insert-table',     icon: <Table2 size={14} />,              title: 'Table' },
 ]
 
 const ALL_COMPONENT_TOOLS = [...CONTAINER_CONTROLS, ...FORM_CONTROLS]

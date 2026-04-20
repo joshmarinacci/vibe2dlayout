@@ -36,6 +36,10 @@ export type ToolMode =
   | 'insert-progress'
   | 'insert-stepper'
   | 'insert-page'
+  | 'insert-stickynote'
+  | 'insert-list'
+  | 'insert-scrollpanel'
+  | 'insert-table'
 
 // ─── Settings ──────────────────────────────────────────────────────────────
 

@@ -614,5 +614,75 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
           <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
         </>
       )
+
+    case 'table':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'stickynote':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'list':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
+          <TextSection
+            text={shape.text}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+          />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>List</div>
+            <NumberInput
+              label="Selected row"
+              value={shape.selectedIndex}
+              min={-1}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { selectedIndex: Math.round(v) } })}
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
+
+    case 'scrollpanel':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Scroll Panel</div>
+            <NumberInput
+              label="Scroll position"
+              value={shape.scrollPosition}
+              min={0} max={1}
+              step={0.05}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { scrollPosition: Math.max(0, Math.min(1, v)) } })}
+            />
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+        </>
+      )
   }
 }

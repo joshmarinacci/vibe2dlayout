@@ -48,6 +48,10 @@ const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-select': 'select',
   'insert-progress': 'progress',
   'insert-stepper': 'stepper',
+  'insert-stickynote': 'stickynote',
+  'insert-list': 'list',
+  'insert-scrollpanel': 'scrollpanel',
+  'insert-table': 'table',
 }
 
 /**
@@ -70,7 +74,7 @@ function findDropTarget(
   function walk(nodes: typeof doc.rootNodes) {
     for (const n of nodes) {
       const shape = doc.shapes[n.id]
-      if (shape && (shape.type === 'frame' || shape.type === 'panel')) {
+      if (shape && (shape.type === 'frame' || shape.type === 'panel' || shape.type === 'dialog' || shape.type === 'scrollpanel')) {
         candidates.push(n.id)
       }
       walk(n.children)
@@ -312,23 +316,29 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const w = Math.max(20, Math.abs(pos.x - startCx))
       const h = Math.max(20, Math.abs(pos.y - startCy))
 
+      // When drilled into a container, add shapes as children of that container
+      const drillParentId = shapeType === 'page' ? null : (state.drilledInContainerId ?? state.activePageId)
+      const parentMap = buildParentMap(state.document.rootNodes)
+      const origin = getContentOrigin(drillParentId, state.document.shapes, parentMap)
+
       if (shapeType === 'line') {
         const shape = createShape('line', startCx, startCy, activeTheme)
         if (shape.type === 'line') {
           const newShape = {
             ...shape,
-            start: { kind: 'free' as const, point: { x: startCx, y: startCy } },
-            end: { kind: 'free' as const, point: { x: pos.x, y: pos.y } },
+            start: { kind: 'free' as const, point: { x: startCx - origin.x, y: startCy - origin.y } },
+            end: { kind: 'free' as const, point: { x: pos.x - origin.x, y: pos.y - origin.y } },
           }
-          dispatch({ type: 'ADD_SHAPE', parentId: state.activePageId, shape: newShape })
+          dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape: newShape })
           dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
         }
       } else {
-        const shape = createShape(shapeType, x, y, activeTheme)
+        const lx = x - origin.x
+        const ly = y - origin.y
+        const shape = createShape(shapeType, lx, ly, activeTheme)
         if (shape.type !== 'line') {
-          const newShape = { ...shape, transform: { ...shape.transform, x, y, width: w, height: h } }
-          const parentId = shapeType === 'page' ? null : state.activePageId
-          dispatch({ type: 'ADD_SHAPE', parentId, shape: newShape })
+          const newShape = { ...shape, transform: { ...shape.transform, x: lx, y: ly, width: w, height: h } }
+          dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape: newShape })
           dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
           if (shapeType === 'page') dispatch({ type: 'SET_ACTIVE_PAGE', pageId: newShape.id })
         }
@@ -336,9 +346,13 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
     } else if (shapeType && !isDragging.current) {
       // Single click insert with default size
-      const shape = createShape(shapeType, pos.x - 60, pos.y - 30, activeTheme)
-      const parentId = shapeType === 'page' ? null : state.activePageId
-      dispatch({ type: 'ADD_SHAPE', parentId, shape })
+      const drillParentId = shapeType === 'page' ? null : (state.drilledInContainerId ?? state.activePageId)
+      const parentMap = buildParentMap(state.document.rootNodes)
+      const origin = getContentOrigin(drillParentId, state.document.shapes, parentMap)
+      const lx = pos.x - 60 - origin.x
+      const ly = pos.y - 30 - origin.y
+      const shape = createShape(shapeType, lx, ly, activeTheme)
+      dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape })
       dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: false })
       if (shapeType === 'page') dispatch({ type: 'SET_ACTIVE_PAGE', pageId: shape.id })
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
@@ -426,8 +440,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     return screenToCanvas(state.viewTransform, sx - RULER_SIZE, sy - RULER_SIZE)
   }, [state.viewTransform, containerRef])
 
-  const DRILLABLE = new Set(['frame', 'panel', 'dialog'])
-  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select'])
+  const DRILLABLE = new Set(['frame', 'panel', 'dialog', 'scrollpanel'])
+  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select', 'stickynote', 'list', 'table'])
 
   const onDoubleClick = useCallback((e: React.MouseEvent) => {
     if (state.toolMode !== 'select') return

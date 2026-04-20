@@ -201,5 +201,40 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         fill: themeFill(),
         stroke: themeStroke(),
       }
+    case 'table':
+      return {
+        ...base, name: 'Table', type: 'table',
+        transform: defaultTransform(x, y, 240, 120),
+        fill: themeFill(),
+        stroke: themeStroke(),
+        text: { ...themeText('Name,Age,City\nAlice,30,NYC\nBob,25,LA'), align: 'left', verticalAlign: 'top', color: theme ? fg : '#333333' },
+      }
+    case 'stickynote':
+      return {
+        ...base, name: 'Sticky Note', type: 'stickynote',
+        transform: defaultTransform(x, y, 160, 140),
+        fill: { color: theme ? bg : '#fef08a', opacity: 1 },
+        stroke: themeStroke(),
+        text: { ...themeText('Note...'), align: 'left', verticalAlign: 'top', color: theme ? fg : '#333333' },
+      }
+    case 'list':
+      return {
+        ...base, name: 'List', type: 'list',
+        transform: defaultTransform(x, y, 180, 160),
+        fill: themeFill(),
+        stroke: themeStroke(),
+        text: { ...themeText('Item One\nItem Two\nItem Three'), align: 'left', verticalAlign: 'top', color: theme ? fg : '#333333' },
+        selectedIndex: 0,
+      }
+    case 'scrollpanel':
+      return {
+        ...base, name: 'Scroll Panel', type: 'scrollpanel',
+        transform: defaultTransform(x, y, 200, 180),
+        fill: themeFill(),
+        stroke: themeStroke(),
+        cornerRadius: bdrR,
+        scrollPosition: 0.2,
+        clipChildren: false,
+      }
   }
 }

@@ -21,6 +21,10 @@ import { RadioShapeComp } from './shapes/RadioShape'
 import { SelectShapeComp } from './shapes/SelectShape'
 import { ProgressShapeComp } from './shapes/ProgressShape'
 import { StepperShapeComp } from './shapes/StepperShape'
+import { StickyNoteShapeComp } from './shapes/StickyNoteShape'
+import { ListShapeComp } from './shapes/ListShape'
+import { ScrollPanelShapeComp } from './shapes/ScrollPanelShape'
+import { TableShapeComp } from './shapes/TableShape'
 
 interface Props {
   nodes: TreeNode[]
@@ -78,12 +82,15 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
     dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: e.shiftKey })
   }
 
-  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select'])
+  const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select', 'stickynote', 'list', 'table'])
+  const DRILLABLE = new Set(['frame', 'panel', 'dialog', 'scrollpanel'])
 
   const onDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (TEXT_EDITABLE.has(shape.type)) {
       dispatch({ type: 'START_TEXT_EDIT', id: shape.id })
+    } else if (DRILLABLE.has(shape.type)) {
+      dispatch({ type: 'ENTER_DRILL_MODE', containerId: shape.id })
     }
   }
 
@@ -140,5 +147,13 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       return <ProgressShapeComp shape={shape} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'stepper':
       return <StepperShapeComp shape={shape} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
+    case 'stickynote':
+      return <StickyNoteShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
+    case 'list':
+      return <ListShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
+    case 'scrollpanel':
+      return <ScrollPanelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps}>{children}</ScrollPanelShapeComp>
+    case 'table':
+      return <TableShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
   }
 }

@@ -222,6 +222,41 @@ export interface StepperShape extends ShapeBase {
   stroke: StrokeStyle
 }
 
+export interface StickyNoteShape extends ShapeBase {
+  type: 'stickynote'
+  transform: BoundingBox
+  fill: FillStyle
+  stroke: StrokeStyle
+  text: TextStyle
+}
+
+export interface ListShape extends ShapeBase {
+  type: 'list'
+  transform: BoundingBox
+  fill: FillStyle
+  stroke: StrokeStyle
+  text: TextStyle        // newline-separated items
+  selectedIndex: number  // -1 = none highlighted
+}
+
+export interface ScrollPanelShape extends ShapeBase {
+  type: 'scrollpanel'
+  transform: BoundingBox
+  fill: FillStyle
+  stroke: StrokeStyle
+  cornerRadius: number
+  scrollPosition: number  // 0–1, controls thumb position
+  clipChildren: boolean
+}
+
+export interface TableShape extends ShapeBase {
+  type: 'table'
+  transform: BoundingBox
+  fill: FillStyle
+  stroke: StrokeStyle
+  text: TextStyle  // newline-separated rows; columns separated by commas; first row = header
+}
+
 // ─── Union ────────────────────────────────────────────────────────────────
 
 export type Shape =
@@ -230,6 +265,7 @@ export type Shape =
   | ButtonShape | PanelShape | SliderShape
   | LabelShape | TextFieldShape | CheckboxShape | ToggleShape
   | FrameShape | DialogShape | RadioShape | SelectShape | ProgressShape | StepperShape
+  | StickyNoteShape | ListShape | ScrollPanelShape | TableShape
 
 export type ShapeType = Shape['type']
 

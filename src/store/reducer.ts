@@ -192,7 +192,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       if (
         shape.type === 'label' || shape.type === 'textfield' ||
         shape.type === 'checkbox' || shape.type === 'toggle' || shape.type === 'radio' ||
-        shape.type === 'select'
+        shape.type === 'select' || shape.type === 'stickynote' || shape.type === 'list' || shape.type === 'table'
       ) {
         return {
           ...doc,

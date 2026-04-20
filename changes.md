@@ -1,3 +1,19 @@
+## 2026-04-19 (2)
+
+### New shape
+
+- **Table**: Grid shape where each line of text is a row and commas separate columns. The first row is always the header (bold, filled with stroke color). Double-click to edit raw CSV-style text; Cmd/Ctrl+Enter commits. Available in Components > Form Controls. Supports hand-drawn rendering.
+
+## 2026-04-19
+
+### New shapes
+
+- **Sticky Note**: A yellow note shape with a folded top-right corner. Supports editable text (double-click). Available in Components > Containers. Works in both clean and hand-drawn themes.
+- **List**: A multi-item list control. Text content is newline-separated items. The selected row is highlighted with a light blue background. `selectedIndex` (-1 = none) is editable in the Properties panel. Double-click to edit items. Available in Components > Form Controls.
+- **Scroll Panel**: A titled panel with a decorative scrollbar on the right side. `scrollPosition` (0–1) controls the thumb position and is editable in the Properties panel. Title is double-click editable. Available in Components > Containers.
+
+All three shapes support hand-drawn (rough) rendering and integrate with undo/redo, selection, and the canvas context menu.
+
 ## 2026-04-17
 
 ### Bug fixes
