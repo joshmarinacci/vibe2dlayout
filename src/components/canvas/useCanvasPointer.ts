@@ -193,7 +193,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
           if (!parentId) break
           const parent = state.document.shapes[parentId]
           if (!parent || parent.type === 'page') break
-          if (parent.type === 'group' && parentId !== drilledInContainerId) {
+          if (parent.type === 'group' && !state.drilledInContainerStack.includes(parentId)) {
             resultId = parentId
           }
           current = parentId
