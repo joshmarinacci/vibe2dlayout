@@ -40,6 +40,7 @@ export type ToolMode =
   | 'insert-list'
   | 'insert-scrollpanel'
   | 'insert-table'
+  | 'insert-group'
 
 // ─── Settings ──────────────────────────────────────────────────────────────
 
@@ -102,6 +103,8 @@ export type DocumentAction =
   | { type: 'SET_ACTIVE_THEME'; themeId: string }
   | { type: 'APPLY_THEME_TO_ALL_SHAPES' }
   | { type: 'RESET_SHAPES_TO_THEME'; ids: string[] }
+  | { type: 'GROUP_SHAPES'; ids: string[] }
+  | { type: 'UNGROUP_SHAPES'; id: string }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'

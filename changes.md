@@ -1,3 +1,18 @@
+## 2026-04-20
+
+### Group feature
+
+- **Group shape**: A transparent container that wraps multiple shapes into a logical unit. Bounds are auto-computed as the union of all children's bounding boxes.
+- **Create group**: Select 2+ shapes → right-click → "Group". The group is placed at the same tree level as the selected shapes and all selected shapes become its children.
+- **Ungroup**: Right-click a group → "Ungroup" to unwrap children back to the group's parent at their original canvas positions.
+- **Drill mode**: Double-click a group to enter drill mode and interact with individual children. Escape exits drill mode.
+- **Hit testing**: Clicking a child of an undrilled group selects/moves the group instead of the child.
+- **Group bounds recomputation**: Group bounds automatically update when children are moved or resized while drilled in.
+- **Empty group**: Add an empty group from the Layers panel "+" button under Containers → Group, then drag shapes into it.
+- **Drag-to-reparent**: Shapes dragged onto a group in the canvas or tree will be reparented into it.
+- **Nested groups**: Groups can be nested indefinitely; drill mode scopes to the innermost drilled group.
+- **Delete group**: Deletes the group and all its children.
+
 ## 2026-04-19 (2)
 
 ### New shape

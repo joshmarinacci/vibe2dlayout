@@ -14,7 +14,7 @@ import {
   Eye, EyeOff, Lock, Unlock, Trash2,
   AlignLeft, AlignCenter, AlignRight,
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
-  ArrowLeftRight, ArrowUpDown,
+  ArrowLeftRight, ArrowUpDown, Group, Ungroup,
 } from 'lucide-react'
 import type { AlignType } from '@store/types'
 
@@ -126,6 +126,11 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
           icon: <Copy size={14} />,
           onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: selectedIds }),
         },
+        {
+          label: 'Group',
+          icon: <Group size={14} />,
+          onClick: () => dispatch({ type: 'GROUP_SHAPES', ids: selectedIds }),
+        },
       ],
     },
     {
@@ -169,6 +174,11 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
             icon: <Copy size={14} />,
             onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: [shapeId!] }),
           },
+          ...(shape.type === 'group' ? [{
+            label: 'Ungroup',
+            icon: <Ungroup size={14} />,
+            onClick: () => dispatch({ type: 'UNGROUP_SHAPES', id: shapeId! }),
+          }] : []),
         ],
       },
       {

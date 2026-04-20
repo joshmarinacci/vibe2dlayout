@@ -236,5 +236,10 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         scrollPosition: 0.2,
         clipChildren: false,
       }
+    case 'group':
+      return {
+        ...base, name: 'Group', type: 'group',
+        transform: defaultTransform(x, y, 100, 100),
+      }
   }
 }

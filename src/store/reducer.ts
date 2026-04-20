@@ -8,6 +8,7 @@ import { computeAlignedTransforms } from '@utils/alignment'
 import { DEFAULT_PALETTE } from '@model/palette'
 import { BUILT_IN_THEMES, getActiveTheme } from '@model/theme'
 import type { Theme } from '@model/theme'
+import { buildParentMap, getAbsoluteTransform, getParentContentOrigin, unionBoxes } from '@utils/geometry'
 
 function cloneSubtree(
   node: TreeNode,
@@ -27,6 +28,72 @@ function cloneSubtree(
     Object.assign(newShapes, childShapes)
   }
   return { node: { id: newId, children: newChildren }, newShapes }
+}
+
+/** Find the nearest group-type ancestor of a shape, or null. */
+function findGroupAncestor(
+  id: string,
+  shapes: Record<string, Shape>,
+  parentMap: Record<string, string>,
+): string | null {
+  let current = id
+  while (true) {
+    const parentId = parentMap[current]
+    if (!parentId) return null
+    const parent = shapes[parentId]
+    if (!parent || parent.type === 'page') return null
+    if (parent.type === 'group') return parentId
+    current = parentId
+  }
+}
+
+/**
+ * Recompute a group's bounding box to tightly wrap its children.
+ * Adjusts children's local positions so their absolute positions are unchanged.
+ */
+function recomputeGroupBounds(groupId: string, doc: VibeDocument): VibeDocument {
+  const groupNode = findNode(doc.rootNodes, groupId)
+  if (!groupNode || groupNode.children.length === 0) return doc
+
+  const group = doc.shapes[groupId]
+  if (!group || group.type !== 'group') return doc
+
+  // Compute union of children's local bounding boxes
+  let union: { x: number; y: number; width: number; height: number } | null = null
+  for (const childNode of groupNode.children) {
+    const child = doc.shapes[childNode.id]
+    if (!child || child.type === 'line') continue
+    const t = child.transform
+    if (!union) {
+      union = { x: t.x, y: t.y, width: t.width, height: t.height }
+    } else {
+      union = unionBoxes(union, t)
+    }
+  }
+  if (!union) return doc
+
+  const newGroupTransform = {
+    ...group.transform,
+    x: group.transform.x + union.x,
+    y: group.transform.y + union.y,
+    width: union.width,
+    height: union.height,
+  }
+
+  // Shift children so their absolute positions stay the same
+  const dx = union.x
+  const dy = union.y
+  const newShapes = { ...doc.shapes, [groupId]: { ...group, transform: newGroupTransform } }
+  for (const childNode of groupNode.children) {
+    const child = newShapes[childNode.id]
+    if (!child || child.type === 'line') continue
+    newShapes[childNode.id] = {
+      ...child,
+      transform: { ...child.transform, x: child.transform.x - dx, y: child.transform.y - dy },
+    } as Shape
+  }
+
+  return { ...doc, shapes: newShapes }
 }
 
 // ─── Document reducer (pure) ───────────────────────────────────────────────
@@ -89,16 +156,31 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
           newShapes[id] = { ...shape, transform: { ...t, x: t.x + action.dx, y: t.y + action.dy } }
         }
       }
-      return { ...doc, shapes: newShapes }
+      let newDoc: VibeDocument = { ...doc, shapes: newShapes }
+      // Recompute bounds for any group ancestors of moved shapes
+      const parentMap = buildParentMap(doc.rootNodes)
+      const groupsToRecompute = new Set<string>()
+      for (const id of action.ids) {
+        const gid = findGroupAncestor(id, doc.shapes, parentMap)
+        if (gid) groupsToRecompute.add(gid)
+      }
+      for (const gid of groupsToRecompute) {
+        newDoc = recomputeGroupBounds(gid, newDoc)
+      }
+      return newDoc
     }
 
     case 'SET_TRANSFORM': {
       const shape = doc.shapes[action.id]
       if (!shape || shape.type === 'line' || shape.locked) return doc
-      return {
+      let newDoc: VibeDocument = {
         ...doc,
         shapes: { ...doc.shapes, [action.id]: { ...shape, transform: action.transform } },
       }
+      const parentMap = buildParentMap(doc.rootNodes)
+      const gid = findGroupAncestor(action.id, doc.shapes, parentMap)
+      if (gid) newDoc = recomputeGroupBounds(gid, newDoc)
+      return newDoc
     }
 
     case 'SET_CONNECTOR_START': {
@@ -284,6 +366,126 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         }
       }
       return { ...doc, shapes: newShapes }
+    }
+
+    case 'GROUP_SHAPES': {
+      if (action.ids.length === 0) return doc
+
+      const parentMap = buildParentMap(doc.rootNodes)
+
+      // Compute absolute bounding boxes for all shapes upfront
+      const absTransforms: Record<string, { x: number; y: number; width: number; height: number }> = {}
+      let groupUnion: { x: number; y: number; width: number; height: number } | null = null
+      for (const id of action.ids) {
+        const shape = doc.shapes[id]
+        if (!shape || shape.type === 'line') continue
+        const abs = getAbsoluteTransform(id, doc.shapes, parentMap)
+        if (!abs) continue
+        absTransforms[id] = abs
+        if (!groupUnion) {
+          groupUnion = { x: abs.x, y: abs.y, width: abs.width, height: abs.height }
+        } else {
+          groupUnion = unionBoxes(groupUnion, abs)
+        }
+      }
+      if (!groupUnion) return doc
+
+      // Place group as sibling of first shape
+      const firstId = action.ids[0]
+      const firstParentId = parentMap[firstId] ?? null
+      const parentContentOrigin = getParentContentOrigin(firstId, doc.shapes, parentMap)
+
+      const groupId = generateId()
+      const groupShape: Shape = {
+        id: groupId,
+        name: 'Group',
+        locked: false,
+        visible: true,
+        type: 'group',
+        transform: {
+          x: groupUnion.x - parentContentOrigin.x,
+          y: groupUnion.y - parentContentOrigin.y,
+          width: groupUnion.width,
+          height: groupUnion.height,
+          rotation: 0,
+        },
+      }
+
+      let newDoc: VibeDocument = {
+        ...doc,
+        shapes: { ...doc.shapes, [groupId]: groupShape },
+        rootNodes: insertNode(doc.rootNodes, firstParentId, { id: groupId, children: [] }),
+      }
+
+      // Reparent each shape into the group with group-local coordinates
+      for (const id of action.ids) {
+        const abs = absTransforms[id]
+        if (!abs) continue
+        const newX = abs.x - groupUnion.x
+        const newY = abs.y - groupUnion.y
+        const groupNode = findNode(newDoc.rootNodes, groupId)
+        const insertIdx = groupNode ? groupNode.children.length : 0
+        newDoc = applyDocumentAction(newDoc, {
+          type: 'REPARENT_SHAPE',
+          id,
+          newParentId: groupId,
+          index: insertIdx,
+          x: newX,
+          y: newY,
+        })
+      }
+
+      return newDoc
+    }
+
+    case 'UNGROUP_SHAPES': {
+      const groupNode = findNode(doc.rootNodes, action.id)
+      if (!groupNode) return doc
+      const group = doc.shapes[action.id]
+      if (!group || group.type !== 'group') return doc
+
+      const parentMap = buildParentMap(doc.rootNodes)
+      const groupParentId = parentMap[action.id] ?? null
+      const parentContentOrigin = getParentContentOrigin(action.id, doc.shapes, parentMap)
+
+      // Compute absolute positions of all children before any reparenting
+      const groupAbs = getAbsoluteTransform(action.id, doc.shapes, parentMap)
+      if (!groupAbs) return doc
+
+      const childMoves: { id: string; newX: number; newY: number }[] = []
+      for (const childNode of groupNode.children) {
+        const child = doc.shapes[childNode.id]
+        if (!child || child.type === 'line') continue
+        // Child absolute = group absolute + child local (group has no content offset)
+        const absX = groupAbs.x + child.transform.x
+        const absY = groupAbs.y + child.transform.y
+        childMoves.push({
+          id: childNode.id,
+          newX: absX - parentContentOrigin.x,
+          newY: absY - parentContentOrigin.y,
+        })
+      }
+
+      // Find group's index among siblings for insertion order
+      const parentNode = groupParentId ? findNode(doc.rootNodes, groupParentId) : null
+      const siblings = parentNode ? parentNode.children : doc.rootNodes
+      const groupIndex = siblings.findIndex(n => n.id === action.id)
+
+      let newDoc = doc
+      for (let i = 0; i < childMoves.length; i++) {
+        const { id, newX, newY } = childMoves[i]
+        newDoc = applyDocumentAction(newDoc, {
+          type: 'REPARENT_SHAPE',
+          id,
+          newParentId: groupParentId,
+          index: groupIndex + i,
+          x: newX,
+          y: newY,
+        })
+      }
+
+      // Delete the now-empty group
+      return applyDocumentAction(newDoc, { type: 'DELETE_SHAPES', ids: [action.id] })
     }
 
     case 'RESET_SHAPES_TO_THEME': {
@@ -498,6 +700,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_ACTIVE_THEME':
     case 'APPLY_THEME_TO_ALL_SHAPES':
     case 'RESET_SHAPES_TO_THEME':
+    case 'GROUP_SHAPES':
+    case 'UNGROUP_SHAPES':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),

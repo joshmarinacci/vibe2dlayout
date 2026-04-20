@@ -257,6 +257,11 @@ export interface TableShape extends ShapeBase {
   text: TextStyle  // newline-separated rows; columns separated by commas; first row = header
 }
 
+export interface GroupShape extends ShapeBase {
+  type: 'group'
+  transform: BoundingBox  // auto-computed as union of children's bounding boxes
+}
+
 // ─── Union ────────────────────────────────────────────────────────────────
 
 export type Shape =
@@ -266,6 +271,7 @@ export type Shape =
   | LabelShape | TextFieldShape | CheckboxShape | ToggleShape
   | FrameShape | DialogShape | RadioShape | SelectShape | ProgressShape | StepperShape
   | StickyNoteShape | ListShape | ScrollPanelShape | TableShape
+  | GroupShape
 
 export type ShapeType = Shape['type']
 

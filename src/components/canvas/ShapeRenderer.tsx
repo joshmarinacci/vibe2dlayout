@@ -25,6 +25,7 @@ import { StickyNoteShapeComp } from './shapes/StickyNoteShape'
 import { ListShapeComp } from './shapes/ListShape'
 import { ScrollPanelShapeComp } from './shapes/ScrollPanelShape'
 import { TableShapeComp } from './shapes/TableShape'
+import { GroupShapeComp } from './shapes/GroupShape'
 
 interface Props {
   nodes: TreeNode[]
@@ -83,7 +84,7 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
   }
 
   const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select', 'stickynote', 'list', 'table'])
-  const DRILLABLE = new Set(['frame', 'panel', 'dialog', 'scrollpanel'])
+  const DRILLABLE = new Set(['frame', 'panel', 'dialog', 'scrollpanel', 'group'])
 
   const onDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -155,5 +156,7 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       return <ScrollPanelShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps}>{children}</ScrollPanelShapeComp>
     case 'table':
       return <TableShapeComp shape={shape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
+    case 'group':
+      return <GroupShapeComp shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>{children}</GroupShapeComp>
   }
 }

@@ -15,6 +15,7 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
 ]
 
 const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'group',   label: 'Group' },
   { type: 'panel',   label: 'Titled Panel' },
   { type: 'frame',   label: 'Panel' },
   { type: 'dialog',  label: 'Dialog' },

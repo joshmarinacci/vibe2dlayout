@@ -52,6 +52,7 @@ const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-list': 'list',
   'insert-scrollpanel': 'scrollpanel',
   'insert-table': 'table',
+  'insert-group': 'group',
 }
 
 /**
@@ -74,7 +75,7 @@ function findDropTarget(
   function walk(nodes: typeof doc.rootNodes) {
     for (const n of nodes) {
       const shape = doc.shapes[n.id]
-      if (shape && (shape.type === 'frame' || shape.type === 'panel' || shape.type === 'dialog' || shape.type === 'scrollpanel')) {
+      if (shape && (shape.type === 'frame' || shape.type === 'panel' || shape.type === 'dialog' || shape.type === 'scrollpanel' || shape.type === 'group')) {
         candidates.push(n.id)
       }
       walk(n.children)
@@ -181,7 +182,20 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       }
       const absTransform = getAbsoluteTransform(id, state.document.shapes, parentMap)
       if (absTransform && pointInBox({ x: cx, y: cy }, absTransform)) {
-        return id
+        // Bubble up to the nearest group ancestor that is not the currently drilled-in container
+        let resultId = id
+        let current = id
+        while (true) {
+          const parentId = parentMap[current]
+          if (!parentId) break
+          const parent = state.document.shapes[parentId]
+          if (!parent || parent.type === 'page') break
+          if (parent.type === 'group' && parentId !== state.drilledInContainerId) {
+            resultId = parentId
+          }
+          current = parentId
+        }
+        return resultId
       }
     }
     return null
@@ -440,7 +454,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     return screenToCanvas(state.viewTransform, sx - RULER_SIZE, sy - RULER_SIZE)
   }, [state.viewTransform, containerRef])
 
-  const DRILLABLE = new Set(['frame', 'panel', 'dialog', 'scrollpanel'])
+  const DRILLABLE = new Set(['frame', 'panel', 'dialog', 'scrollpanel', 'group'])
   const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select', 'stickynote', 'list', 'table'])
 
   const onDoubleClick = useCallback((e: React.MouseEvent) => {
