@@ -9,6 +9,7 @@ import { TreeNodeComp } from './TreeNode'
 import { DocumentRow } from './DocumentRow'
 import { PageFolderRow } from './PageFolderRow'
 import { SectionHeader } from './SectionHeader'
+import { StylesSection } from './StylesSection'
 import styles from './TreePanel.module.css'
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -174,7 +175,11 @@ export function TreePanel() {
         {/* Asset sections (empty placeholders for now) */}
         <SectionHeader label="Assets" />
         <SectionHeader label="Variables" />
-        <SectionHeader label="Styles" />
+        <StylesSection
+          textStyles={state.document.textStyles}
+          selectedStyleId={state.selectedStyleId}
+          dispatch={dispatch}
+        />
       </div>
     </div>
   )

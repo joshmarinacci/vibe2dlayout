@@ -30,6 +30,10 @@ export interface TextStyle {
   paletteColorId?: string
   align: 'left' | 'center' | 'right'
   verticalAlign: 'top' | 'middle' | 'bottom'
+  // Named style reference — see src/model/textStyle.ts
+  textStyleId?: string
+  // Fields explicitly overridden from the style (not inherited)
+  textStyleOverrides?: string[]
 }
 
 export type ArrowType = 'none' | 'arrow' | 'circle' | 'diamond'

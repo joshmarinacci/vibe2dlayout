@@ -2,6 +2,7 @@ import type { Shape } from './shapes'
 import type { ColorPalette } from './palette'
 import type { Theme } from './theme'
 import type { GridSettings } from './grid'
+import type { TextStyleDef } from './textStyle'
 
 /**
  * The document tree stores topology separately from shape data.
@@ -34,6 +35,7 @@ export interface VibeDocument {
   activeThemeId: string       // which theme applies to new shapes
   gridSettings: GridSettings  // document-level grid / snap settings
   pageFolders: PageFolder[]   // organizational folders for pages (UI-only, no canvas presence)
+  textStyles: TextStyleDef[]  // named text style definitions
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

@@ -1,3 +1,28 @@
+## 2026-04-21 14:15
+
+### Fix text style override tracking
+
+Two bugs in `TextSection` where property edits didn't behave correctly when a style was applied:
+
+- **Style connection lost on edit**: `onChange` was spreading the resolved text (which has no `textStyleId`), so every property change was silently unlinking the shape from its style. Fixed by using `rawText` as the base in all `onChange` calls.
+- **Override not tracked when value matches raw**: The PATCH_SHAPE reducer tracks overrides by diffing old vs new raw values. If `rawText.align = 'left'` and the style provides `'center'`, clicking 'left' produced no diff → no override added → style's value kept winning. Fixed by adding an `applyChange` helper in `TextSection` that explicitly adds the changed field to `textStyleOverrides` whenever a style is set, regardless of value equality.
+
+## 2026-04-21 14:05
+
+### Text Styles system
+
+- **Named text styles**: Users can create document-level `TextStyleDef` objects in the Styles section of the tree panel. Each style is a named collection of optional text properties (font family, size, weight, style, color, align, verticalAlign).
+- **Built-in styles**: Three default styles are created with every new document — Title (32px bold), Subtitle (20px 600-weight), Paragraph (14px normal). Old documents auto-migrate with the defaults.
+- **Style assignment**: Any shape with text shows a "Style" selector at the top of the Text section in the properties panel. Selecting a style applies its properties live; shapes re-render immediately when the style is edited.
+- **Per-field overrides**: After applying a style, individual text properties can still be overridden. Modified fields show a ↺ reset button to restore the style's value. Override tracking is automatic in the reducer when `PATCH_SHAPE` changes text fields on a styled shape.
+- **Style editor**: Clicking a style in the Styles tree section shows it in the properties panel. Each field has a checkbox to include/exclude it from the style. Changes apply live — no save button needed.
+- **Delete bakes values**: Deleting a style bakes its resolved values into all shapes that referenced it, then disconnects them.
+- **Data model**: Added `TextStyleDef`, `TextStyleField`, `TEXT_STYLE_FIELDS`, `BUILT_IN_TEXT_STYLES`, `resolveTextStyle`, `resolveShapeText` in new `src/model/textStyle.ts`. Added `textStyleId?` and `textStyleOverrides?` to `TextStyle` in `shapes.ts`. Added `textStyles: TextStyleDef[]` to `VibeDocument`.
+- **State**: Added `selectedStyleId: string | null` to `AppState`. New document actions: `ADD_TEXT_STYLE`, `UPDATE_TEXT_STYLE`, `DELETE_TEXT_STYLE`, `REORDER_TEXT_STYLE`, `APPLY_TEXT_STYLE`, `CLEAR_TEXT_OVERRIDE`. New view action: `SELECT_STYLE`.
+- **Canvas**: `ShapeRenderer` calls `resolveShapeText` before passing shapes to sub-renderers, so all text renders with resolved style values without needing to store resolved values in shape data.
+- **New files**: `src/model/textStyle.ts`, `StyleRow.tsx/css`, `StylesSection.tsx`, `TextStyleDefSection.tsx`
+- **Modified**: `TextSection` updated with new prop signature (style selector, override reset buttons, font family selector); all 14 call sites in `PropertiesPanel.tsx` updated.
+
 ## 2026-04-21
 
 ### Tree panel overhaul — Document item, Page Folders, section headers

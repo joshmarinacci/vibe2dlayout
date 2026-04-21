@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS } from './types'
 import type { VibeDocument, TreeNode } from '@model/document'
 import type { Shape } from '@model/shapes'
 import { findNode, findParent, removeNode, insertNode, getAllIds } from '@model/document'
+import { BUILT_IN_TEXT_STYLES, TEXT_STYLE_FIELDS, resolveTextStyle } from '@model/textStyle'
 import { generateId } from '@utils/idgen'
 import { computeAlignedTransforms } from '@utils/alignment'
 import { DEFAULT_PALETTE } from '@model/palette'
@@ -207,9 +208,29 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       // Allow patching locked/visible even when locked; block everything else
       if (!shape) return doc
       if (shape.locked && !('locked' in action.patch) && !('visible' in action.patch)) return doc
+      let patched = { ...shape, ...action.patch } as Shape
+      // Auto-track text style overrides: if shape has a textStyleId and the patch touches
+      // style-able text fields, add those fields to textStyleOverrides
+      const patchedRec = patched as unknown as Record<string, unknown>
+      const patchRec = (action.patch as unknown as Record<string, unknown>)
+      const patchedText = patchedRec['text'] as (typeof patched extends { text: infer T } ? T : never) | undefined
+      if (patchedText && (patchedText as { textStyleId?: string }).textStyleId && patchRec['text']) {
+        const oldText = (shape as unknown as Record<string, unknown>)['text'] as typeof patchedText | undefined
+        const newText = patchedText
+        const changedFields = TEXT_STYLE_FIELDS.filter(f => {
+          const oldVal = oldText ? (oldText as Record<string, unknown>)[f] : undefined
+          const newVal = (newText as unknown as Record<string, unknown>)[f]
+          return newVal !== oldVal
+        })
+        if (changedFields.length > 0) {
+          const existingOverrides = new Set((newText as { textStyleOverrides?: string[] }).textStyleOverrides ?? [])
+          for (const f of changedFields) existingOverrides.add(f)
+          patched = { ...patched, text: { ...(newText as object), textStyleOverrides: [...existingOverrides] } } as Shape
+        }
+      }
       return {
         ...doc,
-        shapes: { ...doc.shapes, [action.id]: { ...shape, ...action.patch } as Shape },
+        shapes: { ...doc.shapes, [action.id]: patched },
       }
     }
 
@@ -343,6 +364,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         activeThemeId: d.activeThemeId ?? 'hand-drawn',
         gridSettings: d.gridSettings ?? { ...DEFAULT_GRID_SETTINGS },
         pageFolders: d.pageFolders ?? [],
+        textStyles: d.textStyles ?? [...BUILT_IN_TEXT_STYLES],
       }
     }
 
@@ -406,6 +428,82 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       const newIdx = action.direction === 'up' ? Math.max(0, idx - 1) : Math.min(arr.length, idx + 1)
       arr.splice(newIdx, 0, item)
       return { ...doc, pageFolders: arr }
+    }
+
+    case 'ADD_TEXT_STYLE':
+      return { ...doc, textStyles: [...doc.textStyles, action.style] }
+
+    case 'UPDATE_TEXT_STYLE':
+      return {
+        ...doc,
+        textStyles: doc.textStyles.map(s => s.id === action.style.id ? action.style : s),
+      }
+
+    case 'DELETE_TEXT_STYLE': {
+      // Bake resolved text into every shape referencing this style, then disconnect
+      const newShapes = { ...doc.shapes }
+      for (const id of Object.keys(newShapes)) {
+        const shape = newShapes[id]
+        const shapeRec = shape as unknown as Record<string, unknown>
+        const textVal = shapeRec['text'] as { textStyleId?: string } | undefined
+        if (textVal && textVal.textStyleId === action.styleId) {
+          const baked = resolveTextStyle(textVal as Parameters<typeof resolveTextStyle>[0], doc.textStyles)
+          newShapes[id] = { ...shape, text: { ...baked, textStyleId: undefined, textStyleOverrides: undefined } } as unknown as Shape
+        }
+        const titleVal = shapeRec['title']
+        if (titleVal && typeof titleVal === 'object' && (titleVal as { textStyleId?: string }).textStyleId === action.styleId) {
+          const baked = resolveTextStyle(titleVal as Parameters<typeof resolveTextStyle>[0], doc.textStyles)
+          newShapes[id] = { ...shape, title: { ...baked, textStyleId: undefined, textStyleOverrides: undefined } } as unknown as Shape
+        }
+      }
+      return { ...doc, shapes: newShapes, textStyles: doc.textStyles.filter(s => s.id !== action.styleId) }
+    }
+
+    case 'REORDER_TEXT_STYLE': {
+      const idx = doc.textStyles.findIndex(s => s.id === action.styleId)
+      if (idx === -1) return doc
+      const arr = [...doc.textStyles]
+      const [item] = arr.splice(idx, 1)
+      const newIdx = action.direction === 'up' ? Math.max(0, idx - 1) : Math.min(arr.length, idx + 1)
+      arr.splice(newIdx, 0, item)
+      return { ...doc, textStyles: arr }
+    }
+
+    case 'APPLY_TEXT_STYLE': {
+      const shape = doc.shapes[action.shapeId]
+      if (!shape) return doc
+      const shapeRec = shape as unknown as Record<string, unknown>
+      const oldText = shapeRec['text'] as { textStyleId?: string; textStyleOverrides?: string[] } | undefined
+      if (!oldText) return doc
+      return {
+        ...doc,
+        shapes: {
+          ...doc.shapes,
+          [action.shapeId]: {
+            ...shape,
+            text: { ...oldText, textStyleId: action.textStyleId ?? undefined, textStyleOverrides: [] },
+          } as unknown as Shape,
+        },
+      }
+    }
+
+    case 'CLEAR_TEXT_OVERRIDE': {
+      const shape = doc.shapes[action.shapeId]
+      if (!shape) return doc
+      const shapeRec = shape as unknown as Record<string, unknown>
+      const oldText = shapeRec['text'] as { textStyleOverrides?: string[] } | undefined
+      if (!oldText) return doc
+      const overrides = (oldText.textStyleOverrides ?? []).filter(f => f !== action.field)
+      return {
+        ...doc,
+        shapes: {
+          ...doc.shapes,
+          [action.shapeId]: {
+            ...shape,
+            text: { ...oldText, textStyleOverrides: overrides },
+          } as unknown as Shape,
+        },
+      }
     }
 
     case 'ADD_THEME':
@@ -723,6 +821,7 @@ export function createInitialDocument(): VibeDocument {
     activeThemeId: 'hand-drawn',
     gridSettings: { ...DEFAULT_GRID_SETTINGS },
     pageFolders: [],
+    textStyles: [...BUILT_IN_TEXT_STYLES],
   }
 }
 
@@ -744,6 +843,7 @@ export const initialState: AppState = {
   documentId: null,
   documentName: 'Untitled',
   documentSelected: false,
+  selectedStyleId: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -785,6 +885,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'ASSIGN_PAGES_TO_FOLDER':
     case 'REMOVE_PAGES_FROM_FOLDER':
     case 'REORDER_PAGE_FOLDER':
+    case 'ADD_TEXT_STYLE':
+    case 'UPDATE_TEXT_STYLE':
+    case 'DELETE_TEXT_STYLE':
+    case 'REORDER_TEXT_STYLE':
+    case 'APPLY_TEXT_STYLE':
+    case 'CLEAR_TEXT_OVERRIDE':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -795,6 +901,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         documentSelected: false,
+        selectedStyleId: null,
         selection: {
           ...state.selection,
           ids: action.additive
@@ -803,10 +910,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       }
     case 'DESELECT_ALL':
-      return { ...state, documentSelected: false, selection: { ids: [], editingTextId: null } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selection: { ids: [], editingTextId: null } }
     case 'SELECT_ALL': {
       const allIds = getAllIds(state.document.rootNodes)
-      return { ...state, documentSelected: false, selection: { ...state.selection, ids: allIds } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selection: { ...state.selection, ids: allIds } }
     }
     case 'START_TEXT_EDIT':
       return { ...state, selection: { ...state.selection, editingTextId: action.id } }
@@ -872,6 +979,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         documentSelected: true,
+        selectedStyleId: null,
+        selection: { ids: [], editingTextId: null },
+      }
+    case 'SELECT_STYLE':
+      return {
+        ...state,
+        selectedStyleId: action.styleId,
+        documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
     case 'SET_FOLDER_COLLAPSED':

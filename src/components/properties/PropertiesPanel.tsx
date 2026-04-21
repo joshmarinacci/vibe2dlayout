@@ -16,6 +16,8 @@ import { PageSection } from './sections/PageSection'
 import { ContentSection } from './sections/ContentSection'
 import { ButtonIconSection } from './sections/ButtonIconSection'
 import { DocumentSection } from './sections/DocumentSection'
+import { TextStyleDefSection } from './sections/TextStyleDefSection'
+import { resolveTextStyle } from '@model/textStyle'
 import type { BoundingBox } from '@model/transform'
 import type { FillStyle, StrokeStyle, TextStyle, Shape } from '@model/shapes'
 import styles from './PropertiesPanel.module.css'
@@ -30,6 +32,21 @@ export function PropertiesPanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
   const selected = selectSelectedShapes(state)
+
+  if (state.selectedStyleId !== null) {
+    const style = state.document.textStyles.find(s => s.id === state.selectedStyleId)
+    if (style) {
+      return (
+        <div className={styles.panel}>
+          <div className={styles.header}>
+            <span className={styles.shapeType}>style</span>
+            <span className={styles.shapeName}>{style.name}</span>
+          </div>
+          <TextStyleDefSection style={style} dispatch={dispatch} />
+        </div>
+      )
+    }
+  }
 
   if (state.documentSelected) {
     return (
@@ -199,8 +216,15 @@ export function PropertiesPanel() {
             />
           </div>
         )}
-        {repText && (
-          <TextSection text={repText} onChange={onChangeText} />
+        {repText && withText[0] && (
+          <TextSection
+            text={resolveTextStyle(repText, state.document.textStyles)}
+            rawText={repText}
+            textStyles={state.document.textStyles}
+            shapeId={withText[0].id}
+            onChange={onChangeText}
+            dispatch={dispatch}
+          />
         )}
       </div>
     )
@@ -265,6 +289,8 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
   const patchStroke = (s: StrokeStyle) =>
     dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { stroke: s } as Partial<Shape> })
 
+  const textStyles = state.document.textStyles
+
   switch (shape.type) {
     case 'rect':
       return (
@@ -313,8 +339,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <FillSection fill={shape.fill} onChange={patchFill} />
         </>
@@ -394,8 +424,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <FillSection fill={shape.fill} onChange={patchFill} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <ButtonIconSection
             icon={shape.icon}
@@ -425,8 +459,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
           {shape.title && (
             <TextSection
-              text={shape.title}
+              text={resolveTextStyle(shape.title, textStyles)}
+              rawText={shape.title}
+              textStyles={textStyles}
+              shapeId={shape.id}
               onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { title: t } })}
+              dispatch={dispatch}
             />
           )}
           <div className={styles.section}>
@@ -472,8 +510,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
         </>
       )
@@ -484,8 +526,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Text Field</div>
@@ -507,8 +553,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Checkbox</div>
@@ -529,8 +579,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Toggle</div>
@@ -606,8 +660,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Radio Button</div>
@@ -628,8 +686,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Select</div>
@@ -670,8 +732,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
         <>
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Number Stepper</div>
@@ -692,8 +758,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <FillSection fill={shape.fill} onChange={patchFill} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
@@ -706,8 +776,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <FillSection fill={shape.fill} onChange={patchFill} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
@@ -720,8 +794,12 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
           <TransformSection transform={shape.transform} onChange={patchTransform} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
-            text={shape.text}
+            text={resolveTextStyle(shape.text, textStyles)}
+            rawText={shape.text}
+            textStyles={textStyles}
+            shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
+            dispatch={dispatch}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>List</div>

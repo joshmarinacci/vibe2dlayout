@@ -1,5 +1,6 @@
 import type { Shape } from '@model/shapes'
 import type { VibeDocument, PageFolder } from '@model/document'
+import type { TextStyleDef } from '@model/textStyle'
 import type { ConnectorEndpoint } from '@model/connector'
 import type { Point, BoundingBox } from '@model/transform'
 import type { SelectionState } from '@model/selection'
@@ -76,6 +77,8 @@ export interface AppState {
   documentName: string
   // true when user clicked the Document row in the tree (shows document properties)
   documentSelected: boolean
+  // ID of the text style selected in the tree (shows style editor in props panel)
+  selectedStyleId: string | null
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -116,6 +119,12 @@ export type DocumentAction =
   | { type: 'ASSIGN_PAGES_TO_FOLDER'; folderId: string; pageIds: string[] }
   | { type: 'REMOVE_PAGES_FROM_FOLDER'; folderId: string; pageIds: string[] }
   | { type: 'REORDER_PAGE_FOLDER'; folderId: string; direction: 'up' | 'down' }
+  | { type: 'ADD_TEXT_STYLE'; style: TextStyleDef }
+  | { type: 'UPDATE_TEXT_STYLE'; style: TextStyleDef }
+  | { type: 'DELETE_TEXT_STYLE'; styleId: string }
+  | { type: 'REORDER_TEXT_STYLE'; styleId: string; direction: 'up' | 'down' }
+  | { type: 'APPLY_TEXT_STYLE'; shapeId: string; textStyleId: string | null }
+  | { type: 'CLEAR_TEXT_OVERRIDE'; shapeId: string; field: string }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'
@@ -148,6 +157,7 @@ export type ViewAction =
   | { type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL' }
   | { type: 'SELECT_DOCUMENT' }
   | { type: 'SET_FOLDER_COLLAPSED'; folderId: string; collapsed: boolean }
+  | { type: 'SELECT_STYLE'; styleId: string | null }
 
 // Undo/redo
 export type HistoryAction =

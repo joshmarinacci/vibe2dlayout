@@ -1,0 +1,55 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 18px;
+  height: 26px;
+  cursor: pointer;
+  user-select: none;
+  border-left: 2px solid transparent;
+}
+
+.row:hover {
+  background: #f0f0f0;
+}
+
+.selected {
+  background: #dbeafe;
+  border-left-color: #3b82f6;
+}
+
+.selected:hover {
+  background: #bfdbfe;
+}
+
+.icon {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 13px;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.preview {
+  font-size: 10px;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.nameInput {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+  border: 1px solid #3b82f6;
+  border-radius: 2px;
+  padding: 1px 4px;
+  outline: none;
+  background: #fff;
+  min-width: 0;
+}
