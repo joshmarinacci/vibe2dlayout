@@ -11,6 +11,7 @@ import { PageFolderRow } from './PageFolderRow'
 import { SectionHeader } from './SectionHeader'
 import { StylesSection } from './StylesSection'
 import { VariablesSection } from './VariablesSection'
+import { AssetsSection } from './AssetsSection'
 import styles from './TreePanel.module.css'
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -173,8 +174,14 @@ export function TreePanel() {
 
         <div className={styles.separator} />
 
-        {/* Asset sections (empty placeholders for now) */}
+        {/* Asset sections */}
         <SectionHeader label="Assets" />
+        <AssetsSection
+          assets={state.document.images}
+          selectedAssetId={state.selectedAssetId}
+          dispatch={dispatch}
+          shapes={state.document.shapes}
+        />
         <VariablesSection
           variables={state.document.variables}
           selectedVariableId={state.selectedVariableId}

@@ -1,0 +1,8 @@
+.thumbnail {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: #f0f0f0;
+}

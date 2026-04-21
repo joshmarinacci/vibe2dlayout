@@ -36,6 +36,10 @@ export function fromJSON(json: string): VibeDocument {
   if (!Array.isArray(docObj.variables)) {
     docObj.variables = []
   }
+  // Migrate older docs missing images
+  if (!Array.isArray(docObj.images)) {
+    docObj.images = []
+  }
   return parsed as VibeDocument
 }
 

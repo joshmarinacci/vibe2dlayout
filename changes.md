@@ -1,3 +1,37 @@
+## 2026-04-21 16:13
+
+### Add image assets section
+
+The Assets section of the tree panel now lists every image imported into the document.
+
+**Model:**
+- New `ImageAsset` type (`src/model/imageAsset.ts`): id, name, src (base64 data URI or http URL), mimeType, optional width/height
+- `assetId?` added to `ImageShape` to link shapes to their asset
+- `images: ImageAsset[]` added to `VibeDocument`
+
+**State/actions:**
+- `selectedAssetId: string | null` in AppState
+- New document actions (tracked in undo history): ADD_IMAGE_ASSET, UPDATE_IMAGE_ASSET, DELETE_IMAGE_ASSET
+- UPDATE_IMAGE_ASSET propagates src/mimeType changes to all linked shapes automatically
+- DELETE_IMAGE_ASSET unlinks shapes (they keep their current src)
+- SELECT_IMAGE_ASSET view action; all selection actions reset `selectedAssetId`
+
+**Tree panel:**
+- `AssetsSection` component lists image assets with thumbnail, name, and usage count
+- `+` button opens a name + URL form to add a URL-based image asset
+- Double-click to rename; right-click for Rename/Delete context menu
+
+**Properties panel:**
+- Clicking an asset row shows `ImageAssetSection` with: editable name, source info (embedded: size in KB + pixel dimensions; URL: editable URL field), and a usage list of linked shape names
+
+**Image upload:**
+- `ImageSection` now creates an `ImageAsset` on first upload and links the shape to it
+- Re-uploading to a linked shape updates the existing asset, propagating to all shapes using it
+
+**Migration:**
+- Serialization migration guard: `images: []` for old documents
+- LOAD_DOCUMENT auto-creates assets for any image shapes that have no assetId, so existing documents populate the assets panel automatically
+
 ## 2026-04-21 15:28
 
 ### Add variable binding to transform X/Y/W/H fields

@@ -18,8 +18,10 @@ import { ButtonIconSection } from './sections/ButtonIconSection'
 import { DocumentSection } from './sections/DocumentSection'
 import { TextStyleDefSection } from './sections/TextStyleDefSection'
 import { VariableSection } from './sections/VariableSection'
+import { ImageAssetSection } from './sections/ImageAssetSection'
 import { resolveTextStyle } from '@model/textStyle'
 import type { Variable, VariableType } from '@model/variable'
+import type { ImageShape } from '@model/shapes'
 import type { BoundingBox } from '@model/transform'
 import type { FillStyle, StrokeStyle, TextStyle, Shape } from '@model/shapes'
 import styles from './PropertiesPanel.module.css'
@@ -51,6 +53,28 @@ export function PropertiesPanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
   const selected = selectSelectedShapes(state)
+
+  if (state.selectedAssetId !== null) {
+    const asset = state.document.images.find(a => a.id === state.selectedAssetId)
+    if (asset) {
+      const usedByShapes = Object.values(state.document.shapes)
+        .filter(s => s.type === 'image' && (s as ImageShape).assetId === asset.id)
+      return (
+        <div className={styles.panel}>
+          <div className={styles.header}>
+            <span className={styles.shapeType}>asset</span>
+            <span className={styles.shapeName}>{asset.name}</span>
+          </div>
+          <ImageAssetSection
+            asset={asset}
+            usageCount={usedByShapes.length}
+            usedByShapes={usedByShapes.map(s => ({ id: s.id, name: s.name }))}
+            dispatch={dispatch}
+          />
+        </div>
+      )
+    }
+  }
 
   if (state.selectedVariableId !== null) {
     const variable = state.document.variables.find(v => v.id === state.selectedVariableId)

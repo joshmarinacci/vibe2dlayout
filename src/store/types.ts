@@ -2,6 +2,7 @@ import type { Shape } from '@model/shapes'
 import type { VibeDocument, PageFolder } from '@model/document'
 import type { TextStyleDef } from '@model/textStyle'
 import type { Variable } from '@model/variable'
+import type { ImageAsset } from '@model/imageAsset'
 import type { ConnectorEndpoint } from '@model/connector'
 import type { Point, BoundingBox } from '@model/transform'
 import type { SelectionState } from '@model/selection'
@@ -82,6 +83,8 @@ export interface AppState {
   selectedStyleId: string | null
   // ID of the variable selected in the tree (shows variable editor in props panel)
   selectedVariableId: string | null
+  // ID of the image asset selected in the tree (shows asset editor in props panel)
+  selectedAssetId: string | null
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -133,6 +136,9 @@ export type DocumentAction =
   | { type: 'DELETE_VARIABLE';  variableId: string }
   | { type: 'REORDER_VARIABLE'; variableId: string; direction: 'up' | 'down' }
   | { type: 'BIND_VARIABLE';    shapeId: string; propPath: string; variableId: string | null }
+  | { type: 'ADD_IMAGE_ASSET';    asset: ImageAsset }
+  | { type: 'UPDATE_IMAGE_ASSET'; asset: ImageAsset }
+  | { type: 'DELETE_IMAGE_ASSET'; assetId: string }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'
@@ -167,6 +173,7 @@ export type ViewAction =
   | { type: 'SET_FOLDER_COLLAPSED'; folderId: string; collapsed: boolean }
   | { type: 'SELECT_STYLE'; styleId: string | null }
   | { type: 'SELECT_VARIABLE'; variableId: string | null }
+  | { type: 'SELECT_IMAGE_ASSET'; assetId: string | null }
 
 // Undo/redo
 export type HistoryAction =

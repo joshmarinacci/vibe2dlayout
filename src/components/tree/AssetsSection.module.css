@@ -1,0 +1,81 @@
+.empty {
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #aaa;
+  font-style: italic;
+}
+
+.addUrlMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  z-index: 200;
+  padding: 8px;
+  min-width: 220px;
+}
+
+.addUrlField {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.addUrlLabel {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.addUrlInput {
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.addUrlInput:focus {
+  border-color: #3b82f6;
+}
+
+.addUrlActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.addUrlCancel {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.addUrlCancel:hover {
+  background: #f5f5f5;
+}
+
+.addUrlConfirm {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: 3px;
+  background: #3b82f6;
+  color: #fff;
+  cursor: pointer;
+}
+
+.addUrlConfirm:hover {
+  background: #2563eb;
+}

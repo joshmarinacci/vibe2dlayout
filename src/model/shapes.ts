@@ -90,10 +90,11 @@ export interface TextShape extends ShapeBase {
 export interface ImageShape extends ShapeBase {
   type: 'image'
   transform: BoundingBox
-  src: string      // base64 data URI
+  src: string      // base64 data URI or http(s) URL
   mimeType: MimeType
   preserveAspectRatio: boolean
   opacity: number
+  assetId?: string  // references ImageAsset.id in document.images
 }
 
 export interface PageShape extends ShapeBase {

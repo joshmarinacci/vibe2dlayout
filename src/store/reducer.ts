@@ -1,7 +1,8 @@
 import type { AppState, AppAction, DocumentAction, ViewTransform } from './types'
 import { DEFAULT_SETTINGS } from './types'
 import type { VibeDocument, TreeNode } from '@model/document'
-import type { Shape } from '@model/shapes'
+import type { Shape, ImageShape } from '@model/shapes'
+import type { ImageAsset } from '@model/imageAsset'
 import { findNode, findParent, removeNode, insertNode, getAllIds } from '@model/document'
 import { BUILT_IN_TEXT_STYLES, TEXT_STYLE_FIELDS, resolveTextStyle } from '@model/textStyle'
 import { generateId } from '@utils/idgen'
@@ -358,14 +359,37 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
 
     case 'LOAD_DOCUMENT': {
       const d = action.document
+      // Auto-create image assets for existing image shapes in old documents
+      let images: ImageAsset[] = d.images ?? []
+      let shapes = d.shapes
+      if (images.length === 0) {
+        const newImages: ImageAsset[] = []
+        const patchedShapes: Record<string, Shape> = { ...shapes }
+        for (const shape of Object.values(shapes)) {
+          if (shape.type === 'image' && !(shape as ImageShape).assetId) {
+            const asset: ImageAsset = {
+              id: generateId(),
+              name: shape.name,
+              src: (shape as ImageShape).src,
+              mimeType: (shape as ImageShape).mimeType,
+            }
+            newImages.push(asset)
+            patchedShapes[shape.id] = { ...shape, assetId: asset.id } as Shape
+          }
+        }
+        images = newImages
+        shapes = patchedShapes
+      }
       return {
         ...d,
+        shapes,
         themes: d.themes ?? [...BUILT_IN_THEMES],
         activeThemeId: d.activeThemeId ?? 'hand-drawn',
         gridSettings: d.gridSettings ?? { ...DEFAULT_GRID_SETTINGS },
         pageFolders: d.pageFolders ?? [],
         textStyles: d.textStyles ?? [...BUILT_IN_TEXT_STYLES],
         variables: d.variables ?? [],
+        images,
       }
     }
 
@@ -542,6 +566,34 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       if (swapIdx < 0 || swapIdx >= vars.length) return doc
       ;[vars[idx], vars[swapIdx]] = [vars[swapIdx], vars[idx]]
       return { ...doc, variables: vars }
+    }
+
+    case 'ADD_IMAGE_ASSET':
+      return { ...doc, images: [...(doc.images ?? []), action.asset] }
+
+    case 'UPDATE_IMAGE_ASSET': {
+      const newImages = (doc.images ?? []).map(a => a.id === action.asset.id ? action.asset : a)
+      // Propagate src/mimeType change to all linked shapes
+      const newShapes = { ...doc.shapes }
+      for (const [id, shape] of Object.entries(doc.shapes)) {
+        if (shape.type === 'image' && (shape as ImageShape).assetId === action.asset.id) {
+          newShapes[id] = { ...shape, src: action.asset.src, mimeType: action.asset.mimeType } as Shape
+        }
+      }
+      return { ...doc, images: newImages, shapes: newShapes }
+    }
+
+    case 'DELETE_IMAGE_ASSET': {
+      const newImages = (doc.images ?? []).filter(a => a.id !== action.assetId)
+      // Unlink shapes (keep their current src, just clear assetId)
+      const newShapes = { ...doc.shapes }
+      for (const [id, shape] of Object.entries(doc.shapes)) {
+        if (shape.type === 'image' && (shape as ImageShape).assetId === action.assetId) {
+          const { assetId: _, ...rest } = shape as ImageShape
+          newShapes[id] = rest as unknown as Shape
+        }
+      }
+      return { ...doc, images: newImages, shapes: newShapes }
     }
 
     case 'BIND_VARIABLE': {
@@ -877,6 +929,7 @@ export function createInitialDocument(): VibeDocument {
     pageFolders: [],
     textStyles: [...BUILT_IN_TEXT_STYLES],
     variables: [],
+    images: [],
   }
 }
 
@@ -900,6 +953,7 @@ export const initialState: AppState = {
   documentSelected: false,
   selectedStyleId: null,
   selectedVariableId: null,
+  selectedAssetId: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -952,6 +1006,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'DELETE_VARIABLE':
     case 'REORDER_VARIABLE':
     case 'BIND_VARIABLE':
+    case 'ADD_IMAGE_ASSET':
+    case 'UPDATE_IMAGE_ASSET':
+    case 'DELETE_IMAGE_ASSET':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -964,6 +1021,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         documentSelected: false,
         selectedStyleId: null,
         selectedVariableId: null,
+        selectedAssetId: null,
         selection: {
           ...state.selection,
           ids: action.additive
@@ -972,10 +1030,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       }
     case 'DESELECT_ALL':
-      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selection: { ids: [], editingTextId: null } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selection: { ids: [], editingTextId: null } }
     case 'SELECT_ALL': {
       const allIds = getAllIds(state.document.rootNodes)
-      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selection: { ...state.selection, ids: allIds } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selection: { ...state.selection, ids: allIds } }
     }
     case 'START_TEXT_EDIT':
       return { ...state, selection: { ...state.selection, editingTextId: action.id } }
@@ -1043,6 +1101,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         documentSelected: true,
         selectedStyleId: null,
         selectedVariableId: null,
+        selectedAssetId: null,
         selection: { ids: [], editingTextId: null },
       }
     case 'SELECT_STYLE':
@@ -1050,6 +1109,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         selectedStyleId: action.styleId,
         selectedVariableId: null,
+        selectedAssetId: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
@@ -1057,6 +1117,16 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         selectedVariableId: action.variableId,
+        selectedStyleId: null,
+        selectedAssetId: null,
+        documentSelected: false,
+        selection: { ids: [], editingTextId: null },
+      }
+    case 'SELECT_IMAGE_ASSET':
+      return {
+        ...state,
+        selectedAssetId: action.assetId,
+        selectedVariableId: null,
         selectedStyleId: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },

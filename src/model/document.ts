@@ -4,6 +4,7 @@ import type { Theme } from './theme'
 import type { GridSettings } from './grid'
 import type { TextStyleDef } from './textStyle'
 import type { Variable } from './variable'
+import type { ImageAsset } from './imageAsset'
 
 /**
  * The document tree stores topology separately from shape data.
@@ -38,6 +39,7 @@ export interface VibeDocument {
   pageFolders: PageFolder[]   // organizational folders for pages (UI-only, no canvas presence)
   textStyles: TextStyleDef[]  // named text style definitions
   variables: Variable[]       // named document-level variables
+  images: ImageAsset[]        // document-level image asset registry
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

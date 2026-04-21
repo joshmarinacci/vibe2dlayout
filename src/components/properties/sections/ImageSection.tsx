@@ -1,6 +1,8 @@
 import type { ImageShape, MimeType } from '@model/shapes'
+import type { ImageAsset } from '@model/imageAsset'
 import type { AppAction } from '@store/types'
 import type { Dispatch } from 'react'
+import { generateId } from '@utils/idgen'
 import { ToggleInput } from '../inputs/ToggleInput'
 import { NumberInput } from '../inputs/NumberInput'
 import styles from '../PropertiesPanel.module.css'
@@ -22,9 +24,47 @@ export function ImageSection({ shape, dispatch }: Props) {
       const reader = new FileReader()
       reader.onload = () => {
         const dataUrl = reader.result as string
-        // Strip the data:...;base64, prefix
+        // Strip the data:...;base64, prefix to get raw base64
         const base64 = dataUrl.split(',')[1] ?? ''
-        dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { src: base64, mimeType } })
+        // Load image to get intrinsic dimensions
+        const img = new Image()
+        img.onload = () => {
+          if (shape.assetId) {
+            // Re-upload: update the existing asset (propagates to all linked shapes)
+            const updatedAsset: ImageAsset = {
+              id: shape.assetId,
+              name: shape.name,
+              src: base64,
+              mimeType,
+              width: img.naturalWidth,
+              height: img.naturalHeight,
+            }
+            dispatch({ type: 'UPDATE_IMAGE_ASSET', asset: updatedAsset })
+          } else {
+            // First upload: create a new asset and link this shape
+            const asset: ImageAsset = {
+              id: generateId(),
+              name: shape.name,
+              src: base64,
+              mimeType,
+              width: img.naturalWidth,
+              height: img.naturalHeight,
+            }
+            dispatch({ type: 'ADD_IMAGE_ASSET', asset })
+            dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { src: base64, mimeType, assetId: asset.id } as Partial<ImageShape> })
+          }
+        }
+        img.onerror = () => {
+          // Fallback: no dimension info
+          if (shape.assetId) {
+            dispatch({ type: 'UPDATE_IMAGE_ASSET', asset: { id: shape.assetId, name: shape.name, src: base64, mimeType } })
+          } else {
+            const asset: ImageAsset = { id: generateId(), name: shape.name, src: base64, mimeType }
+            dispatch({ type: 'ADD_IMAGE_ASSET', asset })
+            dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { src: base64, mimeType, assetId: asset.id } as Partial<ImageShape> })
+          }
+        }
+        img.src = dataUrl
       }
       reader.readAsDataURL(file)
     }
