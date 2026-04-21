@@ -1,3 +1,45 @@
+## 2026-04-21 15:28
+
+### Add variable binding to transform X/Y/W/H fields
+
+`TransformSection` now supports number variable binding for X, Y, Width, and Height. Type `@` in any of those fields to trigger an autocomplete dropdown of number variables. Bound fields show `@varName` with a × to clear. The rotation field does not support variable binding.
+
+- Updated `TField` (local to TransformSection) to use `type="text"` with `@` interception, matching the NumberInput pattern
+- Added optional `xVar`, `yVar`, `wVar`, `hVar` VarProps to `TransformSection`
+- All 22 `TransformSection` call sites in PropertiesPanel now pass variable binding props via the existing `vp()` shorthand
+
+## 2026-04-21 14:47
+
+### Add document-level variables system
+
+Named variables (number, string, boolean, color) that can be bound to shape properties. Editing a variable value re-renders all shapes using it automatically via live resolution at render time.
+
+**Data model:**
+- `src/model/variable.ts` — `Variable` interface, `resolveVariableBindings` (chains with `resolveShapeText` in ShapeRenderer)
+- `variableBindings?: Record<string, string>` (propPath → variableId) added to `BaseShape`
+- `variables: Variable[]` added to `VibeDocument`
+
+**State / actions:**
+- `selectedVariableId: string | null` in AppState
+- New document actions: ADD_VARIABLE, UPDATE_VARIABLE, DELETE_VARIABLE, REORDER_VARIABLE, BIND_VARIABLE (all tracked in undo history)
+- SELECT_VARIABLE view action; all selection actions reset `selectedVariableId`
+- DELETE_VARIABLE walks all shapes removing orphaned bindings (no baking needed — shapes fall back to stored literal values)
+
+**Input components:**
+- `NumberInput`, `ColorInput`, `ToggleInput` — new optional props `variableId?, variables?, onVariableChange?`; existing call sites unchanged
+- `@` in a number/color input triggers autocomplete dropdown of matching variables; bound inputs show `@varName` + × clear button
+
+**New UI:**
+- `VariableRow` — tree row with type icon, inline rename, context menu, value preview
+- `VariablesSection` — tree section with `+` type-picker menu (Number/String/Boolean/Color)
+- `VariableSection` — properties panel section for editing a variable's name and value
+
+**PropertiesPanel wiring:**
+- Early return for `selectedVariableId !== null` renders VariableSection
+- `makeVarProps` helper builds binding props for a given shape/path/type; passed as `colorVar`, `widthVar`, `opacityVar` into FillSection/StrokeSection and directly to NumberInput/ToggleInput call sites
+
+**Serialization:** migration guard `if (!Array.isArray(docObj.variables)) docObj.variables = []`
+
 ## 2026-04-21 14:15
 
 ### Fix text style override tracking

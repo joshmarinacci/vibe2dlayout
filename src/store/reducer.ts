@@ -365,6 +365,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         gridSettings: d.gridSettings ?? { ...DEFAULT_GRID_SETTINGS },
         pageFolders: d.pageFolders ?? [],
         textStyles: d.textStyles ?? [...BUILT_IN_TEXT_STYLES],
+        variables: d.variables ?? [],
       }
     }
 
@@ -504,6 +505,59 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
           } as unknown as Shape,
         },
       }
+    }
+
+    case 'ADD_VARIABLE':
+      return { ...doc, variables: [...(doc.variables ?? []), action.variable] }
+
+    case 'UPDATE_VARIABLE':
+      return {
+        ...doc,
+        variables: (doc.variables ?? []).map(v => v.id === action.variable.id ? action.variable : v),
+      }
+
+    case 'DELETE_VARIABLE': {
+      const newVariables = (doc.variables ?? []).filter(v => v.id !== action.variableId)
+      // Remove all bindings pointing to this variable from every shape
+      const newShapes = { ...doc.shapes }
+      for (const [id, shape] of Object.entries(doc.shapes)) {
+        const bindings = (shape as unknown as { variableBindings?: Record<string, string> }).variableBindings
+        if (!bindings) continue
+        const filtered = Object.fromEntries(
+          Object.entries(bindings).filter(([, vId]) => vId !== action.variableId)
+        )
+        newShapes[id] = {
+          ...shape,
+          variableBindings: Object.keys(filtered).length > 0 ? filtered : undefined,
+        } as Shape
+      }
+      return { ...doc, variables: newVariables, shapes: newShapes }
+    }
+
+    case 'REORDER_VARIABLE': {
+      const vars = [...(doc.variables ?? [])]
+      const idx = vars.findIndex(v => v.id === action.variableId)
+      if (idx < 0) return doc
+      const swapIdx = action.direction === 'up' ? idx - 1 : idx + 1
+      if (swapIdx < 0 || swapIdx >= vars.length) return doc
+      ;[vars[idx], vars[swapIdx]] = [vars[swapIdx], vars[idx]]
+      return { ...doc, variables: vars }
+    }
+
+    case 'BIND_VARIABLE': {
+      const shape = doc.shapes[action.shapeId]
+      if (!shape) return doc
+      const bindings = { ...((shape as unknown as { variableBindings?: Record<string, string> }).variableBindings ?? {}) }
+      if (action.variableId === null) {
+        delete bindings[action.propPath]
+      } else {
+        bindings[action.propPath] = action.variableId
+      }
+      const updatedShape = {
+        ...shape,
+        variableBindings: Object.keys(bindings).length > 0 ? bindings : undefined,
+      } as Shape
+      return { ...doc, shapes: { ...doc.shapes, [action.shapeId]: updatedShape } }
     }
 
     case 'ADD_THEME':
@@ -822,6 +876,7 @@ export function createInitialDocument(): VibeDocument {
     gridSettings: { ...DEFAULT_GRID_SETTINGS },
     pageFolders: [],
     textStyles: [...BUILT_IN_TEXT_STYLES],
+    variables: [],
   }
 }
 
@@ -844,6 +899,7 @@ export const initialState: AppState = {
   documentName: 'Untitled',
   documentSelected: false,
   selectedStyleId: null,
+  selectedVariableId: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -891,6 +947,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'REORDER_TEXT_STYLE':
     case 'APPLY_TEXT_STYLE':
     case 'CLEAR_TEXT_OVERRIDE':
+    case 'ADD_VARIABLE':
+    case 'UPDATE_VARIABLE':
+    case 'DELETE_VARIABLE':
+    case 'REORDER_VARIABLE':
+    case 'BIND_VARIABLE':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -902,6 +963,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         documentSelected: false,
         selectedStyleId: null,
+        selectedVariableId: null,
         selection: {
           ...state.selection,
           ids: action.additive
@@ -910,10 +972,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       }
     case 'DESELECT_ALL':
-      return { ...state, documentSelected: false, selectedStyleId: null, selection: { ids: [], editingTextId: null } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selection: { ids: [], editingTextId: null } }
     case 'SELECT_ALL': {
       const allIds = getAllIds(state.document.rootNodes)
-      return { ...state, documentSelected: false, selectedStyleId: null, selection: { ...state.selection, ids: allIds } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selection: { ...state.selection, ids: allIds } }
     }
     case 'START_TEXT_EDIT':
       return { ...state, selection: { ...state.selection, editingTextId: action.id } }
@@ -980,12 +1042,22 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         documentSelected: true,
         selectedStyleId: null,
+        selectedVariableId: null,
         selection: { ids: [], editingTextId: null },
       }
     case 'SELECT_STYLE':
       return {
         ...state,
         selectedStyleId: action.styleId,
+        selectedVariableId: null,
+        documentSelected: false,
+        selection: { ids: [], editingTextId: null },
+      }
+    case 'SELECT_VARIABLE':
+      return {
+        ...state,
+        selectedVariableId: action.variableId,
+        selectedStyleId: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }

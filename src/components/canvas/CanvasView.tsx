@@ -106,6 +106,7 @@ export function CanvasView() {
             handDrawn={getActiveTheme(state.document).handDrawn}
             themeFontFamily={getActiveTheme(state.document).fontFamily}
             textStyles={state.document.textStyles}
+            variables={state.document.variables}
           />
         )}
 

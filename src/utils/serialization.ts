@@ -32,6 +32,10 @@ export function fromJSON(json: string): VibeDocument {
   if (!Array.isArray(docObj.textStyles)) {
     docObj.textStyles = [...BUILT_IN_TEXT_STYLES]
   }
+  // Migrate older docs missing variables
+  if (!Array.isArray(docObj.variables)) {
+    docObj.variables = []
+  }
   return parsed as VibeDocument
 }
 

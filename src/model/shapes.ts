@@ -47,6 +47,8 @@ interface ShapeBase {
   locked: boolean
   visible: boolean
   handDrawn?: boolean  // undefined = inherit from active theme
+  // Variable bindings: propPath → variableId. Resolved at render time.
+  variableBindings?: Record<string, string>
 }
 
 // ─── Concrete shape types ─────────────────────────────────────────────────

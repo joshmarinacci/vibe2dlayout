@@ -17,7 +17,9 @@ import { ContentSection } from './sections/ContentSection'
 import { ButtonIconSection } from './sections/ButtonIconSection'
 import { DocumentSection } from './sections/DocumentSection'
 import { TextStyleDefSection } from './sections/TextStyleDefSection'
+import { VariableSection } from './sections/VariableSection'
 import { resolveTextStyle } from '@model/textStyle'
+import type { Variable, VariableType } from '@model/variable'
 import type { BoundingBox } from '@model/transform'
 import type { FillStyle, StrokeStyle, TextStyle, Shape } from '@model/shapes'
 import styles from './PropertiesPanel.module.css'
@@ -28,10 +30,42 @@ function commonValue<T>(vals: T[]): T | null {
   return vals.every(v => JSON.stringify(v) === JSON.stringify(first)) ? first : null
 }
 
+// Helper to build variable binding props for a given shape property path and variable type.
+// All call sites just spread the result into the input component props.
+function makeVarProps(
+  shape: Shape,
+  propPath: string,
+  type: VariableType,
+  variables: Variable[],
+  dispatch: ReturnType<typeof useAppDispatch>,
+) {
+  return {
+    variableId: (shape as unknown as { variableBindings?: Record<string, string> }).variableBindings?.[propPath] ?? null,
+    variables: variables.filter(v => v.type === type),
+    onVariableChange: (id: string | null) =>
+      dispatch({ type: 'BIND_VARIABLE', shapeId: shape.id, propPath, variableId: id }),
+  }
+}
+
 export function PropertiesPanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
   const selected = selectSelectedShapes(state)
+
+  if (state.selectedVariableId !== null) {
+    const variable = state.document.variables.find(v => v.id === state.selectedVariableId)
+    if (variable) {
+      return (
+        <div className={styles.panel}>
+          <div className={styles.header}>
+            <span className={styles.shapeType}>variable</span>
+            <span className={styles.shapeName}>{variable.name}</span>
+          </div>
+          <VariableSection variable={variable} dispatch={dispatch} />
+        </div>
+      )
+    }
+  }
 
   if (state.selectedStyleId !== null) {
     const style = state.document.textStyles.find(s => s.id === state.selectedStyleId)
@@ -232,6 +266,7 @@ export function PropertiesPanel() {
 
   const shape = selected[0]
   const resetToTheme = () => dispatch({ type: 'RESET_SHAPES_TO_THEME', ids: [shape.id] })
+  const variables = state.document.variables
 
   return (
     <div className={styles.panel}>
@@ -275,13 +310,18 @@ export function PropertiesPanel() {
       </div>
 
       <div style={shape.locked ? { opacity: 0.5, pointerEvents: 'none' } : undefined}>
-        <ShapeProperties shape={shape} dispatch={dispatch} state={state} />
+        <ShapeProperties shape={shape} dispatch={dispatch} state={state} variables={variables} />
       </div>
     </div>
   )
 }
 
-function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: ReturnType<typeof useAppDispatch>; state: ReturnType<typeof useAppState>['state'] }) {
+function ShapeProperties({ shape, dispatch, state, variables }: {
+  shape: Shape
+  dispatch: ReturnType<typeof useAppDispatch>
+  state: ReturnType<typeof useAppState>['state']
+  variables: Variable[]
+}) {
   const patchTransform = (t: BoundingBox) =>
     dispatch({ type: 'SET_TRANSFORM', id: shape.id, transform: t })
   const patchFill = (f: FillStyle) =>
@@ -291,13 +331,20 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
 
   const textStyles = state.document.textStyles
 
+  // Shorthand for building variable binding props for this shape's property path
+  const vp = (path: string, type: VariableType) => makeVarProps(shape, path, type, variables, dispatch)
+
   switch (shape.type) {
     case 'rect':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Rectangle</div>
             <NumberInput
@@ -306,6 +353,7 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               min={0}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
               unit="px"
+              {...vp('cornerRadius', 'number')}
             />
             <ToggleInput
               label="Clip"
@@ -319,16 +367,21 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'circle':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'line':
       return (
         <>
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
           <ConnectorSection shape={shape} dispatch={dispatch} />
         </>
       )
@@ -336,7 +389,9 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'text':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -346,14 +401,17 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
           />
-          <FillSection fill={shape.fill} onChange={patchFill} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
         </>
       )
 
     case 'image':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ImageSection shape={shape} dispatch={dispatch} />
         </>
       )
@@ -419,10 +477,14 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'button':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
             rawText={shape.text}
@@ -443,6 +505,7 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               min={0}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
               unit="px"
+              {...vp('cornerRadius', 'number')}
             />
           </div>
         </>
@@ -451,12 +514,16 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'panel':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           {shape.title && (
             <ContentSection id={shape.id} content={shape.title.content} dispatch={dispatch} />
           )}
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
           {shape.title && (
             <TextSection
               text={resolveTextStyle(shape.title, textStyles)}
@@ -475,6 +542,7 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               min={0}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
               unit="px"
+              {...vp('cornerRadius', 'number')}
             />
             <ToggleInput
               label="Clip"
@@ -488,7 +556,9 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'slider':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Slider</div>
             <NumberInput
@@ -497,17 +567,22 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               min={0} max={100}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { value: v / 100 } })}
               unit="%"
+              {...vp('value', 'number')}
             />
           </div>
-          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })} />
-          <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })} />
+          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })}
+            colorVar={vp('trackFill.color', 'color')} />
+          <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })}
+            colorVar={vp('thumbFill.color', 'color')} />
         </>
       )
 
     case 'label':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -523,7 +598,9 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'textfield':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -542,15 +619,19 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { placeholder: e.target.value } as Partial<Shape> })}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'checkbox':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -566,17 +647,22 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               label="Checked"
               value={shape.checked}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
+              {...vp('checked', 'boolean')}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'toggle':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -592,20 +678,28 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               label="Checked"
               value={shape.checked}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
+              {...vp('checked', 'boolean')}
             />
           </div>
-          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })} />
-          <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })}
+            colorVar={vp('trackFill.color', 'color')} />
+          <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })}
+            colorVar={vp('thumbFill.color', 'color')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'frame':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Panel</div>
             <NumberInput
@@ -614,6 +708,7 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               min={0}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
               unit="px"
+              {...vp('cornerRadius', 'number')}
             />
             <ToggleInput
               label="Clip"
@@ -627,9 +722,13 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'dialog':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Dialog</div>
             <input
@@ -657,7 +756,9 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
     case 'radio':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -673,17 +774,22 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               label="Checked"
               value={shape.checked}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
+              {...vp('checked', 'boolean')}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'select':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -702,15 +808,19 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { placeholder: e.target.value } as Partial<Shape> })}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'progress':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Progress Bar</div>
             <NumberInput
@@ -719,18 +829,24 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               min={0} max={100}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { value: v } })}
               unit="%"
+              {...vp('value', 'number')}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })}
+            colorVar={vp('trackFill.color', 'color')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'stepper':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
             rawText={shape.text}
@@ -745,17 +861,22 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               label="Value"
               value={shape.value}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { value: v } })}
+              {...vp('value', 'number')}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'table':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -765,15 +886,19 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
           />
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'stickynote':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -783,15 +908,19 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
           />
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'list':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch} />
           <TextSection
             text={resolveTextStyle(shape.text, textStyles)}
@@ -810,15 +939,19 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { selectedIndex: Math.round(v) } })}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
 
     case 'scrollpanel':
       return (
         <>
-          <TransformSection transform={shape.transform} onChange={patchTransform} />
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Scroll Panel</div>
             <NumberInput
@@ -827,10 +960,13 @@ function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: R
               min={0} max={1}
               step={0.05}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { scrollPosition: Math.max(0, Math.min(1, v)) } })}
+              {...vp('scrollPosition', 'number')}
             />
           </div>
-          <FillSection fill={shape.fill} onChange={patchFill} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
   }

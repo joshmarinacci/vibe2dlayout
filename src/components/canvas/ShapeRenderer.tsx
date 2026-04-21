@@ -4,6 +4,8 @@ import type { Shape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import type { TextStyleDef } from '@model/textStyle'
 import { resolveShapeText } from '@model/textStyle'
+import type { Variable } from '@model/variable'
+import { resolveVariableBindings } from '@model/variable'
 import { RectShape } from './shapes/RectShape'
 import { CircleShapeComp } from './shapes/CircleShape'
 import { LineShapeComp } from './shapes/LineShape'
@@ -38,9 +40,10 @@ interface Props {
   handDrawn: boolean
   themeFontFamily: string
   textStyles?: TextStyleDef[]
+  variables?: Variable[]
 }
 
-export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles = [] }: Props) {
+export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles = [], variables = [] }: Props) {
   return (
     <>
       {nodes.map(node => {
@@ -58,6 +61,7 @@ export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispa
             handDrawn={handDrawn}
             themeFontFamily={themeFontFamily}
             textStyles={textStyles}
+            variables={variables}
           />
         )
       })}
@@ -75,15 +79,16 @@ interface ShapeNodeProps {
   handDrawn: boolean
   themeFontFamily: string
   textStyles: TextStyleDef[]
+  variables: Variable[]
 }
 
-function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles }: ShapeNodeProps) {
+function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles, variables }: ShapeNodeProps) {
   const isSelected = selectedIds.includes(shape.id)
   const isEditingText = editingTextId === shape.id
   // Per-shape override takes precedence over theme-level setting
   const effectiveHandDrawn = shape.handDrawn ?? handDrawn
-  // Resolve text style references before rendering
-  const resolvedShape = resolveShapeText(shape, textStyles)
+  // Resolve text style references, then variable bindings, before rendering
+  const resolvedShape = resolveVariableBindings(resolveShapeText(shape, textStyles), variables)
 
   const onClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -112,6 +117,7 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       handDrawn={handDrawn}
       themeFontFamily={themeFontFamily}
       textStyles={textStyles}
+      variables={variables}
     />
   ) : null
 
