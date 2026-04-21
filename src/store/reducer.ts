@@ -9,6 +9,7 @@ import { DEFAULT_PALETTE } from '@model/palette'
 import { BUILT_IN_THEMES, getActiveTheme } from '@model/theme'
 import type { Theme } from '@model/theme'
 import { buildParentMap, getAbsoluteTransform, getParentContentOrigin, unionBoxes } from '@utils/geometry'
+import { DEFAULT_GRID_SETTINGS } from '@model/grid'
 
 function cloneSubtree(
   node: TreeNode,
@@ -333,8 +334,12 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         ...d,
         themes: d.themes ?? [...BUILT_IN_THEMES],
         activeThemeId: d.activeThemeId ?? 'hand-drawn',
+        gridSettings: d.gridSettings ?? { ...DEFAULT_GRID_SETTINGS },
       }
     }
+
+    case 'UPDATE_GRID_SETTINGS':
+      return { ...doc, gridSettings: { ...doc.gridSettings, ...action.patch } }
 
     case 'ADD_THEME':
       return { ...doc, themes: [...doc.themes, action.theme] }
@@ -649,6 +654,7 @@ export function createInitialDocument(): VibeDocument {
     palettes: [{ ...DEFAULT_PALETTE, colors: [...DEFAULT_PALETTE.colors] }],
     themes: [...BUILT_IN_THEMES],
     activeThemeId: 'hand-drawn',
+    gridSettings: { ...DEFAULT_GRID_SETTINGS },
   }
 }
 
@@ -664,6 +670,7 @@ export const initialState: AppState = {
   showPaletteModal: false,
   showSettingsModal: false,
   showThemeModal: false,
+  showDocumentSettingsModal: false,
   settings: { ...DEFAULT_SETTINGS },
   drilledInContainerStack: [],
   documentId: null,
@@ -702,6 +709,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'RESET_SHAPES_TO_THEME':
     case 'GROUP_SHAPES':
     case 'UNGROUP_SHAPES':
+    case 'UPDATE_GRID_SETTINGS':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -766,6 +774,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, showSettingsModal: !state.showSettingsModal }
     case 'TOGGLE_THEME_MODAL':
       return { ...state, showThemeModal: !state.showThemeModal }
+    case 'TOGGLE_DOCUMENT_SETTINGS_MODAL':
+      return { ...state, showDocumentSettingsModal: !state.showDocumentSettingsModal }
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.patch } }
     case 'SET_DOCUMENT_META':

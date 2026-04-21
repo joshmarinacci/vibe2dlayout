@@ -3,6 +3,7 @@ import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
 import type { BoundingBox, Anchor } from '@model/transform'
 import { anchorPoint, buildParentMap, getAbsoluteTransform, getParentContentOrigin } from '@utils/geometry'
+import { getEffectiveGridSettings, snapToGrid } from '@utils/snapping'
 import { RULER_SIZE } from './CanvasRuler'
 
 const HANDLE_PX = 8  // visual size in screen pixels
@@ -170,8 +171,16 @@ function ResizeHandle({ anchor, cx, cy, handleSize, bbox, ids, containerRef, dis
       }
     }
 
-    width = Math.max(4, width)
-    height = Math.max(4, height)
+    const gridSettings = getEffectiveGridSettings(state.activePageId, state.document.shapes, state.document.gridSettings)
+    if (gridSettings.snapEnabled) {
+      x = snapToGrid(x, gridSettings.size)
+      y = snapToGrid(y, gridSettings.size)
+      width = Math.max(gridSettings.size, snapToGrid(width, gridSettings.size))
+      height = Math.max(gridSettings.size, snapToGrid(height, gridSettings.size))
+    } else {
+      width = Math.max(4, width)
+      height = Math.max(4, height)
+    }
 
     if (ids.length === 1) {
       const parentMap = buildParentMap(state.document.rootNodes)
@@ -184,7 +193,7 @@ function ResizeHandle({ anchor, cx, cy, handleSize, bbox, ids, containerRef, dis
         rotation: startBbox.rotation,
       }})
     }
-  }, [anchor, ids, containerRef, dispatch, state.viewTransform])
+  }, [anchor, ids, containerRef, dispatch, state.viewTransform, state.activePageId, state.document.shapes, state.document.gridSettings])
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     e.currentTarget.releasePointerCapture(e.pointerId)

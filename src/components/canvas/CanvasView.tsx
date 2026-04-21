@@ -9,6 +9,8 @@ import { useCanvasPointer } from './useCanvasPointer'
 import { CanvasContextMenu } from './CanvasContextMenu'
 import { CanvasRuler, RULER_SIZE } from './CanvasRuler'
 import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
+import { getEffectiveGridSettings } from '@utils/snapping'
+import { CanvasGrid } from './CanvasGrid'
 import styles from './CanvasView.module.css'
 
 export function CanvasView() {
@@ -89,6 +91,9 @@ export function CanvasView() {
             }}
           />
         )}
+
+        {/* Grid */}
+        <CanvasGrid settings={getEffectiveGridSettings(state.activePageId, state.document.shapes, state.document.gridSettings)} />
 
         {/* Shape tree */}
         {activeNode && (

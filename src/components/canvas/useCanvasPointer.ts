@@ -7,6 +7,7 @@ import { createShape } from '@utils/shapeFactory'
 import { getActiveTheme } from '@model/theme'
 import { generateId } from '@utils/idgen'
 import { pointInBox, pointNearLine, buildParentMap, getAbsoluteTransform, getContentOrigin } from '@utils/geometry'
+import { getEffectiveGridSettings, snapToGrid } from '@utils/snapping'
 import { findNode, getAllIds } from '@model/document'
 import type { VibeDocument } from '@model/document'
 import { resolveEndpoint } from '@utils/connectors'
@@ -102,9 +103,15 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   // Current innermost drilled container (top of stack), or null if not drilled in
   const drilledInContainerId = state.drilledInContainerStack[state.drilledInContainerStack.length - 1] ?? null
 
+  // Effective grid settings for the active page
+  const gridSettings = getEffectiveGridSettings(state.activePageId, state.document.shapes, state.document.gridSettings)
+  const snapEnabled = gridSettings.snapEnabled
+  const gridSize = gridSettings.size
+
   const dragStart = useRef<{ sx: number; sy: number; cx: number; cy: number } | null>(null)
   const draggingIds = useRef<string[]>([])
   const lastCanvasPos = useRef<{ x: number; y: number } | null>(null)
+  const lastSnappedDelta = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
   const isDragging = useRef(false)
   const metaDownAtStart = useRef(false)
   const hasDuplicated = useRef(false)
@@ -211,6 +218,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     const pos = getCanvasPos(e)
     dragStart.current = { sx: e.clientX, sy: e.clientY, cx: pos.x, cy: pos.y }
     lastCanvasPos.current = { x: pos.x, y: pos.y }
+    lastSnappedDelta.current = { x: 0, y: 0 }
     isDragging.current = false
 
     if (spaceDown.current) {
@@ -301,7 +309,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }
 
     // Move selected shapes (with optional Cmd+drag duplicate)
-    if (draggingIds.current.length > 0 && lastCanvasPos.current) {
+    if (draggingIds.current.length > 0 && dragStart.current) {
       if (metaDownAtStart.current && !hasDuplicated.current) {
         const newRootIds = draggingIds.current.map(() => generateId())
         dispatch({ type: 'DUPLICATE_SHAPES', ids: draggingIds.current, rootIds: newRootIds })
@@ -309,12 +317,21 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         draggingIds.current = newRootIds
         hasDuplicated.current = true
       }
-      const canvasDx = pos.x - lastCanvasPos.current.x
-      const canvasDy = pos.y - lastCanvasPos.current.y
-      dispatch({ type: 'MOVE_SHAPES', ids: draggingIds.current, dx: canvasDx, dy: canvasDy })
+      const rawDx = pos.x - dragStart.current.cx
+      const rawDy = pos.y - dragStart.current.cy
+      const snappedDx = snapEnabled ? snapToGrid(rawDx, gridSize) : rawDx
+      const snappedDy = snapEnabled ? snapToGrid(rawDy, gridSize) : rawDy
+      const canvasDx = snappedDx - lastSnappedDelta.current.x
+      const canvasDy = snappedDy - lastSnappedDelta.current.y
+      lastSnappedDelta.current = { x: snappedDx, y: snappedDy }
+      if (canvasDx !== 0 || canvasDy !== 0) {
+        dispatch({ type: 'MOVE_SHAPES', ids: draggingIds.current, dx: canvasDx, dy: canvasDy })
+      }
+      lastCanvasPos.current = { x: pos.x, y: pos.y }
+      return
     }
     lastCanvasPos.current = { x: pos.x, y: pos.y }
-  }, [state.toolMode, dispatch, getCanvasPos, containerRef])
+  }, [state.toolMode, dispatch, getCanvasPos, containerRef, snapEnabled, gridSize])
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     if (!dragStart.current) return
@@ -339,22 +356,33 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const origin = getContentOrigin(drillParentId, state.document.shapes, parentMap)
 
       if (shapeType === 'line') {
-        const shape = createShape('line', startCx, startCy, activeTheme)
+        const sx = snapEnabled ? snapToGrid(startCx, gridSize) : startCx
+        const sy = snapEnabled ? snapToGrid(startCy, gridSize) : startCy
+        const ex = snapEnabled ? snapToGrid(pos.x, gridSize) : pos.x
+        const ey = snapEnabled ? snapToGrid(pos.y, gridSize) : pos.y
+        const shape = createShape('line', sx, sy, activeTheme)
         if (shape.type === 'line') {
           const newShape = {
             ...shape,
-            start: { kind: 'free' as const, point: { x: startCx - origin.x, y: startCy - origin.y } },
-            end: { kind: 'free' as const, point: { x: pos.x - origin.x, y: pos.y - origin.y } },
+            start: { kind: 'free' as const, point: { x: sx - origin.x, y: sy - origin.y } },
+            end: { kind: 'free' as const, point: { x: ex - origin.x, y: ey - origin.y } },
           }
           dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape: newShape })
           dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
         }
       } else {
-        const lx = x - origin.x
-        const ly = y - origin.y
+        let lx = x - origin.x
+        let ly = y - origin.y
+        let sw = w, sh = h
+        if (snapEnabled) {
+          lx = snapToGrid(lx, gridSize)
+          ly = snapToGrid(ly, gridSize)
+          sw = Math.max(gridSize, snapToGrid(w, gridSize))
+          sh = Math.max(gridSize, snapToGrid(h, gridSize))
+        }
         const shape = createShape(shapeType, lx, ly, activeTheme)
         if (shape.type !== 'line') {
-          const newShape = { ...shape, transform: { ...shape.transform, x: lx, y: ly, width: w, height: h } }
+          const newShape = { ...shape, transform: { ...shape.transform, x: lx, y: ly, width: sw, height: sh } }
           dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape: newShape })
           dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
           if (shapeType === 'page') dispatch({ type: 'SET_ACTIVE_PAGE', pageId: newShape.id })
@@ -366,8 +394,12 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const drillParentId = shapeType === 'page' ? null : (drilledInContainerId ?? state.activePageId)
       const parentMap = buildParentMap(state.document.rootNodes)
       const origin = getContentOrigin(drillParentId, state.document.shapes, parentMap)
-      const lx = pos.x - 60 - origin.x
-      const ly = pos.y - 30 - origin.y
+      let lx = pos.x - 60 - origin.x
+      let ly = pos.y - 30 - origin.y
+      if (snapEnabled) {
+        lx = snapToGrid(lx, gridSize)
+        ly = snapToGrid(ly, gridSize)
+      }
       const shape = createShape(shapeType, lx, ly, activeTheme)
       dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape })
       dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: false })

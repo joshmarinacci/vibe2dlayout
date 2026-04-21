@@ -1,6 +1,7 @@
 import type { Shape } from './shapes'
 import type { ColorPalette } from './palette'
 import type { Theme } from './theme'
+import type { GridSettings } from './grid'
 
 /**
  * The document tree stores topology separately from shape data.
@@ -19,6 +20,7 @@ export interface VibeDocument {
   palettes: ColorPalette[]
   themes: Theme[]             // custom + built-in themes for this document
   activeThemeId: string       // which theme applies to new shapes
+  gridSettings: GridSettings  // document-level grid / snap settings
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

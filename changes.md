@@ -1,3 +1,30 @@
+## 2026-04-20 (6)
+
+### Grid snapping bug fixes
+
+- Fixed: grid not visible until something moved — SVG grid had `width: 100%; height: 100%` on a zero-size canvas div; changed to explicit `left: -10000, top: -10000, width: 20000, height: 20000` so it paints immediately on mount
+- Fixed: turning off grid snap still snapped shapes until zoom changed — `snapEnabled`/`gridSize` were missing from `onPointerMove`'s `useCallback` dependency array, causing stale closure
+- Fixed: drag-move snapped shapes to offset grid positions — was snapping absolute cursor position then subtracting unsnapped initial position; now snaps total displacement from drag start so movement is always in clean grid-size increments
+
+## 2026-04-20 (5)
+
+### Grid snapping
+
+- Added `GridSettings` model (`src/model/grid.ts`) with `size`, `style` ('lines' | 'dots' | 'none'), and `snapEnabled` fields; default is 10px lines, snap off
+- Added `gridSettings: GridSettings` to `VibeDocument`; old documents load with defaults via fallback
+- Added optional `gridSettings?: Partial<GridSettings>` per-page override to `PageShape`
+- New `UPDATE_GRID_SETTINGS` document action and `TOGGLE_DOCUMENT_SETTINGS_MODAL` view action
+- `CanvasGrid` component renders an SVG pattern grid (lines or dots) inside the canvas transform div; inherits zoom/pan scaling
+- Grid snapping during shape drag: pointer position snapped to grid before computing move delta
+- Grid snapping during shape insertion (drag-insert and click-insert): origin, size snapped to grid
+- Grid snapping during resize (`SelectionOverlay`): x, y, width, height snapped before `SET_TRANSFORM`
+- Arrow key nudge uses `gridSize` as step distance when snap is enabled (instead of 1 or 10px)
+- Toolbar: grid toggle button (Grid icon) highlights when snap is on; File menu has "Document Settings..." entry
+- `DocumentSettingsModal`: controls for snap enabled, grid size (1–200 px), and grid style
+- `PropertiesPanel`: page shape now shows a "Grid Override" section to set per-page grid settings
+- `src/utils/snapping.ts`: `snapToGrid(value, size)` and `getEffectiveGridSettings(pageId, shapes, docSettings)` utilities
+- 11 new unit tests for `snapToGrid` and `getEffectiveGridSettings` (14 test files, 136 tests total)
+
 ## 2026-04-20 (4)
 
 ### Bug fixes for nested group editing

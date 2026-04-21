@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useAppDispatch, useAppState } from '@store/context'
+import { getEffectiveGridSettings } from '@utils/snapping'
 
 export function useDocumentShortcuts() {
   const { state } = useAppState()
@@ -68,7 +69,8 @@ export function useDocumentShortcuts() {
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
         if (state.selection.ids.length > 0) {
           e.preventDefault()
-          const dist = e.shiftKey ? 10 : 1
+          const gridSettings = getEffectiveGridSettings(state.activePageId, state.document.shapes, state.document.gridSettings)
+          const dist = gridSettings.snapEnabled ? gridSettings.size : (e.shiftKey ? 10 : 1)
           const dx = e.key === 'ArrowLeft' ? -dist : e.key === 'ArrowRight' ? dist : 0
           const dy = e.key === 'ArrowUp' ? -dist : e.key === 'ArrowDown' ? dist : 0
           dispatch({ type: 'MOVE_SHAPES', ids: state.selection.ids, dx, dy })
@@ -78,5 +80,5 @@ export function useDocumentShortcuts() {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [state.selection, state.drilledInContainerStack, dispatch])
+  }, [state.selection, state.drilledInContainerStack, state.activePageId, state.document.shapes, state.document.gridSettings, dispatch])
 }

@@ -6,7 +6,7 @@ import {
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
   HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage, Paintbrush,
-  StickyNote, ScrollText, ListOrdered, Table2,
+  StickyNote, ScrollText, ListOrdered, Table2, Grid,
 } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
@@ -20,6 +20,7 @@ import type { VibeDocument } from '@model/document'
 import { DocumentsModal } from '@components/layout/DocumentsModal'
 import { PaletteEditorModal } from '@components/palette/PaletteEditorModal'
 import { ThemeEditorModal } from '@components/layout/ThemeEditorModal'
+import { DocumentSettingsModal } from '@components/layout/DocumentSettingsModal'
 import styles from './Toolbar.module.css'
 
 interface ToolButton {
@@ -168,6 +169,9 @@ export function Toolbar() {
               </button>
               <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_SETTINGS_MODAL' }); setShowFileMenu(false) }}>
                 <Settings size={13} /><span>Settings...</span>
+              </button>
+              <button className={styles.formMenuItem} onClick={() => { dispatch({ type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL' }); setShowFileMenu(false) }}>
+                <Grid size={13} /><span>Document Settings...</span>
               </button>
               <div className={styles.formMenuDivider} />
               <button className={styles.formMenuItem} onClick={() => { handleImportJSON(); setShowFileMenu(false) }}>
@@ -342,6 +346,17 @@ export function Toolbar() {
 
       <div className={styles.separator} />
 
+      {/* Grid toggle */}
+      <div className={styles.group}>
+        <button
+          className={`${styles.btn} ${state.document.gridSettings.snapEnabled ? styles.active : ''}`}
+          title="Toggle grid snap"
+          onClick={() => dispatch({ type: 'UPDATE_GRID_SETTINGS', patch: { snapEnabled: !state.document.gridSettings.snapEnabled } })}
+        ><Grid size={15} /></button>
+      </div>
+
+      <div className={styles.separator} />
+
       {/* Zoom controls */}
       <div className={styles.group}>
         <button
@@ -410,6 +425,9 @@ export function Toolbar() {
         <PaletteEditorModal onClose={() => dispatch({ type: 'TOGGLE_PALETTE_MODAL' })} />
       )}
       <ThemeEditorModal />
+      {state.showDocumentSettingsModal && (
+        <DocumentSettingsModal onClose={() => dispatch({ type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL' })} />
+      )}
     </div>
   )
 }

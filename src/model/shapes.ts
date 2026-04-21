@@ -1,5 +1,6 @@
 import type { BoundingBox } from './transform'
 import type { ConnectorEndpoint, ConnectorRoute } from './connector'
+import type { GridSettings } from './grid'
 
 // ─── Shared style types ───────────────────────────────────────────────────
 
@@ -96,6 +97,7 @@ export interface PageShape extends ShapeBase {
   background: string  // CSS color
   backgroundPaletteColorId?: string
   clipChildren: boolean
+  gridSettings?: Partial<GridSettings>  // overrides document-level grid settings
 }
 
 // ─── Composite UI shapes ──────────────────────────────────────────────────

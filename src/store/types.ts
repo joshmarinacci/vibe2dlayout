@@ -5,6 +5,7 @@ import type { Point, BoundingBox } from '@model/transform'
 import type { SelectionState } from '@model/selection'
 import type { ColorPalette, PaletteColor } from '@model/palette'
 import type { Theme } from '@model/theme'
+import type { GridSettings } from '@model/grid'
 
 // ─── View ──────────────────────────────────────────────────────────────────
 
@@ -67,6 +68,7 @@ export interface AppState {
   showPaletteModal: boolean
   showSettingsModal: boolean
   showThemeModal: boolean
+  showDocumentSettingsModal: boolean
   settings: UserSettings
   drilledInContainerStack: string[]  // innermost (current) is last element
   // current document identity (localStorage)
@@ -105,6 +107,7 @@ export type DocumentAction =
   | { type: 'RESET_SHAPES_TO_THEME'; ids: string[] }
   | { type: 'GROUP_SHAPES'; ids: string[] }
   | { type: 'UNGROUP_SHAPES'; id: string }
+  | { type: 'UPDATE_GRID_SETTINGS'; patch: Partial<GridSettings> }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'
@@ -134,6 +137,7 @@ export type ViewAction =
   | { type: 'ENTER_DRILL_MODE'; containerId: string }
   | { type: 'EXIT_DRILL_MODE' }
   | { type: 'TOGGLE_THEME_MODAL' }
+  | { type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL' }
 
 // Undo/redo
 export type HistoryAction =

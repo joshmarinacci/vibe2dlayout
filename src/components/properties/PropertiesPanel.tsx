@@ -2,6 +2,7 @@ import { useAppState, useAppDispatch } from '@store/context'
 import { selectSelectedShapes } from '@store/selectors'
 import { getActiveTheme } from '@model/theme'
 import { RotateCcw } from 'lucide-react'
+import type { GridStyle } from '@model/grid'
 import { NumberInput } from './inputs/NumberInput'
 import { ToggleInput } from './inputs/ToggleInput'
 import { ColorInput } from './inputs/ColorInput'
@@ -231,13 +232,13 @@ export function PropertiesPanel() {
       </div>
 
       <div style={shape.locked ? { opacity: 0.5, pointerEvents: 'none' } : undefined}>
-        <ShapeProperties shape={shape} dispatch={dispatch} />
+        <ShapeProperties shape={shape} dispatch={dispatch} state={state} />
       </div>
     </div>
   )
 }
 
-function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnType<typeof useAppDispatch> }) {
+function ShapeProperties({ shape, dispatch, state }: { shape: Shape; dispatch: ReturnType<typeof useAppDispatch>; state: ReturnType<typeof useAppState>['state'] }) {
   const patchTransform = (t: BoundingBox) =>
     dispatch({ type: 'SET_TRANSFORM', id: shape.id, transform: t })
   const patchFill = (f: FillStyle) =>
@@ -308,12 +309,63 @@ function ShapeProperties({ shape, dispatch }: { shape: Shape; dispatch: ReturnTy
         </>
       )
 
-    case 'page':
+    case 'page': {
+      const pageGridOverride = shape.gridSettings
+      const docGrid = state.document.gridSettings
       return (
         <>
           <PageSection shape={shape} dispatch={dispatch} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Grid Override</div>
+            <div className={styles.row}>
+              <label className={styles.label}>Override document grid</label>
+              <input
+                type="checkbox"
+                checked={!!pageGridOverride}
+                onChange={e => {
+                  if (e.target.checked) {
+                    dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { gridSettings: { ...docGrid } } })
+                  } else {
+                    dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { gridSettings: undefined } })
+                  }
+                }}
+              />
+            </div>
+            {pageGridOverride && (
+              <>
+                <div className={styles.row}>
+                  <label className={styles.label}>Snap Enabled</label>
+                  <input
+                    type="checkbox"
+                    checked={pageGridOverride.snapEnabled ?? docGrid.snapEnabled}
+                    onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { gridSettings: { ...pageGridOverride, snapEnabled: e.target.checked } } })}
+                  />
+                </div>
+                <NumberInput
+                  label="Grid Size"
+                  value={pageGridOverride.size ?? docGrid.size}
+                  min={1}
+                  onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { gridSettings: { ...pageGridOverride, size: v } } })}
+                  unit="px"
+                />
+                <div className={styles.row}>
+                  <label className={styles.label}>Grid Style</label>
+                  <select
+                    value={pageGridOverride.style ?? docGrid.style}
+                    onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { gridSettings: { ...pageGridOverride, style: e.target.value as GridStyle } } })}
+                    style={{ fontSize: 12 }}
+                  >
+                    <option value="lines">Lines</option>
+                    <option value="dots">Dots</option>
+                    <option value="none">None</option>
+                  </select>
+                </div>
+              </>
+            )}
+          </div>
         </>
       )
+    }
 
     case 'button':
       return (
