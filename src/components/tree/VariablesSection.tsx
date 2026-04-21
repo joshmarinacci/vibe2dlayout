@@ -20,9 +20,9 @@ const TYPE_DEFAULTS: Record<VariableType, Variable['value']> = {
 
 export function VariablesSection({ variables, selectedVariableId, dispatch }: Props) {
   const [showTypeMenu, setShowTypeMenu] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
 
   const addVariable = (type: VariableType) => {
-    // Count existing variables of this type to generate a unique name
     const count = variables.filter(v => v.type === type).length
     const typeName = type.charAt(0).toUpperCase() + type.slice(1)
     const name = count === 0 ? typeName : `${typeName} ${count + 1}`
@@ -35,7 +35,10 @@ export function VariablesSection({ variables, selectedVariableId, dispatch }: Pr
   return (
     <div>
       <div className={styles.header}>
-        <span className={styles.label}>Variables</span>
+        <div className={styles.headerLabel} onClick={() => setCollapsed(v => !v)}>
+          <span className={`${styles.chevron} ${collapsed ? '' : styles.chevronOpen}`}>›</span>
+          <span className={styles.label}>Variables</span>
+        </div>
         <div style={{ position: 'relative' }}>
           <button
             className={styles.addBtn}
@@ -66,7 +69,7 @@ export function VariablesSection({ variables, selectedVariableId, dispatch }: Pr
           )}
         </div>
       </div>
-      {variables.map((variable, i) => (
+      {!collapsed && variables.map((variable, i) => (
         <VariableRow
           key={variable.id}
           variable={variable}

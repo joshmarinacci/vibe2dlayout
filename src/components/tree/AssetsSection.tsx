@@ -16,6 +16,7 @@ interface Props {
 
 export function AssetsSection({ assets, selectedAssetId, dispatch, shapes }: Props) {
   const [showAddMenu, setShowAddMenu] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const [urlInput, setUrlInput] = useState('')
   const [nameInput, setNameInput] = useState('')
 
@@ -44,7 +45,10 @@ export function AssetsSection({ assets, selectedAssetId, dispatch, shapes }: Pro
   return (
     <div>
       <div className={styles.header}>
-        <span className={styles.label}>Images</span>
+        <div className={styles.headerLabel} onClick={() => setCollapsed(v => !v)}>
+          <span className={`${styles.chevron} ${collapsed ? '' : styles.chevronOpen}`}>›</span>
+          <span className={styles.label}>Images</span>
+        </div>
         <div style={{ position: 'relative' }}>
           <button
             className={styles.addBtn}
@@ -81,10 +85,10 @@ export function AssetsSection({ assets, selectedAssetId, dispatch, shapes }: Pro
           )}
         </div>
       </div>
-      {assets.length === 0 && (
+      {!collapsed && assets.length === 0 && (
         <div className={sectionStyles.empty}>No images</div>
       )}
-      {assets.map(asset => (
+      {!collapsed && assets.map(asset => (
         <AssetRow
           key={asset.id}
           asset={asset}

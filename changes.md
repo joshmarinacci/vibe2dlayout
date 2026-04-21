@@ -1,3 +1,9 @@
+## 2026-04-21 16:18
+
+### Make tree sidebar sections collapsible
+
+The Images, Variables, and Styles sections in the tree panel can now be collapsed by clicking their header label. A `›` chevron rotates 90° when the section is expanded. The `+` add button remains visible and functional while collapsed.
+
 ## 2026-04-21 16:13
 
 ### Add image assets section

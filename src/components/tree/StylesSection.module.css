@@ -5,14 +5,32 @@
   padding: 8px 10px 3px 10px;
 }
 
+.headerLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+}
+
+.chevron {
+  font-size: 9px;
+  color: #aaa;
+  transition: transform 0.15s;
+  line-height: 1;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
 .label {
   font-size: 10px;
   font-weight: 600;
   color: #aaa;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  cursor: default;
-  user-select: none;
 }
 
 .addBtn {

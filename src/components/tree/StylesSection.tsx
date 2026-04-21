@@ -1,4 +1,4 @@
-import type { Dispatch } from 'react'
+import { useState, type Dispatch } from 'react'
 import type { TextStyleDef } from '@model/textStyle'
 import type { AppAction } from '@store/types'
 import { generateId } from '@utils/idgen'
@@ -12,6 +12,8 @@ interface Props {
 }
 
 export function StylesSection({ textStyles, selectedStyleId, dispatch }: Props) {
+  const [collapsed, setCollapsed] = useState(false)
+
   const addStyle = () => {
     const style: TextStyleDef = { id: generateId(), name: 'New Style' }
     dispatch({ type: 'ADD_TEXT_STYLE', style })
@@ -21,10 +23,13 @@ export function StylesSection({ textStyles, selectedStyleId, dispatch }: Props) 
   return (
     <div>
       <div className={styles.header}>
-        <span className={styles.label}>Styles</span>
+        <div className={styles.headerLabel} onClick={() => setCollapsed(v => !v)}>
+          <span className={`${styles.chevron} ${collapsed ? '' : styles.chevronOpen}`}>›</span>
+          <span className={styles.label}>Styles</span>
+        </div>
         <button className={styles.addBtn} onClick={addStyle} title="Add text style">+</button>
       </div>
-      {textStyles.map((style, i) => (
+      {!collapsed && textStyles.map((style, i) => (
         <StyleRow
           key={style.id}
           style={style}
