@@ -1,0 +1,73 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 4px;
+  height: 26px;
+  cursor: default;
+  user-select: none;
+  border-left: 2px solid transparent;
+}
+
+.row:hover {
+  background: #f0f0f0;
+}
+
+.active {
+  border-left-color: #3b82f6;
+}
+
+.dragOver {
+  background: #dbeafe;
+  outline: 1px dashed #3b82f6;
+  outline-offset: -1px;
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #666;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.chevron:hover {
+  background: #ddd;
+}
+
+.icon {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 13px;
+  color: #333;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nameInput {
+  flex: 1;
+  font-size: 13px;
+  color: #333;
+  border: 1px solid #3b82f6;
+  border-radius: 2px;
+  padding: 1px 4px;
+  outline: none;
+  background: #fff;
+  min-width: 0;
+}
+
+.children {
+  /* Indented children */
+}

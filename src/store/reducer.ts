@@ -218,13 +218,20 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       if (!node) return doc
       const withoutNode = removeNode(doc.rootNodes, action.id)
       const withNode = insertNode(withoutNode, action.newParentId, node, action.index)
-      if (action.x === undefined && action.y === undefined) {
-        return { ...doc, rootNodes: withNode }
-      }
+      // If this shape is a page, remove it from any folder it was in
       const shape = doc.shapes[action.id]
-      if (!shape || !('transform' in shape)) return { ...doc, rootNodes: withNode }
+      const pageFolders = shape?.type === 'page'
+        ? doc.pageFolders.map(f => ({
+            ...f,
+            pageIds: f.pageIds.filter(pid => pid !== action.id),
+          }))
+        : doc.pageFolders
+      if (action.x === undefined && action.y === undefined) {
+        return { ...doc, rootNodes: withNode, pageFolders }
+      }
+      if (!shape || !('transform' in shape)) return { ...doc, rootNodes: withNode, pageFolders }
       const updatedShape = { ...shape, transform: { ...shape.transform, x: action.x ?? shape.transform.x, y: action.y ?? shape.transform.y } }
-      return { ...doc, rootNodes: withNode, shapes: { ...doc.shapes, [action.id]: updatedShape } }
+      return { ...doc, rootNodes: withNode, shapes: { ...doc.shapes, [action.id]: updatedShape }, pageFolders }
     }
 
     case 'REORDER_SHAPE': {
@@ -335,11 +342,71 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         themes: d.themes ?? [...BUILT_IN_THEMES],
         activeThemeId: d.activeThemeId ?? 'hand-drawn',
         gridSettings: d.gridSettings ?? { ...DEFAULT_GRID_SETTINGS },
+        pageFolders: d.pageFolders ?? [],
       }
     }
 
     case 'UPDATE_GRID_SETTINGS':
       return { ...doc, gridSettings: { ...doc.gridSettings, ...action.patch } }
+
+    case 'ADD_PAGE_FOLDER':
+      return { ...doc, pageFolders: [...doc.pageFolders, action.folder] }
+
+    case 'DELETE_PAGE_FOLDER': {
+      const folder = doc.pageFolders.find(f => f.id === action.folderId)
+      if (!folder) return { ...doc, pageFolders: doc.pageFolders.filter(f => f.id !== action.folderId) }
+      if (action.deletionMode === 'unfolder') {
+        return { ...doc, pageFolders: doc.pageFolders.filter(f => f.id !== action.folderId) }
+      }
+      // delete-pages: remove all pages in the folder and their descendants
+      const idsToDelete = folder.pageIds
+      let newDoc = applyDocumentAction(doc, { type: 'DELETE_SHAPES', ids: idsToDelete })
+      return { ...newDoc, pageFolders: newDoc.pageFolders.filter(f => f.id !== action.folderId) }
+    }
+
+    case 'RENAME_PAGE_FOLDER':
+      return {
+        ...doc,
+        pageFolders: doc.pageFolders.map(f =>
+          f.id === action.folderId ? { ...f, name: action.name } : f
+        ),
+      }
+
+    case 'ASSIGN_PAGES_TO_FOLDER': {
+      const newPageIds = new Set(action.pageIds)
+      // Remove these page IDs from any other folder
+      const updatedFolders = doc.pageFolders.map(f => {
+        if (f.id === action.folderId) {
+          const existing = new Set(f.pageIds)
+          for (const id of newPageIds) existing.add(id)
+          return { ...f, pageIds: [...existing] }
+        }
+        return { ...f, pageIds: f.pageIds.filter(id => !newPageIds.has(id)) }
+      })
+      return { ...doc, pageFolders: updatedFolders }
+    }
+
+    case 'REMOVE_PAGES_FROM_FOLDER': {
+      const toRemove = new Set(action.pageIds)
+      return {
+        ...doc,
+        pageFolders: doc.pageFolders.map(f =>
+          f.id === action.folderId
+            ? { ...f, pageIds: f.pageIds.filter(id => !toRemove.has(id)) }
+            : f
+        ),
+      }
+    }
+
+    case 'REORDER_PAGE_FOLDER': {
+      const idx = doc.pageFolders.findIndex(f => f.id === action.folderId)
+      if (idx === -1) return doc
+      const arr = [...doc.pageFolders]
+      const [item] = arr.splice(idx, 1)
+      const newIdx = action.direction === 'up' ? Math.max(0, idx - 1) : Math.min(arr.length, idx + 1)
+      arr.splice(newIdx, 0, item)
+      return { ...doc, pageFolders: arr }
+    }
 
     case 'ADD_THEME':
       return { ...doc, themes: [...doc.themes, action.theme] }
@@ -655,6 +722,7 @@ export function createInitialDocument(): VibeDocument {
     themes: [...BUILT_IN_THEMES],
     activeThemeId: 'hand-drawn',
     gridSettings: { ...DEFAULT_GRID_SETTINGS },
+    pageFolders: [],
   }
 }
 
@@ -675,6 +743,7 @@ export const initialState: AppState = {
   drilledInContainerStack: [],
   documentId: null,
   documentName: 'Untitled',
+  documentSelected: false,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -710,6 +779,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'GROUP_SHAPES':
     case 'UNGROUP_SHAPES':
     case 'UPDATE_GRID_SETTINGS':
+    case 'ADD_PAGE_FOLDER':
+    case 'DELETE_PAGE_FOLDER':
+    case 'RENAME_PAGE_FOLDER':
+    case 'ASSIGN_PAGES_TO_FOLDER':
+    case 'REMOVE_PAGES_FROM_FOLDER':
+    case 'REORDER_PAGE_FOLDER':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -719,6 +794,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'SELECT_SHAPES':
       return {
         ...state,
+        documentSelected: false,
         selection: {
           ...state.selection,
           ids: action.additive
@@ -727,10 +803,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       }
     case 'DESELECT_ALL':
-      return { ...state, selection: { ids: [], editingTextId: null } }
+      return { ...state, documentSelected: false, selection: { ids: [], editingTextId: null } }
     case 'SELECT_ALL': {
       const allIds = getAllIds(state.document.rootNodes)
-      return { ...state, selection: { ...state.selection, ids: allIds } }
+      return { ...state, documentSelected: false, selection: { ...state.selection, ids: allIds } }
     }
     case 'START_TEXT_EDIT':
       return { ...state, selection: { ...state.selection, editingTextId: action.id } }
@@ -791,6 +867,22 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         drilledInContainerStack: state.drilledInContainerStack.slice(0, -1),
         selection: { ids: [], editingTextId: null },
+      }
+    case 'SELECT_DOCUMENT':
+      return {
+        ...state,
+        documentSelected: true,
+        selection: { ids: [], editingTextId: null },
+      }
+    case 'SET_FOLDER_COLLAPSED':
+      return {
+        ...state,
+        document: {
+          ...state.document,
+          pageFolders: state.document.pageFolders.map(f =>
+            f.id === action.folderId ? { ...f, collapsed: action.collapsed } : f
+          ),
+        },
       }
 
     // ── Undo/Redo (handled by history wrapper) ─────────────────────────

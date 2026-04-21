@@ -15,6 +15,7 @@ import { ConnectorSection } from './sections/ConnectorSection'
 import { PageSection } from './sections/PageSection'
 import { ContentSection } from './sections/ContentSection'
 import { ButtonIconSection } from './sections/ButtonIconSection'
+import { DocumentSection } from './sections/DocumentSection'
 import type { BoundingBox } from '@model/transform'
 import type { FillStyle, StrokeStyle, TextStyle, Shape } from '@model/shapes'
 import styles from './PropertiesPanel.module.css'
@@ -29,6 +30,24 @@ export function PropertiesPanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
   const selected = selectSelectedShapes(state)
+
+  if (state.documentSelected) {
+    return (
+      <div className={styles.panel}>
+        <div className={styles.header}>
+          <span className={styles.shapeType}>document</span>
+          <span className={styles.shapeName}>{state.documentName}</span>
+        </div>
+        <DocumentSection
+          documentName={state.documentName}
+          documentId={state.documentId}
+          gridSettings={state.document.gridSettings}
+          activeThemeName={getActiveTheme(state.document).name}
+          dispatch={dispatch}
+        />
+      </div>
+    )
+  }
 
   if (selected.length === 0) {
     return (

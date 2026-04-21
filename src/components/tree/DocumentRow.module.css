@@ -1,0 +1,36 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  height: 26px;
+  cursor: pointer;
+  user-select: none;
+  border-left: 2px solid transparent;
+}
+
+.row:hover {
+  background: #f0f0f0;
+}
+
+.selected {
+  background: #dbeafe;
+  border-left-color: #3b82f6;
+}
+
+.selected:hover {
+  background: #bfdbfe;
+}
+
+.icon {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 13px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

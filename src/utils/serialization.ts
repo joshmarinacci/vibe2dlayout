@@ -23,6 +23,10 @@ export function fromJSON(json: string): VibeDocument {
     docObj.palettes = [{ ...DEFAULT_PALETTE, colors: [...DEFAULT_PALETTE.colors] }]
     docObj.version = 2
   }
+  // Migrate older docs missing pageFolders
+  if (!Array.isArray(docObj.pageFolders)) {
+    docObj.pageFolders = []
+  }
   return parsed as VibeDocument
 }
 

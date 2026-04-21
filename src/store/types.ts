@@ -1,5 +1,5 @@
 import type { Shape } from '@model/shapes'
-import type { VibeDocument } from '@model/document'
+import type { VibeDocument, PageFolder } from '@model/document'
 import type { ConnectorEndpoint } from '@model/connector'
 import type { Point, BoundingBox } from '@model/transform'
 import type { SelectionState } from '@model/selection'
@@ -74,6 +74,8 @@ export interface AppState {
   // current document identity (localStorage)
   documentId: string | null
   documentName: string
+  // true when user clicked the Document row in the tree (shows document properties)
+  documentSelected: boolean
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -108,6 +110,12 @@ export type DocumentAction =
   | { type: 'GROUP_SHAPES'; ids: string[] }
   | { type: 'UNGROUP_SHAPES'; id: string }
   | { type: 'UPDATE_GRID_SETTINGS'; patch: Partial<GridSettings> }
+  | { type: 'ADD_PAGE_FOLDER'; folder: PageFolder }
+  | { type: 'DELETE_PAGE_FOLDER'; folderId: string; deletionMode: 'unfolder' | 'delete-pages' }
+  | { type: 'RENAME_PAGE_FOLDER'; folderId: string; name: string }
+  | { type: 'ASSIGN_PAGES_TO_FOLDER'; folderId: string; pageIds: string[] }
+  | { type: 'REMOVE_PAGES_FROM_FOLDER'; folderId: string; pageIds: string[] }
+  | { type: 'REORDER_PAGE_FOLDER'; folderId: string; direction: 'up' | 'down' }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'
@@ -138,6 +146,8 @@ export type ViewAction =
   | { type: 'EXIT_DRILL_MODE' }
   | { type: 'TOGGLE_THEME_MODAL' }
   | { type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL' }
+  | { type: 'SELECT_DOCUMENT' }
+  | { type: 'SET_FOLDER_COLLAPSED'; folderId: string; collapsed: boolean }
 
 // Undo/redo
 export type HistoryAction =

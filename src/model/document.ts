@@ -13,6 +13,18 @@ export interface TreeNode {
   children: TreeNode[]
 }
 
+/**
+ * A page folder is a UI-only organizational container for pages.
+ * It has no canvas representation — just a name and an ordered list of page IDs.
+ * Pages not in any folder appear as top-level items below all folders.
+ */
+export interface PageFolder {
+  id: string
+  name: string
+  pageIds: string[]    // ordered page shape IDs in this folder
+  collapsed: boolean
+}
+
 export interface VibeDocument {
   version: number             // serialization format version
   rootNodes: TreeNode[]       // top-level pages
@@ -21,6 +33,7 @@ export interface VibeDocument {
   themes: Theme[]             // custom + built-in themes for this document
   activeThemeId: string       // which theme applies to new shapes
   gridSettings: GridSettings  // document-level grid / snap settings
+  pageFolders: PageFolder[]   // organizational folders for pages (UI-only, no canvas presence)
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────
@@ -93,4 +106,23 @@ export function getAllIds(nodes: TreeNode[]): string[] {
   }
   walk(nodes)
   return ids
+}
+
+/** Returns the first folder containing pageId, or null. */
+export function findFolderForPage(folders: PageFolder[], pageId: string): PageFolder | null {
+  return folders.find(f => f.pageIds.includes(pageId)) ?? null
+}
+
+/**
+ * Returns IDs of root-level page nodes that are not in any folder, in rootNodes order.
+ */
+export function getUnfiledPageIds(
+  rootNodes: TreeNode[],
+  folders: PageFolder[],
+  shapes: Record<string, Shape>,
+): string[] {
+  const filedIds = new Set(folders.flatMap(f => f.pageIds))
+  return rootNodes
+    .filter(n => shapes[n.id]?.type === 'page' && !filedIds.has(n.id))
+    .map(n => n.id)
 }

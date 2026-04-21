@@ -1,3 +1,19 @@
+## 2026-04-21
+
+### Tree panel overhaul — Document item, Page Folders, section headers
+
+- **Document row**: A "Document" item at the very top of the tree panel. Click it to select the document and see its properties in the right panel (document name, grid settings, active theme).
+- **Page Folders**: New organizational folder type for pages. Folders have no canvas presence — just a name and an ordered list of pages they contain. Features:
+  - Create via the `+` menu → "Folder"
+  - Inline rename (double-click or context menu → Rename)
+  - Collapse/expand with chevron button
+  - Context menu: Add Page to Folder, Rename, Move Up/Down, Delete Folder (keep pages), Delete Folder and Pages
+  - Drag a page node onto a folder to assign it to that folder
+- **Section headers**: Static "Assets", "Variables", "Styles" sections below pages (empty for now, placeholders for future content)
+- **Data model**: Added `PageFolder` interface and `pageFolders: PageFolder[]` to `VibeDocument`. Helper functions `findFolderForPage` and `getUnfiledPageIds` in `document.ts`. Old documents auto-migrate with `pageFolders: []`.
+- **State**: Added `documentSelected: boolean` to `AppState`. New actions: `SELECT_DOCUMENT`, `SET_FOLDER_COLLAPSED` (view, not undoable); `ADD_PAGE_FOLDER`, `DELETE_PAGE_FOLDER`, `RENAME_PAGE_FOLDER`, `ASSIGN_PAGES_TO_FOLDER`, `REMOVE_PAGES_FROM_FOLDER`, `REORDER_PAGE_FOLDER` (document, tracked in undo history).
+- **New files**: `DocumentRow.tsx/css`, `PageFolderRow.tsx/css`, `SectionHeader.tsx/css`, `DocumentSection.tsx`
+
 ## 2026-04-20 (7)
 
 ### Palette import from Lospec & Coolors
