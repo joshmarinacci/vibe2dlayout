@@ -1,3 +1,16 @@
+## 2026-04-20 (7)
+
+### Palette import from Lospec & Coolors
+
+- New utility `src/utils/paletteImport.ts` with parsers for `.hex`/`.txt` files, GIMP `.gpl` files, Coolors.co URLs, and a Lospec.com JSON API fetcher
+- Added "Import" section to the bottom of the palette list in the Palette Editor modal with:
+  - URL input: paste a `lospec.com/palette-list/<slug>` or `coolors.co/<hex>-<hex>-…` URL and click Import
+  - File upload: pick a `.hex`, `.txt`, or `.gpl` file from disk
+  - Error display for bad URLs, failed fetches, or invalid files
+- Imported palette is automatically selected after import
+- 33 new unit tests covering all parser functions and the fetch helper
+- Fixed palette editor dialog height jumping when switching between palettes — set fixed `height: 500px` on the modal
+
 ## 2026-04-20 (6)
 
 ### Grid snapping bug fixes

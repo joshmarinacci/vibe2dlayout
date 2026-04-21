@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Plus, Trash2 } from 'lucide-react'
+import { X, Plus, Trash2, Link, Upload } from 'lucide-react'
 import { useAppState, useAppDispatch } from '@store/context'
 import { generateId } from '@utils/idgen'
+import { parseCoolorsUrl, parseHexFile, parseGPL, fetchLospecPalette } from '@utils/paletteImport'
+import type { ParsedPalette } from '@utils/paletteImport'
+import type { ColorPalette } from '@model/palette'
 import styles from './PaletteEditorModal.module.css'
 
 interface Props {
@@ -16,6 +19,10 @@ export function PaletteEditorModal({ onClose }: Props) {
 
   const [selectedPaletteId, setSelectedPaletteId] = useState<string>(palettes[0]?.id ?? '')
   const [editingColorId, setEditingColorId] = useState<string | null>(null)
+  const [importUrl, setImportUrl] = useState('')
+  const [importError, setImportError] = useState<string | null>(null)
+  const [importLoading, setImportLoading] = useState(false)
+  const [fileInputKey, setFileInputKey] = useState(0)
 
   const selectedPalette = palettes.find(p => p.id === selectedPaletteId) ?? null
 
@@ -30,6 +37,66 @@ export function PaletteEditorModal({ onClose }: Props) {
     if (selectedPaletteId === id) {
       setSelectedPaletteId(palettes.find(p => p.id !== id)?.id ?? '')
     }
+  }
+
+  const addImportedPalette = (parsed: ParsedPalette) => {
+    const id = generateId()
+    const palette: ColorPalette = {
+      id,
+      name: parsed.name,
+      colors: parsed.colors.map(c => ({ id: generateId(), name: c.name, color: c.hex })),
+    }
+    dispatch({ type: 'ADD_PALETTE', palette })
+    setSelectedPaletteId(id)
+    setImportError(null)
+  }
+
+  const importPaletteFromUrl = async () => {
+    const trimmed = importUrl.trim()
+    setImportError(null)
+    setImportLoading(true)
+    try {
+      const coolorsColors = parseCoolorsUrl(trimmed)
+      if (coolorsColors) {
+        addImportedPalette({ name: 'Coolors Palette', colors: coolorsColors.map(hex => ({ name: hex, hex })) })
+      } else {
+        const parsed = await fetchLospecPalette(trimmed)
+        addImportedPalette(parsed)
+      }
+      setImportUrl('')
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : 'Import failed')
+    } finally {
+      setImportLoading(false)
+    }
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text = reader.result as string
+      const ext = file.name.split('.').pop()?.toLowerCase()
+      if (ext === 'gpl') {
+        const parsed = parseGPL(text)
+        if (!parsed) {
+          setImportError('Invalid GIMP palette file')
+          return
+        }
+        addImportedPalette(parsed)
+      } else {
+        const colors = parseHexFile(text)
+        if (colors.length === 0) {
+          setImportError('No valid hex colors found in file')
+          return
+        }
+        const baseName = file.name.replace(/\.[^.]+$/, '')
+        addImportedPalette({ name: baseName, colors: colors.map(hex => ({ name: hex, hex })) })
+      }
+      setFileInputKey(k => k + 1)
+    }
+    reader.readAsText(file)
   }
 
   const addColor = () => {
@@ -72,6 +139,39 @@ export function PaletteEditorModal({ onClose }: Props) {
             <button className={styles.addBtn} onClick={addPalette}>
               <Plus size={13} /> New Palette
             </button>
+            <div className={styles.importSection}>
+              <span className={styles.importDividerLabel}>Import</span>
+              <div className={styles.importUrlRow}>
+                <input
+                  className={styles.importUrlInput}
+                  placeholder="lospec.com/… or coolors.co/…"
+                  value={importUrl}
+                  onChange={e => { setImportUrl(e.target.value); setImportError(null) }}
+                  onKeyDown={e => { if (e.key === 'Enter') importPaletteFromUrl() }}
+                />
+                <button
+                  className={styles.importBtn}
+                  onClick={importPaletteFromUrl}
+                  disabled={importLoading || !importUrl.trim()}
+                  title="Import from URL"
+                >
+                  <Link size={13} />
+                  {importLoading ? '…' : 'Import'}
+                </button>
+              </div>
+              <label className={styles.fileUploadBtn}>
+                <Upload size={13} />
+                Upload .hex / .gpl
+                <input
+                  key={fileInputKey}
+                  type="file"
+                  accept=".hex,.txt,.gpl"
+                  style={{ display: 'none' }}
+                  onChange={handleFileUpload}
+                />
+              </label>
+              {importError && <span className={styles.importError}>{importError}</span>}
+            </div>
           </div>
 
           {/* Right: selected palette editor */}
