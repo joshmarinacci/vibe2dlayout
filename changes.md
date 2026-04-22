@@ -1,3 +1,11 @@
+## 2026-04-22 (fix guide snap stale closure)
+
+### Fix: shapes not snapping to user guide lines
+
+`onPointerMove`'s `useCallback` had a stale closure that didn't include `state.document` in its deps, so newly-added guides were invisible to the snap computation. Fix: extract guide positions into a `pageGuidesRef` that's updated on every render (outside any callback), so the snap logic always reads fresh guide data via the ref.
+
+**Files modified:** `src/components/canvas/useCanvasPointer.ts`
+
 ## 2026-04-22 (page snap + user guides)
 
 ### Add page boundary snapping and user-created guide lines

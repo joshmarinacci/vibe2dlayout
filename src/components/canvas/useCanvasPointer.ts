@@ -130,6 +130,17 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const guideCreating = useRef<{ orientation: 'h' | 'v'; position: number } | null>(null)
   const [guidePreview, setGuidePreview] = useState<CanvasGuide | null>(null)
 
+  // Always-fresh ref for guide positions — updated every render so stale closures still see current guides
+  const pageGuidesRef = useRef<{ x: number[]; y: number[] }>({ x: [], y: [] })
+  {
+    const ap = state.activePageId ? state.document.shapes[state.activePageId] : null
+    const guides = ap?.type === 'page' ? (ap.guides ?? []) : []
+    pageGuidesRef.current = {
+      x: guides.filter(g => g.orientation === 'v').map(g => g.position),
+      y: guides.filter(g => g.orientation === 'h').map(g => g.position),
+    }
+  }
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat && document.activeElement === containerRef.current) {
@@ -400,11 +411,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
             ...b, x: b.x + rawDx, y: b.y + rawDy,
           }))
         )
-        const activePage = state.activePageId ? state.document.shapes[state.activePageId] : null
-        const pageGuides = activePage?.type === 'page' ? (activePage.guides ?? []) : []
-        const xGuides = pageGuides.filter(g => g.orientation === 'v').map(g => g.position)
-        const yGuides = pageGuides.filter(g => g.orientation === 'h').map(g => g.position)
-        const snap = computeAlignmentSnap(candidateBox, refAbsTransforms.current, rawDx, rawDy, threshold, xGuides, yGuides)
+        const snap = computeAlignmentSnap(candidateBox, refAbsTransforms.current, rawDx, rawDy, threshold,
+          pageGuidesRef.current.x, pageGuidesRef.current.y)
         snappedDx = snap.snappedDx
         snappedDy = snap.snappedDy
         guides = snap.guides

@@ -51,7 +51,7 @@ export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick, han
     : []
   const tickTop = trackY + trackHeight + 2
   const tickBottom = tickTop + Math.max(3, height * 0.15)
-  const tickColor = trackFill.color === 'transparent' ? '#999' : trackFill.color
+  const tickColor = thumbFill.color === 'transparent' ? '#999' : thumbFill.color
 
   const tickPaths = handDrawn
     ? tickPositions.flatMap((t, i) => {
