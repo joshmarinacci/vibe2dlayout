@@ -15,6 +15,7 @@ import { ConnectorSection } from './sections/ConnectorSection'
 import { PageSection } from './sections/PageSection'
 import { ContentSection } from './sections/ContentSection'
 import { ButtonIconSection } from './sections/ButtonIconSection'
+import { IconSection } from './sections/IconSection'
 import { DocumentSection } from './sections/DocumentSection'
 import { TextStyleDefSection } from './sections/TextStyleDefSection'
 import { VariableSection } from './sections/VariableSection'
@@ -532,6 +533,21 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               {...vp('cornerRadius', 'number')}
             />
           </div>
+        </>
+      )
+
+    case 'icon':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <IconSection
+            icon={shape.icon}
+            onChange={ic => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { icon: ic } })}
+          />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
         </>
       )
 

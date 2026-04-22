@@ -9,14 +9,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  border-bottom: 1px solid #d0d0d0;
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .title {
   font-size: 11px;
   font-weight: 600;
-  color: #888;
+  color: var(--color-text-disabled);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -30,9 +30,9 @@
   width: 22px;
   height: 22px;
   background: transparent;
-  border: 1px solid #bbb;
+  border: 1px solid var(--color-border);
   border-radius: 3px;
-  color: #555;
+  color: var(--color-text-muted);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -42,20 +42,20 @@
 }
 
 .addBtn:hover {
-  background: #e0e0e0;
+  background: var(--color-bg-hover);
 }
 
 .addMenu {
   position: absolute;
   top: 100%;
   right: 0;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 4px;
   z-index: 1000;
   min-width: 130px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 16px var(--color-shadow);
 }
 
 .addMenuGroup {
@@ -64,7 +64,7 @@
 
 .addMenuLabel {
   font-size: 10px;
-  color: #999;
+  color: var(--color-text-disabled);
   padding: 2px 8px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -72,7 +72,7 @@
 
 .addMenuDivider {
   height: 1px;
-  background: #eee;
+  background: var(--color-border-subtle);
   margin: 2px 0;
 }
 
@@ -83,14 +83,14 @@
   padding: 5px 10px;
   background: transparent;
   border: none;
-  color: #333;
+  color: var(--color-text-secondary);
   font-size: 13px;
   cursor: pointer;
   border-radius: 4px;
 }
 
 .addMenuItem:hover {
-  background: #3b82f6;
+  background: var(--color-accent);
   color: #fff;
 }
 
@@ -102,6 +102,6 @@
 
 .separator {
   height: 1px;
-  background: #e0e0e0;
+  background: var(--color-bg-hover);
   margin: 4px 0;
 }

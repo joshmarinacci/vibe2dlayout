@@ -9,9 +9,9 @@
 .background {
   position: absolute;
   inset: 0;
-  background-color: #c8c8c8;
+  background-color: var(--color-bg-canvas);
   background-image:
-    radial-gradient(circle, #aaa 1px, transparent 1px);
+    radial-gradient(circle, var(--color-bg-canvas-dot) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
@@ -26,19 +26,19 @@
 
 .pageBg {
   position: absolute;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 16px var(--color-shadow-modal);
 }
 
 .ghostRect {
   position: absolute;
-  border: 2px dashed #3b82f6;
+  border: 2px dashed var(--color-accent);
   background: rgba(59, 130, 246, 0.1);
   pointer-events: none;
 }
 
 .marqueeRect {
   position: absolute;
-  border: 1px solid #3b82f6;
+  border: 1px solid var(--color-accent);
   background: rgba(59, 130, 246, 0.08);
   pointer-events: none;
 }

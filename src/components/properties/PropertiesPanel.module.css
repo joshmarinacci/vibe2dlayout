@@ -17,13 +17,13 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px 4px;
-  border-bottom: 1px solid #d0d0d0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .shapeType {
   font-size: 10px;
-  color: #888;
-  background: #e0e0e0;
+  color: var(--color-text-muted);
+  background: var(--color-bg-hover);
   padding: 1px 5px;
   border-radius: 3px;
   text-transform: uppercase;
@@ -32,7 +32,7 @@
 
 .shapeName {
   font-size: 12px;
-  color: #222;
+  color: var(--color-text-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -46,22 +46,22 @@
 .nameInput {
   width: 100%;
   height: 26px;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 3px;
-  color: #222;
+  color: var(--color-text-primary);
   font-size: 12px;
   padding: 0 8px;
 }
 
 .nameInput:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-accent);
 }
 
 .resetRow {
   padding: 4px 12px 4px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .resetThemeBtn {
@@ -70,18 +70,18 @@
   gap: 4px;
   padding: 4px 8px;
   background: transparent;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   font-size: 11px;
-  color: #555;
+  color: var(--color-text-muted);
   cursor: pointer;
   width: 100%;
 }
 
 .resetThemeBtn:hover {
-  background: #f0f4ff;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-subtle);
+  color: var(--color-accent-dark);
 }
 
 .resetThemeBtn:disabled {
@@ -93,17 +93,17 @@
   display: flex;
   padding: 2px 12px 6px;
   gap: 16px;
-  border-bottom: 1px solid #d0d0d0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .section {
   padding: 8px 12px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .sectionTitle {
   font-size: 10px;
-  color: #999;
+  color: var(--color-text-disabled);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 6px;
@@ -132,21 +132,21 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 3px;
   padding: 0 6px;
   height: 24px;
 }
 
 .tfield:focus-within {
-  border-color: #3b82f6;
+  border-color: var(--color-accent);
 }
 
 .tlabel {
   font-size: 10px;
   font-weight: 600;
-  color: #999;
+  color: var(--color-text-disabled);
   flex-shrink: 0;
   width: 10px;
   text-align: center;
@@ -159,7 +159,7 @@
   border: none;
   outline: none;
   background: transparent;
-  color: #222;
+  color: var(--color-text-primary);
   font-size: 12px;
   text-align: right;
   padding: 0;
@@ -175,7 +175,7 @@
 
 .empty {
   padding: 16px 12px;
-  color: #999;
+  color: var(--color-text-disabled);
   font-size: 12px;
 }
 
@@ -191,22 +191,22 @@
 }
 
 .endpointLabel {
-  color: #999;
+  color: var(--color-text-disabled);
   min-width: 36px;
 }
 
 .endpointValue {
-  color: #555;
+  color: var(--color-text-muted);
 }
 
 .uploadBtn {
   display: block;
   width: 100%;
   padding: 6px;
-  background: #e8e8e8;
-  border: 1px solid #ccc;
+  background: var(--color-bg-app);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-  color: #333;
+  color: var(--color-text-secondary);
   font-size: 12px;
   cursor: pointer;
   text-align: center;
@@ -214,7 +214,7 @@
 }
 
 .uploadBtn:hover {
-  background: #ddd;
+  background: var(--color-bg-hover);
 }
 
 .iconPickerBtn {
@@ -224,18 +224,18 @@
   width: 100%;
   height: 30px;
   padding: 0 10px;
-  background: #f5f5f5;
-  border: 1px solid #ccc;
+  background: var(--color-bg-toolbar);
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   font-size: 12px;
-  color: #333;
+  color: var(--color-text-secondary);
   cursor: pointer;
   text-align: left;
 }
 
 .iconPickerBtn:hover {
-  background: #ebebeb;
-  border-color: #aaa;
+  background: var(--color-bg-hover);
+  border-color: var(--color-text-disabled);
 }
 
 .iconSideRow {
@@ -250,7 +250,7 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #444;
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
@@ -258,15 +258,15 @@
   margin-left: auto;
   padding: 2px 8px;
   font-size: 11px;
-  background: #e8e8e8;
-  border: 1px solid #ccc;
+  background: var(--color-bg-app);
+  border: 1px solid var(--color-border);
   border-radius: 3px;
   cursor: pointer;
-  color: #555;
+  color: var(--color-text-muted);
 }
 
 .iconClearBtn:hover:not(:disabled) {
-  background: #ddd;
+  background: var(--color-bg-hover);
 }
 
 .iconClearBtn:disabled {
@@ -286,24 +286,24 @@
   justify-content: center;
   width: 100%;
   aspect-ratio: 1;
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
+  background: var(--color-bg-toolbar);
+  border: 1px solid var(--color-bg-hover);
   border-radius: 3px;
   cursor: pointer;
-  color: #444;
+  color: var(--color-text-secondary);
   padding: 0;
 }
 
 .iconGridItem:hover {
-  background: #e8f0fe;
-  border-color: #3b82f6;
-  color: #3b82f6;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .iconGridItemActive {
-  background: #dbeafe;
-  border-color: #3b82f6;
-  color: #1d4ed8;
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
 }
 
 .resetOverrideBtn {
@@ -313,15 +313,15 @@
   width: 18px;
   height: 18px;
   background: none;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-bg-hover);
   border-radius: 3px;
-  color: #3b82f6;
+  color: var(--color-accent);
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
 }
 
 .resetOverrideBtn:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
 }

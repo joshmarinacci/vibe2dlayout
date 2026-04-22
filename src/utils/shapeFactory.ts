@@ -89,6 +89,14 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         text: { ...themeText('Button'), color: theme ? fg : '#ffffff' },
         icon: null,
       }
+    case 'icon':
+      return {
+        ...base, type: 'icon',
+        transform: defaultTransform(x, y, 40, 40),
+        icon: { name: 'Star' },
+        fill: { color: theme ? fg : '#333333', opacity: 1 },
+        stroke: { color: theme ? fg : '#333333', width: 0, dash: [], opacity: 1 },
+      }
     case 'panel':
       return {
         ...base, type: 'panel',

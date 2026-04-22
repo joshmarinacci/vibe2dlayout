@@ -6,8 +6,9 @@ import {
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
   HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage, Paintbrush,
-  StickyNote, ScrollText, ListOrdered, Table2, Grid,
+  StickyNote, ScrollText, ListOrdered, Table2, Grid, Sun, Moon, Star,
 } from 'lucide-react'
+import { useTheme } from '@hooks/useTheme'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ToolMode } from '@store/types'
 import { createShape } from '@utils/shapeFactory'
@@ -46,6 +47,7 @@ const CONTAINER_CONTROLS: ToolButton[] = [
 
 const FORM_CONTROLS: ToolButton[] = [
   { mode: 'insert-button',    icon: <RectangleHorizontal size={14} />, title: 'Button' },
+  { mode: 'insert-icon',      icon: <Star size={14} />,                title: 'Icon' },
   { mode: 'insert-slider',    icon: <SlidersHorizontal size={14} />,   title: 'Slider' },
   { mode: 'insert-label',     icon: <Tag size={14} />,                 title: 'Label' },
   { mode: 'insert-textfield', icon: <TextCursorInput size={14} />,     title: 'Text Field' },
@@ -72,6 +74,8 @@ export function Toolbar() {
   const [documentsModalMode, setDocumentsModalMode] = useState<'open' | 'save-as'>('open')
   const [editingName, setEditingName] = useState(false)
   const [nameInputValue, setNameInputValue] = useState('')
+
+  const [theme, toggleTheme] = useTheme()
 
   const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode)
   const activeComponentTool = ALL_COMPONENT_TOOLS.find(t => t.mode === state.toolMode)
@@ -208,13 +212,13 @@ export function Toolbar() {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
             if (e.key === 'Escape') { setEditingName(false) }
           }}
-          style={{ fontSize: 12, fontWeight: 'bold', width: 140, height: 24, border: '1px solid #3b82f6', borderRadius: 4, padding: '0 6px', outline: 'none', color: '#111' }}
+          style={{ fontSize: 12, fontWeight: 'bold', width: 140, height: 24, border: '1px solid var(--color-accent)', borderRadius: 4, padding: '0 6px', outline: 'none', color: 'var(--color-text-primary)', background: 'var(--color-bg-surface)' }}
         />
       ) : (
         <span
           title="Click to rename"
           onClick={() => { setNameInputValue(state.documentName); setEditingName(true) }}
-          style={{ fontWeight: 'bold', color: '#333', fontSize: 12, padding: '0 8px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+          style={{ fontWeight: 'bold', color: 'var(--color-text-secondary)', fontSize: 12, padding: '0 8px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
         >
           {state.documentName}
         </span>
@@ -402,6 +406,17 @@ export function Toolbar() {
       </div>
 
       <div className={styles.spacer} />
+
+      {/* Dark mode toggle */}
+      <div className={styles.group}>
+        <button
+          className={styles.btn}
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >{theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}</button>
+      </div>
+
+      <div className={styles.separator} />
 
       {/* Help */}
       <div className={styles.group}>

@@ -9,5 +9,5 @@
 
 .handle:hover,
 .handle:active {
-  background: #3b82f6;
+  background: var(--color-accent);
 }

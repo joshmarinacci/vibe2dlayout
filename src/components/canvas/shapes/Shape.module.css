@@ -4,6 +4,6 @@
 }
 
 .selected {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-accent);
   outline-offset: 1px;
 }

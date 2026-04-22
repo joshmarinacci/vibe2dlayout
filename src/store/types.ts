@@ -27,6 +27,7 @@ export type ToolMode =
   | 'insert-image'
   | 'insert-line'
   | 'insert-button'
+  | 'insert-icon'
   | 'insert-panel'
   | 'insert-slider'
   | 'insert-label'

@@ -22,16 +22,16 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
-  color: #444;
+  color: var(--color-text-secondary);
   font-size: 14px;
   cursor: pointer;
   transition: background 0.1s;
 }
 
 .btn:hover:not(:disabled) {
-  background: #e0e0e0;
-  border-color: #bbb;
-  color: #111;
+  background: var(--color-bg-hover);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 .btn:disabled {
@@ -40,15 +40,15 @@
 }
 
 .btn.active {
-  background: #3b82f6;
-  border-color: #2563eb;
+  background: var(--color-accent);
+  border-color: var(--color-accent-dark);
   color: #fff;
 }
 
 .separator {
   width: 1px;
   height: 20px;
-  background: #d0d0d0;
+  background: var(--color-border);
   margin: 0 4px;
 }
 
@@ -67,10 +67,10 @@
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px var(--color-shadow);
   z-index: 200;
   min-width: 130px;
   padding: 4px;
@@ -87,7 +87,7 @@
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: #333;
+  color: var(--color-text-secondary);
   font-size: 12px;
   cursor: pointer;
   text-align: left;
@@ -95,12 +95,12 @@
 }
 
 .formMenuItem:hover {
-  background: #f0f0f0;
+  background: var(--color-bg-panel);
 }
 
 .formMenuItemActive {
-  background: #eff6ff;
-  color: #3b82f6;
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
 }
 
 .formMenuSection {
@@ -109,22 +109,22 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #888;
+  color: var(--color-text-disabled);
   pointer-events: none;
 }
 
 .formMenuDivider {
   height: 1px;
-  background: #eee;
+  background: var(--color-border-subtle);
   margin: 3px 4px;
 }
 
 .zoomSelect {
   height: 24px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-  background: #fff;
-  color: #333;
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
   font-size: 12px;
   padding: 0 2px;
   cursor: pointer;
@@ -133,5 +133,5 @@
 
 .zoomSelect:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-accent);
 }

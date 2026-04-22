@@ -1,3 +1,29 @@
+## 2026-04-21
+
+### Add Icon shape
+
+Added a new "Icon" shape type that displays a single lucide-react icon.
+
+- `src/model/shapes.ts`: New `IconShape` interface with `transform`, `icon: { name }`, `fill`, and `stroke` properties. Added to the `Shape` union.
+- `src/store/types.ts`: Added `'insert-icon'` to `ToolMode`.
+- `src/utils/shapeFactory.ts`: Factory case for `'icon'` — 40×40px, defaults to "Star" icon with foreground color.
+- `src/components/canvas/shapes/IconShape.tsx`: New component that renders the selected lucide icon centered in the shape bounds. Icon color is controlled by `fill.color`.
+- `src/components/canvas/ShapeRenderer.tsx`: Import and dispatch for the `'icon'` case.
+- `src/components/canvas/useCanvasPointer.ts`: Maps `'insert-icon'` tool mode to `'icon'` shape type.
+- `src/components/toolbar/Toolbar.tsx`: Added "Icon" entry with Star icon to the FORM_CONTROLS dropdown.
+- `src/components/properties/sections/IconSection.tsx`: New section component for picking the icon (reuses the existing IconPickerDialog).
+- `src/components/properties/PropertiesPanel.tsx`: Added `case 'icon'` with Transform, Icon, and Fill sections.
+- `src/components/tree/TreeNode.tsx`: Added `'icon'` to `FORM_CONTROL_TYPES` so it appears with the label "Icon" in the tree.
+
+### Add dark mode
+
+Added a dark/light mode toggle to the UI.
+
+- `src/index.css`: Added CSS custom property tokens for all UI colors under `:root` (light) and `html[data-theme="dark"]` (dark). Updated `html/body/#root` to use the new variables.
+- `src/hooks/useTheme.ts`: New hook that reads/writes `localStorage` key `"ui-theme"`, sets `data-theme` attribute on `<html>`, and auto-detects system preference on first visit.
+- `src/components/toolbar/Toolbar.tsx`: Added Sun/Moon toggle button (right side of toolbar). Fixed 3 hardcoded inline colors on the document name input/span. Imports `useTheme`.
+- All 25 `*.module.css` files: Replaced hardcoded hex color values with CSS variables. The `contentTextarea` code-editor element intentionally retains its dark background in both modes.
+
 ## 2026-04-21 16:18
 
 ### Make tree sidebar sections collapsible

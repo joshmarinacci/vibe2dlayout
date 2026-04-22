@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9,9 +9,9 @@
 }
 
 .modal {
-  background: #fff;
+  background: var(--color-bg-surface);
   border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px var(--color-shadow-modal);
   width: 480px;
   max-width: 96vw;
   max-height: 85vh;
@@ -25,14 +25,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border-subtle);
   flex-shrink: 0;
 }
 
 .title {
   font-size: 15px;
   font-weight: 600;
-  color: #111;
+  color: var(--color-text-primary);
 }
 
 .closeBtn {
@@ -44,14 +44,14 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #666;
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
 .closeBtn:hover {
-  background: #f0f0f0;
-  border-color: #ccc;
-  color: #333;
+  background: var(--color-bg-panel);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
 }
 
 .body {
@@ -71,22 +71,23 @@
 .nameInput {
   flex: 1;
   height: 32px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 0 10px;
   font-size: 13px;
-  color: #111;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
   outline: none;
 }
 
 .nameInput:focus {
-  border-color: #3b82f6;
+  border-color: var(--color-accent);
 }
 
 .saveBtn {
   height: 32px;
   padding: 0 16px;
-  background: #3b82f6;
+  background: var(--color-accent);
   border: none;
   border-radius: 6px;
   color: #fff;
@@ -96,7 +97,7 @@
 }
 
 .saveBtn:hover {
-  background: #2563eb;
+  background: var(--color-accent-dark);
 }
 
 .saveBtn:disabled {
@@ -109,7 +110,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #888;
+  color: var(--color-text-disabled);
 }
 
 .list {
@@ -129,12 +130,12 @@
 }
 
 .docRow:hover {
-  background: #f5f5f5;
+  background: var(--color-bg-toolbar);
 }
 
 .docRowSelected {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-subtle);
 }
 
 .docInfo {
@@ -144,7 +145,7 @@
 
 .docName {
   font-size: 13px;
-  color: #111;
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -152,7 +153,7 @@
 
 .docDate {
   font-size: 11px;
-  color: #888;
+  color: var(--color-text-disabled);
   margin-top: 1px;
 }
 
@@ -165,7 +166,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
-  color: #aaa;
+  color: var(--color-text-disabled);
   cursor: pointer;
   flex-shrink: 0;
   opacity: 0;
@@ -184,7 +185,7 @@
 
 .empty {
   font-size: 13px;
-  color: #999;
+  color: var(--color-text-disabled);
   text-align: center;
   padding: 24px 0;
 }

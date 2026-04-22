@@ -119,6 +119,14 @@ export interface ButtonShape extends ShapeBase {
   icon: { name: string; side: 'left' | 'right' } | null
 }
 
+export interface IconShape extends ShapeBase {
+  type: 'icon'
+  transform: BoundingBox
+  icon: { name: string }
+  fill: FillStyle
+  stroke: StrokeStyle
+}
+
 export interface PanelShape extends ShapeBase {
   type: 'panel'
   transform: BoundingBox
@@ -276,7 +284,7 @@ export interface GroupShape extends ShapeBase {
 export type Shape =
   | RectShape | CircleShape | LineShape
   | TextShape | ImageShape  | PageShape
-  | ButtonShape | PanelShape | SliderShape
+  | ButtonShape | IconShape | PanelShape | SliderShape
   | LabelShape | TextFieldShape | CheckboxShape | ToggleShape
   | FrameShape | DialogShape | RadioShape | SelectShape | ProgressShape | StepperShape
   | StickyNoteShape | ListShape | ScrollPanelShape | TableShape

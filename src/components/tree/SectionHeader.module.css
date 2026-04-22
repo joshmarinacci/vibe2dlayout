@@ -1,7 +1,7 @@
 .header {
   font-size: 10px;
   font-weight: 600;
-  color: #aaa;
+  color: var(--color-text-disabled);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 8px 10px 3px;

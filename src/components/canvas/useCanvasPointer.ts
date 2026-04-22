@@ -37,6 +37,7 @@ const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-image': 'image',
   'insert-line': 'line',
   'insert-button': 'button',
+  'insert-icon': 'icon',
   'insert-panel': 'panel',
   'insert-slider': 'slider',
   'insert-label': 'label',

@@ -58,6 +58,7 @@ const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
 
 const FORM_CONTROL_TYPES: { type: ShapeType; label: string }[] = [
   { type: 'button',    label: 'Button' },
+  { type: 'icon',      label: 'Icon' },
   { type: 'slider',    label: 'Slider' },
   { type: 'label',     label: 'Label' },
   { type: 'textfield', label: 'Text Field' },

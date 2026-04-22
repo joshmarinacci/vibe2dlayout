@@ -13,6 +13,7 @@ import { TextShapeComp } from './shapes/TextShape'
 import { ImageShapeComp } from './shapes/ImageShape'
 import { PageShapeComp } from './shapes/PageShape'
 import { ButtonShapeComp } from './shapes/ButtonShape'
+import { IconShapeComp } from './shapes/IconShape'
 import { PanelShapeComp } from './shapes/PanelShape'
 import { SliderShapeComp } from './shapes/SliderShape'
 import { LabelShapeComp } from './shapes/LabelShape'
@@ -138,6 +139,8 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       return <PageShapeComp shape={resolvedShape} {...commonProps}>{children}</PageShapeComp>
     case 'button':
       return <ButtonShapeComp shape={resolvedShape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
+    case 'icon':
+      return <IconShapeComp shape={resolvedShape} {...commonProps} />
     case 'panel':
       return <PanelShapeComp shape={resolvedShape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps}>{children}</PanelShapeComp>
     case 'slider':

@@ -4,5 +4,5 @@
   object-fit: contain;
   border-radius: 2px;
   flex-shrink: 0;
-  background: #f0f0f0;
+  background: var(--color-bg-panel);
 }
