@@ -226,6 +226,7 @@ export interface ProgressShape extends ShapeBase {
   type: 'progress'
   transform: BoundingBox
   value: number       // 0–100
+  ticks: number       // 0 = none, n = number of tick marks
   fill: FillStyle     // bar fill
   trackFill: FillStyle
   stroke: StrokeStyle

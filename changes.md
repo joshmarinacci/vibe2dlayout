@@ -1,5 +1,9 @@
 ## 2026-04-22
 
+### Add tick marks to Progress Bar shape
+
+Same as the Slider tick marks feature. `ProgressShape` gets a `ticks: number` field (0 = none). Ticks render below the bar using the bar fill color. Configurable via "Ticks" input (0–20) in the properties panel.
+
 ### Add tick marks to Slider shape
 
 - `SliderShape` model: new `ticks: number` field (0 = no ticks, n = number of tick marks evenly distributed across the track).

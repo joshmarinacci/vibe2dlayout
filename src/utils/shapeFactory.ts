@@ -197,6 +197,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'Progress', type: 'progress',
         transform: defaultTransform(x, y, 200, 16),
         value: 60,
+        ticks: 0,
         fill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
         trackFill: { color: '#e5e7eb', opacity: 1 },
         stroke: themeStroke(),

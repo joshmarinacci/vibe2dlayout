@@ -1,7 +1,7 @@
 import type { Dispatch } from 'react'
 import type { ProgressShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, seedFromId } from '@utils/roughPaths'
+import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import styles from './Shape.module.css'
 
@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
-  const { transform, value, fill, trackFill, stroke } = shape
+  const { transform, value, ticks, fill, trackFill, stroke } = shape
   const { x, y, width, height, rotation } = transform
 
   const seed = seedFromId(shape.id)
@@ -44,6 +44,25 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
     strokeWidth: 0,
   }) : []
 
+  const tickPositions = ticks >= 2
+    ? Array.from({ length: ticks }, (_, i) => i / (ticks - 1))
+    : []
+  const tickTop = height + 2
+  const tickBottom = tickTop + Math.max(3, height * 0.5)
+  const tickColor = fill.color === 'transparent' ? '#999' : fill.color
+
+  const tickPaths = handDrawn
+    ? tickPositions.flatMap((t, i) => {
+        const tx = pad + t * (width - pad * 2)
+        return roughLine(tx, tickTop, tx, tickBottom, {
+          seed: seed + 10 + i,
+          roughness: 1.2,
+          stroke: tickColor,
+          strokeWidth: 1.5,
+        })
+      })
+    : []
+
   return (
     <div
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
@@ -67,6 +86,7 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
         >
           <RoughSvgPaths paths={trackPaths} />
           <RoughSvgPaths paths={barPaths} />
+          {tickPaths.length > 0 && <RoughSvgPaths paths={tickPaths} />}
         </svg>
       ) : (
         <>
@@ -89,6 +109,19 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
               background: fill.color,
             }} />
           </div>
+          {/* Plain tick marks */}
+          {tickPositions.map((t, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              left: pad + t * (width - pad * 2) - 1,
+              top: height + 2,
+              width: 2,
+              height: Math.max(3, height * 0.5),
+              background: tickColor,
+              borderRadius: 1,
+              opacity: 0.7,
+            }} />
+          ))}
         </>
       )}
     </div>
