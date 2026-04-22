@@ -8,6 +8,9 @@ import { getActiveTheme } from '@model/theme'
 import { generateId } from '@utils/idgen'
 import { pointInBox, pointNearLine, buildParentMap, getAbsoluteTransform, getContentOrigin } from '@utils/geometry'
 import { getEffectiveGridSettings, snapToGrid } from '@utils/snapping'
+import { computeAlignmentSnap, unionOfBoxes } from '@utils/alignmentSnap'
+import type { GuideLines } from '@utils/alignmentSnap'
+import type { BoundingBox } from '@model/transform'
 import { findNode, getAllIds } from '@model/document'
 import type { VibeDocument } from '@model/document'
 import { resolveEndpoint } from '@utils/connectors'
@@ -116,9 +119,13 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const isDragging = useRef(false)
   const metaDownAtStart = useRef(false)
   const hasDuplicated = useRef(false)
+  const altDownAtStart = useRef(false)
   const spaceDown = useRef(false)
   const spacePanning = useRef(false)
   const [spaceHeld, setSpaceHeld] = useState(false)
+  const initialDragAbsTransforms = useRef<Map<string, BoundingBox>>(new Map())
+  const refAbsTransforms = useRef<BoundingBox[]>([])
+  const [snapGuides, setSnapGuides] = useState<GuideLines>({ x: null, y: null })
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -239,6 +246,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
 
     // Select mode
     metaDownAtStart.current = e.metaKey
+    altDownAtStart.current = e.altKey
     hasDuplicated.current = false
     const hitId = hitTestShapes(pos.x, pos.y)
     if (hitId) {
@@ -257,6 +265,27 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       if (!e.shiftKey) dispatch({ type: 'DESELECT_ALL' })
       draggingIds.current = []
       marqueeStart.current = { cx: pos.x, cy: pos.y, sx: pos.sx, sy: pos.sy }
+    }
+
+    // Capture initial absolute transforms for alignment snapping
+    if (draggingIds.current.length > 0) {
+      const parentMap = buildParentMap(state.document.rootNodes)
+      initialDragAbsTransforms.current.clear()
+      for (const id of draggingIds.current) {
+        const abs = getAbsoluteTransform(id, state.document.shapes, parentMap)
+        if (abs) initialDragAbsTransforms.current.set(id, abs)
+      }
+      const draggingSet = new Set(draggingIds.current)
+      const activePageNode = state.document.rootNodes.find(n => n.id === state.activePageId)
+      const allPageIds = activePageNode ? getAllIds(activePageNode.children) : []
+      refAbsTransforms.current = allPageIds
+        .filter(id => !draggingSet.has(id))
+        .flatMap(id => {
+          const s = state.document.shapes[id]
+          if (!s || !s.visible || s.type === 'line' || s.type === 'group' || s.type === 'page') return []
+          const abs = getAbsoluteTransform(id, state.document.shapes, parentMap)
+          return abs ? [abs] : []
+        })
     }
   }, [state, dispatch, getCanvasPos, hitTestShapes, containerRef])
 
@@ -320,8 +349,31 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       }
       const rawDx = pos.x - dragStart.current.cx
       const rawDy = pos.y - dragStart.current.cy
-      const snappedDx = snapEnabled ? snapToGrid(rawDx, gridSize) : rawDx
-      const snappedDy = snapEnabled ? snapToGrid(rawDy, gridSize) : rawDy
+
+      let snappedDx: number
+      let snappedDy: number
+      let guides: GuideLines = { x: null, y: null }
+
+      if (!altDownAtStart.current && initialDragAbsTransforms.current.size > 0 && refAbsTransforms.current.length > 0) {
+        const threshold = 8 / state.viewTransform.zoom
+        const candidateBox = unionOfBoxes(
+          [...initialDragAbsTransforms.current.values()].map(b => ({
+            ...b, x: b.x + rawDx, y: b.y + rawDy,
+          }))
+        )
+        const snap = computeAlignmentSnap(candidateBox, refAbsTransforms.current, rawDx, rawDy, threshold)
+        snappedDx = snap.snappedDx
+        snappedDy = snap.snappedDy
+        guides = snap.guides
+        // Fall back to grid snap on axes where alignment didn't fire
+        if (guides.x === null && snapEnabled) snappedDx = snapToGrid(rawDx, gridSize)
+        if (guides.y === null && snapEnabled) snappedDy = snapToGrid(rawDy, gridSize)
+      } else {
+        snappedDx = snapEnabled ? snapToGrid(rawDx, gridSize) : rawDx
+        snappedDy = snapEnabled ? snapToGrid(rawDy, gridSize) : rawDy
+      }
+
+      setSnapGuides(guides)
       const canvasDx = snappedDx - lastSnappedDelta.current.x
       const canvasDy = snappedDy - lastSnappedDelta.current.y
       lastSnappedDelta.current = { x: snappedDx, y: snappedDy }
@@ -474,12 +526,16 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     marqueeStart.current = null
     setMarqueeRect(null)
     setGhostRect(null)
+    setSnapGuides({ x: null, y: null })
     dragStart.current = null
     isDragging.current = false
     draggingIds.current = []
+    initialDragAbsTransforms.current.clear()
+    refAbsTransforms.current = []
     lastCanvasPos.current = null
     spacePanning.current = false
     metaDownAtStart.current = false
+    altDownAtStart.current = false
     hasDuplicated.current = false
   }, [state, dispatch, getCanvasPos, containerRef])
 
@@ -550,5 +606,5 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     setContextMenu({ screenX: e.clientX, screenY: e.clientY, canvasX: pos.x, canvasY: pos.y, shapeId, selectedIds })
   }, [getMouseCanvasPos, hitTestShapes, dispatch, state.selection.ids])
 
-  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null), spaceHeld }
+  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null), spaceHeld, snapGuides }
 }

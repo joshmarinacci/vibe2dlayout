@@ -11,6 +11,7 @@ import { CanvasRuler, RULER_SIZE } from './CanvasRuler'
 import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { getEffectiveGridSettings } from '@utils/snapping'
 import { CanvasGrid } from './CanvasGrid'
+import { SnapGuides } from './SnapGuides'
 import styles from './CanvasView.module.css'
 
 export function CanvasView() {
@@ -29,7 +30,7 @@ export function CanvasView() {
     return () => el.removeEventListener('wheel', handleWheel)
   }, [handleWheel])
 
-  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu, spaceHeld } = useCanvasPointer(containerRef)
+  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu, spaceHeld, snapGuides } = useCanvasPointer(containerRef)
 
   const { panX, panY, zoom } = state.viewTransform
 
@@ -112,6 +113,9 @@ export function CanvasView() {
 
         {/* Selection overlay (inside transform so coords match) */}
         <SelectionOverlay containerRef={containerRef} />
+
+        {/* Alignment snap guide lines */}
+        <SnapGuides guides={snapGuides} zoom={zoom} />
 
         {/* Drill-in scope border — one per level in the stack */}
         {state.drilledInContainerStack.map((containerId, i) => {

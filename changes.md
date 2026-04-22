@@ -1,3 +1,21 @@
+## 2026-04-22 (alignment snapping)
+
+### Add shape alignment snapping (smart guides)
+
+When dragging a shape, the tool now shows alignment guide lines and snaps to other shapes — similar to Figma/Google Slides smart guides.
+
+**Behavior:**
+- While dragging, the left/right/center-X and top/bottom/center-Y edges of the dragged shape are compared against all other visible shapes on the active page
+- When any pair of edges comes within ~8 screen pixels, the shape snaps to the aligned position and a pink guide line appears across the canvas
+- X and Y axes snap independently
+- When multiple shapes are selected and dragged together, their collective bounding box is used
+- Hold **Alt/Option** to temporarily disable alignment snapping
+- Alignment snapping takes priority over grid snap on any axis where it fires; grid snap remains active on the other axis
+- Guide lines disappear on mouse release
+
+**Files added:** `src/utils/alignmentSnap.ts`, `src/components/canvas/SnapGuides.tsx`  
+**Files modified:** `src/components/canvas/useCanvasPointer.ts`, `src/components/canvas/CanvasView.tsx`
+
 ## 2026-04-21
 
 ### Add ImageMock and ChartMock shapes
