@@ -1,3 +1,13 @@
+## 2026-04-22
+
+### Improve dark mode system preference handling
+
+`useTheme` now tracks a `null` (follow system) vs explicit override state separately.
+
+- OS preference changes are observed live via `MediaQueryList.addEventListener` and applied immediately when no override is set.
+- The toggle button cycles between "override to opposite" and "clear override (return to system)" rather than always writing to localStorage.
+- `localStorage` key `"ui-theme"` is only present when the user has explicitly overridden; it is removed when following system.
+
 ## 2026-04-21
 
 ### Add Icon shape
