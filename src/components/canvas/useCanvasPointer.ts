@@ -11,6 +11,7 @@ import { getEffectiveGridSettings, snapToGrid } from '@utils/snapping'
 import { computeAlignmentSnap, unionOfBoxes } from '@utils/alignmentSnap'
 import type { GuideLines } from '@utils/alignmentSnap'
 import type { BoundingBox } from '@model/transform'
+import type { CanvasGuide } from '@model/guide'
 import { findNode, getAllIds } from '@model/document'
 import type { VibeDocument } from '@model/document'
 import { resolveEndpoint } from '@utils/connectors'
@@ -126,6 +127,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const initialDragAbsTransforms = useRef<Map<string, BoundingBox>>(new Map())
   const refAbsTransforms = useRef<BoundingBox[]>([])
   const [snapGuides, setSnapGuides] = useState<GuideLines>({ x: null, y: null })
+  const guideCreating = useRef<{ orientation: 'h' | 'v'; position: number } | null>(null)
+  const [guidePreview, setGuidePreview] = useState<CanvasGuide | null>(null)
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -244,6 +247,22 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       return
     }
 
+    // Guide creation: drag from ruler area (sx < RULER_SIZE or sy < RULER_SIZE, not corner)
+    if (state.toolMode === 'select' && state.activePageId) {
+      if (pos.sy < RULER_SIZE && pos.sx >= RULER_SIZE) {
+        // Horizontal ruler → horizontal guide
+        guideCreating.current = { orientation: 'h', position: pos.y }
+        setGuidePreview({ id: '__preview__', orientation: 'h', position: pos.y })
+        return
+      }
+      if (pos.sx < RULER_SIZE && pos.sy >= RULER_SIZE) {
+        // Vertical ruler → vertical guide
+        guideCreating.current = { orientation: 'v', position: pos.x }
+        setGuidePreview({ id: '__preview__', orientation: 'v', position: pos.x })
+        return
+      }
+    }
+
     // Select mode
     metaDownAtStart.current = e.metaKey
     altDownAtStart.current = e.altKey
@@ -286,6 +305,17 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
           const abs = getAbsoluteTransform(id, state.document.shapes, parentMap)
           return abs ? [abs] : []
         })
+      // Include active page boundary as a snap reference (only for fixed-size pages)
+      const activePage = state.activePageId ? state.document.shapes[state.activePageId] : null
+      if (activePage?.type === 'page' && activePage.fixedSize) {
+        refAbsTransforms.current.push({
+          x: activePage.transform.x,
+          y: activePage.transform.y,
+          width: activePage.fixedSize.width,
+          height: activePage.fixedSize.height,
+          rotation: 0,
+        })
+      }
     }
   }, [state, dispatch, getCanvasPos, hitTestShapes, containerRef])
 
@@ -299,6 +329,15 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     if (!isDragging.current && Math.sqrt(dx * dx + dy * dy) > 4) {
       isDragging.current = true
     }
+
+    // Guide creation drag
+    if (guideCreating.current) {
+      const newPos = guideCreating.current.orientation === 'h' ? pos.y : pos.x
+      guideCreating.current.position = newPos
+      setGuidePreview({ id: '__preview__', orientation: guideCreating.current.orientation, position: newPos })
+      return
+    }
+
     if (!isDragging.current) return
 
     if (state.toolMode === 'pan' || spacePanning.current) {
@@ -354,14 +393,18 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       let snappedDy: number
       let guides: GuideLines = { x: null, y: null }
 
-      if (!altDownAtStart.current && initialDragAbsTransforms.current.size > 0 && refAbsTransforms.current.length > 0) {
+      if (!altDownAtStart.current && initialDragAbsTransforms.current.size > 0) {
         const threshold = 8 / state.viewTransform.zoom
         const candidateBox = unionOfBoxes(
           [...initialDragAbsTransforms.current.values()].map(b => ({
             ...b, x: b.x + rawDx, y: b.y + rawDy,
           }))
         )
-        const snap = computeAlignmentSnap(candidateBox, refAbsTransforms.current, rawDx, rawDy, threshold)
+        const activePage = state.activePageId ? state.document.shapes[state.activePageId] : null
+        const pageGuides = activePage?.type === 'page' ? (activePage.guides ?? []) : []
+        const xGuides = pageGuides.filter(g => g.orientation === 'v').map(g => g.position)
+        const yGuides = pageGuides.filter(g => g.orientation === 'h').map(g => g.position)
+        const snap = computeAlignmentSnap(candidateBox, refAbsTransforms.current, rawDx, rawDy, threshold, xGuides, yGuides)
         snappedDx = snap.snappedDx
         snappedDy = snap.snappedDy
         guides = snap.guides
@@ -389,6 +432,16 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     if (!dragStart.current) return
     containerRef.current?.releasePointerCapture(e.pointerId)
+
+    // Commit guide creation
+    if (guideCreating.current && state.activePageId) {
+      dispatch({ type: 'ADD_GUIDE', pageId: state.activePageId,
+        guide: { id: generateId(), ...guideCreating.current } })
+      guideCreating.current = null
+      setGuidePreview(null)
+      dragStart.current = null
+      return
+    }
 
     const pos = getCanvasPos(e)
     const shapeType = TOOL_SHAPE[state.toolMode]
@@ -527,6 +580,8 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     setMarqueeRect(null)
     setGhostRect(null)
     setSnapGuides({ x: null, y: null })
+    setGuidePreview(null)
+    guideCreating.current = null
     dragStart.current = null
     isDragging.current = false
     draggingIds.current = []
@@ -606,5 +661,5 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     setContextMenu({ screenX: e.clientX, screenY: e.clientY, canvasX: pos.x, canvasY: pos.y, shapeId, selectedIds })
   }, [getMouseCanvasPos, hitTestShapes, dispatch, state.selection.ids])
 
-  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null), spaceHeld, snapGuides }
+  return { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu: () => setContextMenu(null), spaceHeld, snapGuides, guidePreview }
 }

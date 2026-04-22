@@ -9,6 +9,7 @@ import type { SelectionState } from '@model/selection'
 import type { ColorPalette, PaletteColor } from '@model/palette'
 import type { Theme } from '@model/theme'
 import type { GridSettings } from '@model/grid'
+import type { CanvasGuide } from '@model/guide'
 
 // ─── View ──────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,9 @@ export type DocumentAction =
   | { type: 'ADD_IMAGE_ASSET';    asset: ImageAsset }
   | { type: 'UPDATE_IMAGE_ASSET'; asset: ImageAsset }
   | { type: 'DELETE_IMAGE_ASSET'; assetId: string }
+  | { type: 'ADD_GUIDE';    pageId: string; guide: CanvasGuide }
+  | { type: 'DELETE_GUIDE'; pageId: string; guideId: string }
+  | { type: 'MOVE_GUIDE';   pageId: string; guideId: string; position: number }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'

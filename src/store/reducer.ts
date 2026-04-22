@@ -612,6 +612,28 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       return { ...doc, shapes: { ...doc.shapes, [action.shapeId]: updatedShape } }
     }
 
+    case 'ADD_GUIDE': {
+      const page = doc.shapes[action.pageId]
+      if (!page || page.type !== 'page') return doc
+      const guides = [...(page.guides ?? []), action.guide]
+      return { ...doc, shapes: { ...doc.shapes, [action.pageId]: { ...page, guides } } }
+    }
+
+    case 'DELETE_GUIDE': {
+      const page = doc.shapes[action.pageId]
+      if (!page || page.type !== 'page') return doc
+      const guides = (page.guides ?? []).filter(g => g.id !== action.guideId)
+      return { ...doc, shapes: { ...doc.shapes, [action.pageId]: { ...page, guides } } }
+    }
+
+    case 'MOVE_GUIDE': {
+      const page = doc.shapes[action.pageId]
+      if (!page || page.type !== 'page') return doc
+      const guides = (page.guides ?? []).map(g =>
+        g.id === action.guideId ? { ...g, position: action.position } : g)
+      return { ...doc, shapes: { ...doc.shapes, [action.pageId]: { ...page, guides } } }
+    }
+
     case 'ADD_THEME':
       return { ...doc, themes: [...doc.themes, action.theme] }
 
@@ -1009,6 +1031,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'ADD_IMAGE_ASSET':
     case 'UPDATE_IMAGE_ASSET':
     case 'DELETE_IMAGE_ASSET':
+    case 'ADD_GUIDE':
+    case 'DELETE_GUIDE':
+    case 'MOVE_GUIDE':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),

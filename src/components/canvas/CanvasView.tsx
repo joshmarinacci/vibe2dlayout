@@ -12,6 +12,7 @@ import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { getEffectiveGridSettings } from '@utils/snapping'
 import { CanvasGrid } from './CanvasGrid'
 import { SnapGuides } from './SnapGuides'
+import { CanvasGuides } from './CanvasGuides'
 import styles from './CanvasView.module.css'
 
 export function CanvasView() {
@@ -30,7 +31,7 @@ export function CanvasView() {
     return () => el.removeEventListener('wheel', handleWheel)
   }, [handleWheel])
 
-  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu, spaceHeld, snapGuides } = useCanvasPointer(containerRef)
+  const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu, spaceHeld, snapGuides, guidePreview } = useCanvasPointer(containerRef)
 
   const { panX, panY, zoom } = state.viewTransform
 
@@ -116,6 +117,17 @@ export function CanvasView() {
 
         {/* Alignment snap guide lines */}
         <SnapGuides guides={snapGuides} zoom={zoom} />
+
+        {/* Persistent user guide lines */}
+        {state.activePageId && (
+          <CanvasGuides
+            guides={activePage?.type === 'page' ? (activePage.guides ?? []) : []}
+            previewGuide={guidePreview}
+            zoom={zoom}
+            pageId={state.activePageId}
+            dispatch={dispatch}
+          />
+        )}
 
         {/* Drill-in scope border — one per level in the stack */}
         {state.drilledInContainerStack.map((containerId, i) => {

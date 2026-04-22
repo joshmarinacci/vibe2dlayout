@@ -36,7 +36,7 @@ export function unionOfBoxes(boxes: BoundingBox[]): BoundingBox {
 
 /**
  * Given the candidate (would-be) bounding box of the dragged shape(s) after rawDelta is applied,
- * find the closest alignment snap with any reference shape (non-dragged shapes on the canvas).
+ * find the closest alignment snap with any reference shape or user guide line.
  *
  * Returns adjusted deltas so that the shape snaps to the aligned position, plus guide line positions.
  * X and Y axes are snapped independently.
@@ -46,6 +46,8 @@ export function unionOfBoxes(boxes: BoundingBox[]): BoundingBox {
  * @param rawDx  Raw drag delta X (canvas space)
  * @param rawDy  Raw drag delta Y (canvas space)
  * @param threshold  Snap zone in canvas pixels (e.g. 8 / zoom)
+ * @param xGuides  Extra vertical snap lines (user guides / page bounds) — canvas-space x positions
+ * @param yGuides  Extra horizontal snap lines (user guides / page bounds) — canvas-space y positions
  */
 export function computeAlignmentSnap(
   candidateBox: BoundingBox,
@@ -53,6 +55,8 @@ export function computeAlignmentSnap(
   rawDx: number,
   rawDy: number,
   threshold: number,
+  xGuides: number[] = [],
+  yGuides: number[] = [],
 ): AlignSnapResult {
   const ce = snapEdges(candidateBox)
   const candidateXs = [ce.left, ce.centerX, ce.right]
@@ -92,6 +96,31 @@ export function computeAlignmentSnap(
           bestYDelta = diff
           bestYGuide = ry
         }
+      }
+    }
+  }
+
+  // Also snap against user guide lines and page boundaries
+  for (const gx of xGuides) {
+    for (const cx of candidateXs) {
+      const diff = gx - cx
+      const dist = Math.abs(diff)
+      if (dist <= bestXDist) {
+        bestXDist = dist
+        bestXDelta = diff
+        bestXGuide = gx
+      }
+    }
+  }
+
+  for (const gy of yGuides) {
+    for (const cy of candidateYs) {
+      const diff = gy - cy
+      const dist = Math.abs(diff)
+      if (dist <= bestYDist) {
+        bestYDist = dist
+        bestYDelta = diff
+        bestYGuide = gy
       }
     }
   }

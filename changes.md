@@ -1,3 +1,21 @@
+## 2026-04-22 (page snap + user guides)
+
+### Add page boundary snapping and user-created guide lines
+
+**Page boundary snapping:** When a fixed-size page is active, its edges and center lines are included as snap targets alongside other shapes.
+
+**User guide lines:**
+- Drag from the horizontal ruler (top) to create a horizontal guide line
+- Drag from the vertical ruler (left) to create a vertical guide line  
+- Drag an existing guide line to reposition it
+- Double-click a guide to delete it
+- Guides persist in the document (saved per-page), are undoable/redoable, and act as snap targets when dragging shapes
+
+Guide lines render in blue (`#4d94ff`) inside the canvas. Snap guide lines (pink) still render over them during alignment snapping.
+
+**Files added:** `src/model/guide.ts`, `src/components/canvas/CanvasGuides.tsx`  
+**Files modified:** `src/model/shapes.ts`, `src/store/types.ts`, `src/store/reducer.ts`, `src/store/history.ts`, `src/utils/alignmentSnap.ts`, `src/components/canvas/useCanvasPointer.ts`, `src/components/canvas/CanvasView.tsx`
+
 ## 2026-04-22 (alignment snapping)
 
 ### Add shape alignment snapping (smart guides)
