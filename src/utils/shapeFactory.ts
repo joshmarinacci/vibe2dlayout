@@ -112,6 +112,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, type: 'slider',
         transform: defaultTransform(x, y, 160, 24),
         value: 0.5,
+        ticks: 0,
         trackFill: { color: '#e5e7eb', opacity: 1 },
         thumbFill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
         stroke: themeStroke(),

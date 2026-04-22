@@ -1,5 +1,12 @@
 ## 2026-04-22
 
+### Add tick marks to Slider shape
+
+- `SliderShape` model: new `ticks: number` field (0 = no ticks, n = number of tick marks evenly distributed across the track).
+- `SliderShape.tsx`: renders tick marks below the track in both plain and hand-drawn modes. Plain mode uses small divs; hand-drawn uses `roughLine`.
+- `shapeFactory.ts`: default `ticks: 0`.
+- Properties panel: "Ticks" number input (0–20) in the Slider section.
+
 ### Improve dark mode system preference handling
 
 `useTheme` now tracks a `null` (follow system) vs explicit override state separately.

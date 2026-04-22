@@ -141,6 +141,7 @@ export interface SliderShape extends ShapeBase {
   type: 'slider'
   transform: BoundingBox
   value: number       // 0–1 normalized
+  ticks: number       // 0 = none, n = number of tick marks
   trackFill: FillStyle
   thumbFill: FillStyle
   stroke: StrokeStyle

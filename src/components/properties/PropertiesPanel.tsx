@@ -609,6 +609,12 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               unit="%"
               {...vp('value', 'number')}
             />
+            <NumberInput
+              label="Ticks"
+              value={shape.ticks ?? 0}
+              min={0} max={20}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { ticks: Math.round(v) } })}
+            />
           </div>
           <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })}
             colorVar={vp('trackFill.color', 'color')} />
