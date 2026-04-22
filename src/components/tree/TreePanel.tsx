@@ -42,6 +42,11 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
   { type: 'stepper',   label: 'Number Stepper' },
 ]
 
+const MOCKUP_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'imagemock', label: 'Image Mock' },
+  { type: 'chartmock', label: 'Chart Mock' },
+]
+
 export function TreePanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
@@ -116,6 +121,15 @@ export function TreePanel() {
                 <div className={styles.addMenuGroup}>
                   <div className={styles.addMenuLabel}>Form Controls</div>
                   {FORM_CONTROLS.map(opt => (
+                    <button key={opt.type} className={styles.addMenuItem} onClick={() => addShape(opt.type)}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.addMenuDivider} />
+                <div className={styles.addMenuGroup}>
+                  <div className={styles.addMenuLabel}>Mockups</div>
+                  {MOCKUP_TYPES.map(opt => (
                     <button key={opt.type} className={styles.addMenuItem} onClick={() => addShape(opt.type)}>
                       {opt.label}
                     </button>

@@ -1,3 +1,19 @@
+## 2026-04-21
+
+### Add ImageMock and ChartMock shapes
+
+Two new wireframe placeholder shapes:
+
+- **Image Mock** (`imagemock`): A rectangle with a smiley face drawn inside — head circle, two dot eyes, and a curved smile. Renders in both plain SVG and hand-drawn (RoughJS) modes. Background fill and stroke are configurable.
+- **Chart Mock** (`chartmock`): A generic chart with axes and either bars or a line series (5 data points). Toggle between bar and line chart in the properties panel. Bar/line color is configurable via Fill. Renders in both plain SVG and hand-drawn modes.
+
+Both shapes appear in:
+- Canvas right-click context menu → Mockups section
+- Tree panel "+" dropdown → Mockups section
+- Tree panel node context menu → Mockups section
+
+Files modified: `src/model/shapes.ts`, `src/utils/shapeFactory.ts`, `src/components/canvas/ShapeRenderer.tsx`, `src/components/canvas/shapes/ImageMockShape.tsx` (new), `src/components/canvas/shapes/ChartMockShape.tsx` (new), `src/components/canvas/CanvasContextMenu.tsx`, `src/components/tree/TreeNode.tsx`, `src/components/tree/TreePanel.tsx`, `src/components/properties/PropertiesPanel.tsx`.
+
 ## 2026-04-22
 
 ### Add tick marks to Progress Bar shape

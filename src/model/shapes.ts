@@ -281,6 +281,21 @@ export interface GroupShape extends ShapeBase {
   transform: BoundingBox  // auto-computed as union of children's bounding boxes
 }
 
+export interface ImageMockShape extends ShapeBase {
+  type: 'imagemock'
+  transform: BoundingBox
+  fill: FillStyle    // background fill
+  stroke: StrokeStyle
+}
+
+export interface ChartMockShape extends ShapeBase {
+  type: 'chartmock'
+  transform: BoundingBox
+  fill: FillStyle    // bar/line color
+  stroke: StrokeStyle
+  chartType: 'bar' | 'line'
+}
+
 // ─── Union ────────────────────────────────────────────────────────────────
 
 export type Shape =
@@ -290,7 +305,7 @@ export type Shape =
   | LabelShape | TextFieldShape | CheckboxShape | ToggleShape
   | FrameShape | DialogShape | RadioShape | SelectShape | ProgressShape | StepperShape
   | StickyNoteShape | ListShape | ScrollPanelShape | TableShape
-  | GroupShape
+  | GroupShape | ImageMockShape | ChartMockShape
 
 export type ShapeType = Shape['type']
 

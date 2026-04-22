@@ -251,5 +251,20 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'Group', type: 'group',
         transform: defaultTransform(x, y, 100, 100),
       }
+    case 'imagemock':
+      return {
+        ...base, name: 'Image Mock', type: 'imagemock',
+        transform: defaultTransform(x, y, 160, 120),
+        fill: themeFill(),
+        stroke: themeStroke(),
+      }
+    case 'chartmock':
+      return {
+        ...base, name: 'Chart Mock', type: 'chartmock',
+        transform: defaultTransform(x, y, 200, 140),
+        fill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
+        stroke: themeStroke(),
+        chartType: 'bar',
+      }
   }
 }

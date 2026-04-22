@@ -59,6 +59,11 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
   { type: 'table',     label: 'Table' },
 ]
 
+const MOCKUP_SHAPES: { type: ShapeType; label: string }[] = [
+  { type: 'imagemock', label: 'Image Mock' },
+  { type: 'chartmock', label: 'Chart Mock' },
+]
+
 export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose }: Props) {
   const { state } = useAppState()
   const { screenX, screenY, canvasX, canvasY, shapeId, selectedIds } = menuState
@@ -100,6 +105,11 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
     onClick: () => addShape(opt.type, parentId),
   }))
 
+  const mockupItems = MOCKUP_SHAPES.map(opt => ({
+    label: opt.label,
+    onClick: () => addShape(opt.type, parentId),
+  }))
+
   const addShapeGroups: ContextMenuGroup[] = [
     {
       items: [
@@ -113,6 +123,8 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
         ...containerItems,
         { label: 'Form Controls', onClick: () => {}, disabled: true },
         ...formItems,
+        { label: 'Mockups', onClick: () => {}, disabled: true },
+        ...mockupItems,
       ],
     },
   ]

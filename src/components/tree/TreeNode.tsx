@@ -7,6 +7,7 @@ import {
   Eye, EyeOff, Lock, Unlock, Trash2, ChevronRight, ChevronDown,
   AppWindow, CircleDot, List, GanttChart, Hash,
   Copy, ChevronsUp, ChevronsDown, ChevronUp, LayoutPanelLeft,
+  ImageIcon, BarChart2,
 } from 'lucide-react'
 import type { TreeNode } from '@model/document'
 import { findAncestorPage } from '@model/document'
@@ -39,6 +40,8 @@ const SHAPE_ICON_MAP: Record<string, React.ReactNode> = {
   select:    <List size={11} />,
   progress:  <GanttChart size={11} />,
   stepper:   <Hash size={11} />,
+  imagemock: <ImageIcon size={11} />,
+  chartmock: <BarChart2 size={11} />,
 }
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -68,6 +71,11 @@ const FORM_CONTROL_TYPES: { type: ShapeType; label: string }[] = [
   { type: 'select',    label: 'Select' },
   { type: 'progress',  label: 'Progress Bar' },
   { type: 'stepper',   label: 'Number Stepper' },
+]
+
+const MOCKUP_TYPES: { type: ShapeType; label: string }[] = [
+  { type: 'imagemock', label: 'Image Mock' },
+  { type: 'chartmock', label: 'Chart Mock' },
 ]
 
 interface DragPayload {
@@ -232,6 +240,10 @@ export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, acti
       label: opt.label,
       onClick: () => addShapeTo(node.id, opt.type),
     }))
+    const mockupItems = MOCKUP_TYPES.map(opt => ({
+      label: opt.label,
+      onClick: () => addShapeTo(node.id, opt.type),
+    }))
     const addShapeGroups: ContextMenuGroup[] = [
       {
         items: [
@@ -245,6 +257,8 @@ export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, acti
           ...containerItems,
           { label: 'Form Controls', onClick: () => {}, disabled: true },
           ...formItems,
+          { label: 'Mockups', onClick: () => {}, disabled: true },
+          ...mockupItems,
         ],
       },
     ]

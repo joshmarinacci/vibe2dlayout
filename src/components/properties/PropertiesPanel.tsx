@@ -1021,5 +1021,45 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
         </>
       )
+
+    case 'imagemock':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+        </>
+      )
+
+    case 'chartmock':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <div className={styles.section}>
+            <div className={styles.sectionTitle}>Chart Mock</div>
+            <div className={styles.row}>
+              <label className={styles.label}>Type</label>
+              <select
+                value={shape.chartType}
+                onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { chartType: e.target.value as 'bar' | 'line' } as Partial<Shape> })}
+                style={{ fontSize: 12 }}
+              >
+                <option value="bar">Bar</option>
+                <option value="line">Line</option>
+              </select>
+            </div>
+          </div>
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+        </>
+      )
   }
 }

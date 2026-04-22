@@ -31,6 +31,8 @@ import { ListShapeComp } from './shapes/ListShape'
 import { ScrollPanelShapeComp } from './shapes/ScrollPanelShape'
 import { TableShapeComp } from './shapes/TableShape'
 import { GroupShapeComp } from './shapes/GroupShape'
+import { ImageMockShapeComp } from './shapes/ImageMockShape'
+import { ChartMockShapeComp } from './shapes/ChartMockShape'
 
 interface Props {
   nodes: TreeNode[]
@@ -175,5 +177,9 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       return <TableShapeComp shape={resolvedShape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'group':
       return <GroupShapeComp shape={resolvedShape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>{children}</GroupShapeComp>
+    case 'imagemock':
+      return <ImageMockShapeComp shape={resolvedShape} handDrawn={effectiveHandDrawn} {...commonProps} />
+    case 'chartmock':
+      return <ChartMockShapeComp shape={resolvedShape} handDrawn={effectiveHandDrawn} {...commonProps} />
   }
 }
