@@ -72,6 +72,7 @@ function findDropTarget(
   draggedId: string,
   doc: VibeDocument,
   parentMap: Record<string, string>,
+  activePageId: string | null,
 ): string | null {
   const draggedNode = findNode(doc.rootNodes, draggedId)
   const excluded = new Set(draggedNode ? getAllIds(draggedNode.children) : [])
@@ -87,7 +88,10 @@ function findDropTarget(
       walk(n.children)
     }
   }
-  for (const page of doc.rootNodes) walk(page.children)
+  // Only consider containers on the active page — prevents cross-page reparenting
+  // when multiple pages share the same canvas coordinates.
+  const activePageNode = doc.rootNodes.find(n => n.id === activePageId)
+  if (activePageNode) walk(activePageNode.children)
 
   let best: string | null = null
   for (const id of candidates) {
@@ -570,7 +574,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         const centerX = abs.x + abs.width / 2
         const centerY = abs.y + abs.height / 2
 
-        const newParentId = findDropTarget(centerX, centerY, shapeId, state.document, parentMap)
+        const newParentId = findDropTarget(centerX, centerY, shapeId, state.document, parentMap, state.activePageId)
 
         if (newParentId !== effectiveCurrentParent) {
           const origin = getContentOrigin(newParentId, state.document.shapes, parentMap)

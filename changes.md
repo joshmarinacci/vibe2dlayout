@@ -837,3 +837,9 @@ Initial implementation of Vibe 2D Layout.
 
 - Reordered Transform section fields: X/Y, W/H, SX/SY, KX/KY, °
 - Widened `.tlabel` from 10px to 14px to fit 2-char labels (SX, SY, KX, KY)
+
+## 2026-04-23 09:40
+
+- Fix: shapes being dragged on a secondary page could be silently reparented to containers on another page
+- Root cause: `findDropTarget` in `useCanvasPointer.ts` walked all pages' shape trees; since pages default to canvas origin (0,0), page 1 containers matched drop targets for shapes on page 2
+- Fix: scope `findDropTarget` to active page's children only, via new `activePageId` parameter
