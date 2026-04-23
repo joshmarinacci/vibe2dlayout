@@ -1,3 +1,10 @@
+## 2026-04-23 16:15
+
+### Fix group PNG export clipping transformed shapes
+
+- Render into a padded container (200px each side) so CSS-transformed shapes (rotation/scale/skew) that visually overflow their bounding box are not clipped
+- After html2canvas captures the padded canvas, crop back to the exact group dimensions using a secondary canvas `drawImage` call
+
 ## 2026-04-23 16:00
 
 ### Export group as PNG

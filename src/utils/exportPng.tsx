@@ -25,18 +25,35 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
   const { width, height } = group.transform
   const theme = getActiveTheme(state.document)
 
+  // Add padding so CSS-transformed (rotated/scaled/skewed) shapes that visually
+  // overflow their bounding box are not clipped by the container edge.
+  const PAD = 200
+  const totalW = width + PAD * 2
+  const totalH = height + PAD * 2
+
   const container = document.createElement('div')
   container.style.cssText = `
     position: fixed;
-    left: ${-(width + 200)}px;
+    left: ${-(totalW + 200)}px;
     top: 0;
-    width: ${width}px;
-    height: ${height}px;
-    overflow: hidden;
+    width: ${totalW}px;
+    height: ${totalH}px;
   `
   document.body.appendChild(container)
 
-  const root = createRoot(container)
+  // Inner div translates all children by PAD so they sit in the centre of the
+  // padded container rather than at its top-left corner.
+  const inner = document.createElement('div')
+  inner.style.cssText = `
+    position: absolute;
+    left: ${PAD}px;
+    top: ${PAD}px;
+    width: ${width}px;
+    height: ${height}px;
+  `
+  container.appendChild(inner)
+
+  const root = createRoot(inner)
   try {
     await new Promise<void>(resolve => {
       root.render(
@@ -56,15 +73,26 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
     })
 
     const canvas = await html2canvas(container, {
-      width,
-      height,
+      width: totalW,
+      height: totalH,
       scale: window.devicePixelRatio || 2,
       useCORS: true,
       backgroundColor: null,
       logging: false,
     })
 
-    const url = canvas.toDataURL('image/png')
+    // Crop out the padding to produce a canvas sized exactly to the group.
+    const scale = window.devicePixelRatio || 2
+    const cropped = document.createElement('canvas')
+    cropped.width  = width  * scale
+    cropped.height = height * scale
+    const ctx = cropped.getContext('2d')!
+    ctx.drawImage(canvas,
+      PAD * scale, PAD * scale, width * scale, height * scale,
+      0, 0, width * scale, height * scale,
+    )
+
+    const url = cropped.toDataURL('image/png')
     const a = document.createElement('a')
     a.href = url
     a.download = `${state.documentName || 'export'}-group.png`
