@@ -1,3 +1,10 @@
+## 2026-04-23 16:30
+
+### Unit tests for export bounds computation
+
+- Extracted `applyTransform`, `shapeCorners`, `computeVisualBounds` from `exportPng.tsx` into `src/utils/exportBounds.ts` so they can be tested independently
+- Added `tests/utils/exportBounds.test.ts` with 18 tests covering: identity, 90°/180° rotation, scaleX/Y, skewX/Y, axis-aligned bounds, rotated bounds (including the 100×20 @ 45° case that reveals visual width ≈ 84.9px — less than 100), multi-shape spanning, scaled shapes, skewed shapes, and line-shape filtering
+
 ## 2026-04-23 16:15
 
 ### Fix group PNG export clipping transformed shapes
