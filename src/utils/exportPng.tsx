@@ -5,6 +5,8 @@ import { ShapeRenderer } from '@components/canvas/ShapeRenderer'
 import type { AppState } from '@store/types'
 import { getActiveTheme } from '@model/theme'
 import type { TreeNode } from '@model/document'
+import type { BoundingBox } from '@model/transform'
+import type { Shape } from '@model/shapes'
 
 function findNode(nodes: TreeNode[], id: string): TreeNode | null {
   for (const n of nodes) {
@@ -15,6 +17,70 @@ function findNode(nodes: TreeNode[], id: string): TreeNode | null {
   return null
 }
 
+/**
+ * Transform a point (px, py) — relative to shape center — through the CSS
+ * transform stack matching buildCSSTransform's output order:
+ *   rotate(θ) scaleX(sx) scaleY(sy) skewX(kx) skewY(ky)
+ * CSS applies listed transforms left-to-right to the coordinate system, which
+ * means points are transformed right-to-left: skewY → skewX → scaleY → scaleX → rotate.
+ */
+function applyTransform(px: number, py: number, t: BoundingBox): [number, number] {
+  const kx = ((t.skewX ?? 0) * Math.PI) / 180
+  const ky = ((t.skewY ?? 0) * Math.PI) / 180
+  const sx = t.scaleX ?? 1
+  const sy = t.scaleY ?? 1
+  const θ  = (t.rotation * Math.PI) / 180
+
+  // skewY: (x, y) → (x, y + x·tan(ky))
+  py = py + px * Math.tan(ky)
+  // skewX: (x, y) → (x + y·tan(kx), y)
+  px = px + py * Math.tan(kx)
+  // scaleY
+  py = py * sy
+  // scaleX
+  px = px * sx
+  // rotate
+  const cos = Math.cos(θ), sin = Math.sin(θ)
+  return [px * cos - py * sin, px * sin + py * cos]
+}
+
+/**
+ * Return the four corners of a shape in parent-local coordinates, fully
+ * accounting for rotation, scale and skew.
+ */
+function shapeCorners(t: BoundingBox): [number, number][] {
+  const cx = t.x + t.width  / 2
+  const cy = t.y + t.height / 2
+  const hw = t.width  / 2
+  const hh = t.height / 2
+  return ([ [-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh] ] as [number, number][])
+    .map(([px, py]) => {
+      const [rx, ry] = applyTransform(px, py, t)
+      return [cx + rx, cy + ry] as [number, number]
+    })
+}
+
+/**
+ * Compute the axis-aligned visual bounding box of a set of tree nodes,
+ * accounting for each shape's transforms. Does not recurse into children
+ * (containers are responsible for their own overflow).
+ */
+function computeVisualBounds(nodes: TreeNode[], shapes: Record<string, Shape>) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const node of nodes) {
+    const shape = shapes[node.id]
+    if (!shape || shape.type === 'line') continue
+    for (const [x, y] of shapeCorners(shape.transform as BoundingBox)) {
+      if (x < minX) minX = x
+      if (y < minY) minY = y
+      if (x > maxX) maxX = x
+      if (y > maxY) maxY = y
+    }
+  }
+  if (!isFinite(minX)) return { x: 0, y: 0, width: 0, height: 0 }
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+}
+
 export async function exportGroupAsPng(groupId: string, state: AppState): Promise<void> {
   const group = state.document.shapes[groupId]
   if (!group || group.type !== 'group') throw new Error('Shape is not a group')
@@ -22,34 +88,37 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
   const groupNode = findNode(state.document.rootNodes, groupId)
   if (!groupNode) throw new Error('Group node not found')
 
-  const { width, height } = group.transform
   const theme = getActiveTheme(state.document)
 
-  // Add padding so CSS-transformed (rotated/scaled/skewed) shapes that visually
-  // overflow their bounding box are not clipped by the container edge.
-  const PAD = 200
-  const totalW = width + PAD * 2
-  const totalH = height + PAD * 2
+  // Compute the true visual bounds of all children (accounts for rotation/scale/skew).
+  const bounds = computeVisualBounds(groupNode.children, state.document.shapes)
+
+  // Add a small margin so anti-aliased edges aren't hard-cut.
+  const MARGIN = 4
+  const canvasW = Math.ceil(bounds.width)  + MARGIN * 2
+  const canvasH = Math.ceil(bounds.height) + MARGIN * 2
+
+  // Offset: shift content so the visual top-left lands at (MARGIN, MARGIN).
+  const offsetX = -bounds.x + MARGIN
+  const offsetY = -bounds.y + MARGIN
 
   const container = document.createElement('div')
   container.style.cssText = `
     position: fixed;
-    left: ${-(totalW + 200)}px;
+    left: ${-(canvasW + 200)}px;
     top: 0;
-    width: ${totalW}px;
-    height: ${totalH}px;
+    width: ${canvasW}px;
+    height: ${canvasH}px;
   `
   document.body.appendChild(container)
 
-  // Inner div translates all children by PAD so they sit in the centre of the
-  // padded container rather than at its top-left corner.
   const inner = document.createElement('div')
   inner.style.cssText = `
     position: absolute;
-    left: ${PAD}px;
-    top: ${PAD}px;
-    width: ${width}px;
-    height: ${height}px;
+    left: ${offsetX}px;
+    top: ${offsetY}px;
+    width: ${Math.ceil(bounds.width)}px;
+    height: ${Math.ceil(bounds.height)}px;
   `
   container.appendChild(inner)
 
@@ -73,26 +142,15 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
     })
 
     const canvas = await html2canvas(container, {
-      width: totalW,
-      height: totalH,
+      width: canvasW,
+      height: canvasH,
       scale: window.devicePixelRatio || 2,
       useCORS: true,
       backgroundColor: null,
       logging: false,
     })
 
-    // Crop out the padding to produce a canvas sized exactly to the group.
-    const scale = window.devicePixelRatio || 2
-    const cropped = document.createElement('canvas')
-    cropped.width  = width  * scale
-    cropped.height = height * scale
-    const ctx = cropped.getContext('2d')!
-    ctx.drawImage(canvas,
-      PAD * scale, PAD * scale, width * scale, height * scale,
-      0, 0, width * scale, height * scale,
-    )
-
-    const url = cropped.toDataURL('image/png')
+    const url = canvas.toDataURL('image/png')
     const a = document.createElement('a')
     a.href = url
     a.download = `${state.documentName || 'export'}-group.png`
