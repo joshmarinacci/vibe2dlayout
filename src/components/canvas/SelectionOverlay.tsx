@@ -191,6 +191,10 @@ function ResizeHandle({ anchor, cx, cy, handleSize, bbox, ids, containerRef, dis
         width,
         height,
         rotation: startBbox.rotation,
+        scaleX: startBbox.scaleX,
+        scaleY: startBbox.scaleY,
+        skewX: startBbox.skewX,
+        skewY: startBbox.skewY,
       }})
     }
   }, [anchor, ids, containerRef, dispatch, state.viewTransform, state.activePageId, state.document.shapes, state.document.gridSettings])
