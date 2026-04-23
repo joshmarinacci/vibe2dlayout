@@ -153,7 +153,7 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
   return (
     <CollapsibleSection title="Text">
 
-{/* Style selector */}
+{/* 1 — Named style */}
 <SelectInput
   label="Style"
   value={activeStyleId}
@@ -161,7 +161,243 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
   onChange={v => dispatch({ type: 'APPLY_TEXT_STYLE', shapeId, textStyleId: v || null })}
 />
 
-{/* Color / Gradient toggle */}
+{/* 2 — Font identity: family → size */}
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <div style={{ flex: 1 }}>
+    <SelectInput
+      label="Font"
+      value={text.fontFamily}
+      options={fontOptions}
+      onChange={v => applyChange({ fontFamily: v })}
+    />
+  </div>
+  {hasStyle && overrides.has('fontFamily') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontFamily')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+</div>
+
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <div style={{ flex: 1 }}>
+    <NumberInput
+      label="Size"
+      value={text.fontSize}
+      min={FONT_SIZE_MIN}
+      max={FONT_SIZE_MAX}
+      step={1}
+      unit="px"
+      onChange={v => applyChange({ fontSize: v })}
+    />
+    <input
+      type="range"
+      min={0}
+      max={100}
+      step={1}
+      value={fontSizeToSlider(Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, text.fontSize)))}
+      onChange={e => applyChange({ fontSize: sliderToFontSize(Number(e.target.value)) })}
+      style={{ width: '100%', marginTop: 2, accentColor: 'var(--color-accent)' }}
+    />
+  </div>
+  {hasStyle && overrides.has('fontSize') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontSize')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+</div>
+
+{/* 3 — Font style: weight + italic + small caps */}
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <div style={{ flex: 1 }}>
+    <SelectInput
+      label="Weight"
+      value={text.fontWeight}
+      options={weightOptions}
+      onChange={v => applyChange({ fontWeight: v as TextStyle['fontWeight'] })}
+    />
+  </div>
+  <button
+    className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
+    title="Italic"
+    onClick={() => applyChange({ fontStyle: text.fontStyle === 'italic' ? 'normal' : 'italic' })}
+  >
+    <Italic size={13} />
+  </button>
+  <button
+    className={`${inputStyles.iconBtn}${text.fontVariantCaps === 'small-caps' ? ` ${inputStyles.iconBtnActive}` : ''}`}
+    title={hasSmallCaps === false ? 'Small Caps (synthesized — font has no native smcp)' : 'Small Caps'}
+    style={{ opacity: hasSmallCaps === false ? 0.45 : 1 }}
+    onClick={() => applyChange({ fontVariantCaps: text.fontVariantCaps === 'small-caps' ? 'normal' : 'small-caps' })}
+  >
+    <ALargeSmall size={13} />
+  </button>
+  {hasStyle && overrides.has('fontWeight') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontWeight')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+  {hasStyle && overrides.has('fontStyle') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontStyle')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+  {hasStyle && overrides.has('fontVariantCaps') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontVariantCaps')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+</div>
+
+{/* 4 — Alignment: H and V on one row */}
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <div style={{ flex: 1 }} className={inputStyles.field}>
+    <span className={inputStyles.label}>Align</span>
+    <div className={inputStyles.iconBtnGroup}>
+      {([
+        { value: 'left',   Icon: AlignLeft,   title: 'Left' },
+        { value: 'center', Icon: AlignCenter, title: 'Center' },
+        { value: 'right',  Icon: AlignRight,  title: 'Right' },
+      ] as const).map(({ value, Icon, title }) => (
+        <button
+          key={value}
+          className={`${inputStyles.iconBtn} ${text.align === value ? inputStyles.iconBtnActive : ''}`}
+          title={title}
+          onClick={() => applyChange({ align: value })}
+        >
+          <Icon size={13} />
+        </button>
+      ))}
+      <span style={{ width: 1, background: 'var(--color-border)', alignSelf: 'stretch', margin: '2px 2px' }} />
+      {([
+        { value: 'top',    Icon: AlignVerticalJustifyStart,  title: 'Top' },
+        { value: 'middle', Icon: AlignVerticalJustifyCenter, title: 'Middle' },
+        { value: 'bottom', Icon: AlignVerticalJustifyEnd,    title: 'Bottom' },
+      ] as const).map(({ value, Icon, title }) => (
+        <button
+          key={value}
+          className={`${inputStyles.iconBtn} ${text.verticalAlign === value ? inputStyles.iconBtnActive : ''}`}
+          title={title}
+          onClick={() => applyChange({ verticalAlign: value })}
+        >
+          <Icon size={13} />
+        </button>
+      ))}
+    </div>
+  </div>
+  {hasStyle && overrides.has('align') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('align')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+  {hasStyle && overrides.has('verticalAlign') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('verticalAlign')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+</div>
+
+{/* 5 — Spacing: line height + letter spacing on one row */}
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <div style={{ flex: 1 }}>
+    <NumberInput
+      label="Line H"
+      value={text.lineHeight ?? 1.2}
+      min={0.5}
+      max={4}
+      step={0.1}
+      onChange={v => applyChange({ lineHeight: v })}
+    />
+  </div>
+  {hasStyle && overrides.has('lineHeight') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('lineHeight')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+  <div style={{ flex: 1 }}>
+    <NumberInput
+      label="Spacing"
+      value={text.letterSpacing ?? 0}
+      min={-10}
+      max={50}
+      step={0.5}
+      unit="px"
+      onChange={v => applyChange({ letterSpacing: v })}
+    />
+  </div>
+  {hasStyle && overrides.has('letterSpacing') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('letterSpacing')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+</div>
+
+{/* 6 — Decoration: underline/strikethrough + text transform */}
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <div style={{ flex: 1 }} className={inputStyles.field}>
+    <span className={inputStyles.label}>Decoration</span>
+    <div className={inputStyles.iconBtnGroup}>
+      {([
+        { value: 'underline',     Icon: Underline,     title: 'Underline' },
+        { value: 'line-through',  Icon: Strikethrough, title: 'Strikethrough' },
+      ] as const).map(({ value, Icon, title }) => {
+        const cur = text.textDecoration ?? 'none'
+        const active = cur === value || cur === 'underline line-through'
+        const toggle = () => {
+          const both = cur === 'underline line-through'
+          if (value === 'underline') {
+            if (cur === 'underline') applyChange({ textDecoration: 'none' })
+            else if (cur === 'line-through') applyChange({ textDecoration: 'underline line-through' })
+            else if (both) applyChange({ textDecoration: 'line-through' })
+            else applyChange({ textDecoration: 'underline' })
+          } else {
+            if (cur === 'line-through') applyChange({ textDecoration: 'none' })
+            else if (cur === 'underline') applyChange({ textDecoration: 'underline line-through' })
+            else if (both) applyChange({ textDecoration: 'underline' })
+            else applyChange({ textDecoration: 'line-through' })
+          }
+        }
+        return (
+          <button
+            key={value}
+            className={`${inputStyles.iconBtn} ${active ? inputStyles.iconBtnActive : ''}`}
+            title={title}
+            onClick={toggle}
+          >
+            <Icon size={13} />
+          </button>
+        )
+      })}
+    </div>
+  </div>
+  {hasStyle && overrides.has('textDecoration') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('textDecoration')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+</div>
+
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <div style={{ flex: 1 }}>
+    <SelectInput
+      label="Transform"
+      value={text.textTransform ?? 'none'}
+      options={[
+        { value: 'none',       label: 'None' },
+        { value: 'uppercase',  label: 'Uppercase' },
+        { value: 'lowercase',  label: 'Lowercase' },
+        { value: 'capitalize', label: 'Capitalize' },
+      ]}
+      onChange={v => applyChange({ textTransform: v as TextStyle['textTransform'] })}
+    />
+  </div>
+  {hasStyle && overrides.has('textTransform') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('textTransform')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+</div>
+
+{/* 7 — Color / gradient */}
 {(() => {
   const isGradient = !!text.textGradient
   const gradient = text.textGradient ?? DEFAULT_TEXT_GRADIENT
@@ -247,151 +483,7 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
   )
 })()}
 
-{/* Font size */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }}>
-    <NumberInput
-      label="Size"
-      value={text.fontSize}
-      min={FONT_SIZE_MIN}
-      max={FONT_SIZE_MAX}
-      step={1}
-      unit="px"
-      onChange={v => applyChange({ fontSize: v })}
-    />
-    <input
-      type="range"
-      min={0}
-      max={100}
-      step={1}
-      value={fontSizeToSlider(Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, text.fontSize)))}
-      onChange={e => applyChange({ fontSize: sliderToFontSize(Number(e.target.value)) })}
-      style={{ width: '100%', marginTop: 2, accentColor: 'var(--color-accent)' }}
-    />
-  </div>
-  {hasStyle && overrides.has('fontSize') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontSize')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Horizontal alignment */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }} className={inputStyles.field}>
-    <span className={inputStyles.label}>Align</span>
-    <div className={inputStyles.iconBtnGroup}>
-      {([
-        { value: 'left',   Icon: AlignLeft },
-        { value: 'center', Icon: AlignCenter },
-        { value: 'right',  Icon: AlignRight },
-      ] as const).map(({ value, Icon }) => (
-        <button
-          key={value}
-          className={`${inputStyles.iconBtn} ${text.align === value ? inputStyles.iconBtnActive : ''}`}
-          title={value.charAt(0).toUpperCase() + value.slice(1)}
-          onClick={() => applyChange({ align: value })}
-        >
-          <Icon size={13} />
-        </button>
-      ))}
-    </div>
-  </div>
-  {hasStyle && overrides.has('align') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('align')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Vertical alignment */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }} className={inputStyles.field}>
-    <span className={inputStyles.label}>V-Align</span>
-    <div className={inputStyles.iconBtnGroup}>
-      {([
-        { value: 'top',    Icon: AlignVerticalJustifyStart },
-        { value: 'middle', Icon: AlignVerticalJustifyCenter },
-        { value: 'bottom', Icon: AlignVerticalJustifyEnd },
-      ] as const).map(({ value, Icon }) => (
-        <button
-          key={value}
-          className={`${inputStyles.iconBtn} ${text.verticalAlign === value ? inputStyles.iconBtnActive : ''}`}
-          title={value.charAt(0).toUpperCase() + value.slice(1)}
-          onClick={() => applyChange({ verticalAlign: value })}
-        >
-          <Icon size={13} />
-        </button>
-      ))}
-    </div>
-  </div>
-  {hasStyle && overrides.has('verticalAlign') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('verticalAlign')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Font weight + italic */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }}>
-    <SelectInput
-      label="Weight"
-      value={text.fontWeight}
-      options={weightOptions}
-      onChange={v => applyChange({ fontWeight: v as TextStyle['fontWeight'] })}
-    />
-  </div>
-  <button
-    className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
-    title="Italic"
-    onClick={() => applyChange({ fontStyle: text.fontStyle === 'italic' ? 'normal' : 'italic' })}
-  >
-    <Italic size={13} />
-  </button>
-  <button
-    className={`${inputStyles.iconBtn}${text.fontVariantCaps === 'small-caps' ? ` ${inputStyles.iconBtnActive}` : ''}`}
-    title={hasSmallCaps === false ? 'Small Caps (synthesized — font has no native smcp)' : 'Small Caps'}
-    style={{ opacity: hasSmallCaps === false ? 0.45 : 1 }}
-    onClick={() => applyChange({ fontVariantCaps: text.fontVariantCaps === 'small-caps' ? 'normal' : 'small-caps' })}
-  >
-    <ALargeSmall size={13} />
-  </button>
-  {hasStyle && overrides.has('fontWeight') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontWeight')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-  {hasStyle && overrides.has('fontStyle') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontStyle')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-  {hasStyle && overrides.has('fontVariantCaps') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontVariantCaps')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Font family */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }}>
-    <SelectInput
-      label="Font"
-      value={text.fontFamily}
-      options={fontOptions}
-      onChange={v => applyChange({ fontFamily: v })}
-    />
-  </div>
-  {hasStyle && overrides.has('fontFamily') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontFamily')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Text shadow */}
+{/* 8 — Effects: shadow */}
 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
   <div style={{ flex: 1 }} className={inputStyles.field}>
     <span className={inputStyles.label}>Shadow</span>
@@ -427,111 +519,6 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
   </div>
 )}
 
-{/* Line Height */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }}>
-    <NumberInput
-      label="Line Height"
-      value={text.lineHeight ?? 1.2}
-      min={0.5}
-      max={4}
-      step={0.1}
-      onChange={v => applyChange({ lineHeight: v })}
-    />
-  </div>
-  {hasStyle && overrides.has('lineHeight') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('lineHeight')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Letter Spacing */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }}>
-    <NumberInput
-      label="Spacing"
-      value={text.letterSpacing ?? 0}
-      min={-10}
-      max={50}
-      step={0.5}
-      unit="px"
-      onChange={v => applyChange({ letterSpacing: v })}
-    />
-  </div>
-  {hasStyle && overrides.has('letterSpacing') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('letterSpacing')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Text Decoration */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }} className={inputStyles.field}>
-    <span className={inputStyles.label}>Decoration</span>
-    <div className={inputStyles.iconBtnGroup}>
-      {([
-        { value: 'underline',     Icon: Underline,     title: 'Underline' },
-        { value: 'line-through',  Icon: Strikethrough, title: 'Strikethrough' },
-      ] as const).map(({ value, Icon, title }) => {
-        const cur = text.textDecoration ?? 'none'
-        const active = cur === value || cur === 'underline line-through'
-        const toggle = () => {
-          const both = cur === 'underline line-through'
-          if (value === 'underline') {
-            if (cur === 'underline') applyChange({ textDecoration: 'none' })
-            else if (cur === 'line-through') applyChange({ textDecoration: 'underline line-through' })
-            else if (both) applyChange({ textDecoration: 'line-through' })
-            else applyChange({ textDecoration: 'underline' })
-          } else {
-            if (cur === 'line-through') applyChange({ textDecoration: 'none' })
-            else if (cur === 'underline') applyChange({ textDecoration: 'underline line-through' })
-            else if (both) applyChange({ textDecoration: 'underline' })
-            else applyChange({ textDecoration: 'line-through' })
-          }
-        }
-        return (
-          <button
-            key={value}
-            className={`${inputStyles.iconBtn} ${active ? inputStyles.iconBtnActive : ''}`}
-            title={title}
-            onClick={toggle}
-          >
-            <Icon size={13} />
-          </button>
-        )
-      })}
-    </div>
-  </div>
-  {hasStyle && overrides.has('textDecoration') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('textDecoration')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
-
-{/* Text Transform */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-  <div style={{ flex: 1 }}>
-    <SelectInput
-      label="Transform"
-      value={text.textTransform ?? 'none'}
-      options={[
-        { value: 'none',       label: 'None' },
-        { value: 'uppercase',  label: 'Uppercase' },
-        { value: 'lowercase',  label: 'Lowercase' },
-        { value: 'capitalize', label: 'Capitalize' },
-      ]}
-      onChange={v => applyChange({ textTransform: v as TextStyle['textTransform'] })}
-    />
-  </div>
-  {hasStyle && overrides.has('textTransform') && (
-    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('textTransform')} title="Reset to style">
-      <RotateCcw size={10} />
-    </button>
-  )}
-</div>
     </CollapsibleSection>
   )
 }

@@ -1,3 +1,20 @@
+## 2026-04-23 12:15
+
+- Moved Color/Gradient and Shadow to the bottom of the Text section (they are appearance effects, not core typography properties)
+- Final Text section order: Style → Font → Size → Weight/Italic/SmallCaps → Alignment → Spacing → Decoration → Transform → Color → Shadow
+
+## 2026-04-23 12:00
+
+- Reorganized Text section properties into 8 logical groups (matching Figma/Sketch conventions):
+  1. Named Style selector
+  2. Font Family → Font Size (identity first)
+  3. Font Weight + Italic + Small Caps (style variants)
+  4. Color / Gradient
+  5. Alignment — H-align and V-align combined onto one row (saves a row)
+  6. Spacing — Line Height and Letter Spacing side-by-side (saves a row)
+  7. Decoration (underline/strikethrough) + Text Transform
+  8. Shadow (moved to bottom as an effect)
+
 ## 2026-04-23 11:45
 
 - Context menu now scrolls when it's taller than the viewport (`max-height: calc(100vh - 16px)` + `overflow-y: auto`)
