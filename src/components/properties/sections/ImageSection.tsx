@@ -6,6 +6,7 @@ import { generateId } from '@utils/idgen'
 import { ToggleInput } from '../inputs/ToggleInput'
 import { NumberInput } from '../inputs/NumberInput'
 import styles from '../PropertiesPanel.module.css'
+import { CollapsibleSection } from '../CollapsibleSection'
 
 interface Props {
   shape: ImageShape
@@ -72,23 +73,22 @@ export function ImageSection({ shape, dispatch }: Props) {
   }
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>Image</div>
-      <button className={styles.uploadBtn} onClick={handleUpload}>
-        {shape.src ? 'Replace Image' : 'Upload Image'}
-      </button>
-      <ToggleInput
-        label="Keep Ratio"
-        value={shape.preserveAspectRatio}
-        onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { preserveAspectRatio: v } })}
-      />
-      <NumberInput
-        label="Opacity"
-        value={Math.round(shape.opacity * 100)}
-        min={0} max={100}
-        onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { opacity: v / 100 } })}
-        unit="%"
-      />
-    </div>
+    <CollapsibleSection title="Image">
+<button className={styles.uploadBtn} onClick={handleUpload}>
+  {shape.src ? 'Replace Image' : 'Upload Image'}
+</button>
+<ToggleInput
+  label="Keep Ratio"
+  value={shape.preserveAspectRatio}
+  onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { preserveAspectRatio: v } })}
+/>
+<NumberInput
+  label="Opacity"
+  value={Math.round(shape.opacity * 100)}
+  min={0} max={100}
+  onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { opacity: v / 100 } })}
+  unit="%"
+/>
+    </CollapsibleSection>
   )
 }

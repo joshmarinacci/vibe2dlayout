@@ -1,3 +1,5 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
 import type { SliderShape } from '@model/shapes'
 import { roughRect, roughCircle, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
@@ -13,7 +15,7 @@ interface Props {
 
 export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, value, ticks, trackFill, thumbFill } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const thumbSize = height
   const thumbX = value * (width - thumbSize)
   const trackHeight = height * 0.3
@@ -70,11 +72,12 @@ export function SliderShapeComp({ shape, isSelected, onClick, onDoubleClick, han
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
       }}
       onClick={onClick}

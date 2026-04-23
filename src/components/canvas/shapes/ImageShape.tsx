@@ -1,3 +1,5 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
 import type { ImageShape } from '@model/shapes'
 import styles from './Shape.module.css'
 
@@ -10,18 +12,19 @@ interface Props {
 
 export function ImageShapeComp({ shape, isSelected, onClick, onDoubleClick }: Props) {
   const { transform, src, mimeType, preserveAspectRatio, opacity } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
 
   return (
     <div
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         opacity,
         overflow: 'hidden',

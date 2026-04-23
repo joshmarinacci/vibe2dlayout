@@ -1,3 +1,4 @@
+import { buildCSSTransform } from '@model/transform'
 import type { PageShape } from '@model/shapes'
 import styles from './Shape.module.css'
 
@@ -11,7 +12,7 @@ interface Props {
 
 export function PageShapeComp({ shape, isSelected, onClick, onDoubleClick, children }: Props) {
   const { transform, background, clipChildren, fixedSize } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
 
   return (
     <div
@@ -22,7 +23,7 @@ export function PageShapeComp({ shape, isSelected, onClick, onDoubleClick, child
         top: y,
         width: fixedSize?.width ?? width,
         height: fixedSize?.height ?? height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         background,
         overflow: clipChildren ? 'hidden' : 'visible',

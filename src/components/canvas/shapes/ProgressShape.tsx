@@ -1,3 +1,7 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { ProgressShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
@@ -16,7 +20,7 @@ interface Props {
 
 export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, value, ticks, fill, trackFill, stroke } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
 
   const seed = seedFromId(shape.id)
   const pad = 2
@@ -68,11 +72,12 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
       }}
       onClick={onClick}
@@ -96,7 +101,7 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
             inset: 0,
             background: trackFill.color,
             borderRadius: height / 2,
-            border: `${stroke.width}px solid ${stroke.color}`,
+            ...strokeBorderCSS(stroke),
             overflow: 'hidden',
           }}>
             {/* Bar fill */}
@@ -106,7 +111,7 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
               top: 0,
               bottom: 0,
               width: `${value}%`,
-              background: fill.color,
+              background: fillBackground(fill),
             }} />
           </div>
           {/* Plain tick marks */}

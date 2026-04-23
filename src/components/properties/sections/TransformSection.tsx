@@ -3,6 +3,7 @@ import type { BoundingBox } from '@model/transform'
 import type { Variable } from '@model/variable'
 import styles from '../PropertiesPanel.module.css'
 import inputStyles from '../inputs/inputs.module.css'
+import { CollapsibleSection } from '../CollapsibleSection'
 
 interface VarProps {
   variableId?: string | null
@@ -147,15 +148,18 @@ export function TransformSection({ transform, onChange, xVar, yVar, wVar, hVar }
     onChange({ ...transform, [key]: v })
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>Transform</div>
-      <div className={styles.transformGrid}>
-        <TField label="X" value={Math.round(transform.x)} onChange={set('x')} {...xVar} />
-        <TField label="Y" value={Math.round(transform.y)} onChange={set('y')} {...yVar} />
-        <TField label="W" value={Math.round(transform.width)} onChange={set('width')} min={1} {...wVar} />
-        <TField label="H" value={Math.round(transform.height)} onChange={set('height')} min={1} {...hVar} />
-        <TField label="°" value={transform.rotation} onChange={set('rotation')} />
-      </div>
-    </div>
+    <CollapsibleSection title="Transform">
+<div className={styles.transformGrid}>
+  <TField label="X" value={Math.round(transform.x)} onChange={set('x')} {...xVar} />
+  <TField label="Y" value={Math.round(transform.y)} onChange={set('y')} {...yVar} />
+  <TField label="W" value={Math.round(transform.width)} onChange={set('width')} min={1} {...wVar} />
+  <TField label="H" value={Math.round(transform.height)} onChange={set('height')} min={1} {...hVar} />
+  <TField label="SX" value={Math.round((transform.scaleX ?? 1) * 100)} onChange={v => onChange({ ...transform, scaleX: v / 100 })} min={-500} />
+  <TField label="SY" value={Math.round((transform.scaleY ?? 1) * 100)} onChange={v => onChange({ ...transform, scaleY: v / 100 })} min={-500} />
+  <TField label="KX" value={transform.skewX ?? 0} onChange={set('skewX')} />
+  <TField label="KY" value={transform.skewY ?? 0} onChange={set('skewY')} />
+  <TField label="°" value={transform.rotation} onChange={set('rotation')} />
+</div>
+    </CollapsibleSection>
   )
 }

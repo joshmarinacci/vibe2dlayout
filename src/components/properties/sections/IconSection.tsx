@@ -3,6 +3,7 @@ import { lookupIcon } from '@utils/allLucideIcons'
 import { IconPickerDialog } from '../IconPickerDialog'
 import type { IconShape } from '@model/shapes'
 import styles from '../PropertiesPanel.module.css'
+import { CollapsibleSection } from '../CollapsibleSection'
 
 interface Props {
   icon: IconShape['icon']
@@ -15,23 +16,22 @@ export function IconSection({ icon, onChange }: Props) {
   const CurrentIcon = lookupIcon(icon.name)
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>Icon</div>
+    <CollapsibleSection title="Icon">
 
-      <button className={styles.iconPickerBtn} onClick={() => setPickerOpen(true)}>
-        {CurrentIcon
-          ? <><CurrentIcon size={15} strokeWidth={1.5} /><span>{icon.name}</span></>
-          : <span>Choose icon…</span>
-        }
-      </button>
+<button className={styles.iconPickerBtn} onClick={() => setPickerOpen(true)}>
+  {CurrentIcon
+    ? <><CurrentIcon size={15} strokeWidth={1.5} /><span>{icon.name}</span></>
+    : <span>Choose icon…</span>
+  }
+</button>
 
-      {pickerOpen && (
-        <IconPickerDialog
-          currentIcon={icon.name}
-          onSelect={name => { onChange({ name }); setPickerOpen(false) }}
-          onClose={() => setPickerOpen(false)}
-        />
-      )}
-    </div>
+{pickerOpen && (
+  <IconPickerDialog
+    currentIcon={icon.name}
+    onSelect={name => { onChange({ name }); setPickerOpen(false) }}
+    onClose={() => setPickerOpen(false)}
+  />
+)}
+    </CollapsibleSection>
   )
 }

@@ -1,10 +1,13 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import { type Dispatch } from 'react'
 import type { ToggleShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughCircle, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -19,7 +22,7 @@ interface Props {
 
 export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, checked, text, trackFill, thumbFill, stroke } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -66,11 +69,12 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
       }}
       onClick={onClick}
@@ -96,7 +100,7 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
             height: trackH - 2,
             background: trackColor,
             borderRadius: trackH / 2,
-            border: `${stroke.width}px solid ${stroke.color}`,
+            ...strokeBorderCSS(stroke),
           }} />
           {/* Plain thumb */}
           <div style={{
@@ -107,7 +111,7 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
             height: thumbDia,
             background: '#ffffff',
             borderRadius: '50%',
-            border: `${stroke.width}px solid ${stroke.color}`,
+            ...strokeBorderCSS(stroke),
           }} />
         </>
       )}
@@ -152,7 +156,7 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
-          ...textShadowCSS(text),
+          ...textExtraCSS(text),
         }}>
           {text.content}
         </div>

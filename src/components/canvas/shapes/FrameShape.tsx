@@ -1,3 +1,7 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { FrameShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
@@ -17,7 +21,7 @@ interface Props {
 
 export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, children, handDrawn }: Props) {
   const { transform, fill, stroke, clipChildren } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
 
   const seed = seedFromId(shape.id)
   const pad = 2
@@ -37,11 +41,12 @@ export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, chil
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         opacity: fill.opacity,
         overflow: clipChildren ? 'hidden' : 'visible',
@@ -61,9 +66,9 @@ export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, chil
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: fill.color === 'transparent' ? 'transparent' : fill.color,
-          border: `${stroke.width}px solid ${stroke.color}`,
-          borderRadius: shape.cornerRadius ?? 0,
+          background: fillBackground(fill),
+          ...strokeBorderCSS(stroke),
+          borderRadius: cornerRadiiCSS(shape.cornerRadius ?? 0, shape.cornerRadii),
         }} />
       )}
       <div style={{ position: 'absolute', inset: 0 }}>

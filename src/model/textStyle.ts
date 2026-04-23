@@ -3,10 +3,14 @@ import type { TextStyle, FontWeight } from './shapes'
 export type TextStyleField =
   | 'fontFamily' | 'fontSize' | 'fontWeight' | 'fontStyle'
   | 'color' | 'paletteColorId' | 'align' | 'verticalAlign'
+  | 'lineHeight' | 'letterSpacing' | 'textDecoration' | 'textTransform'
+  | 'textGradient'
 
 export const TEXT_STYLE_FIELDS: TextStyleField[] = [
   'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
   'color', 'paletteColorId', 'align', 'verticalAlign',
+  'lineHeight', 'letterSpacing', 'textDecoration', 'textTransform',
+  'textGradient',
 ]
 
 export interface TextStyleDef {
@@ -21,6 +25,11 @@ export interface TextStyleDef {
   paletteColorId?: string
   align?: 'left' | 'center' | 'right'
   verticalAlign?: 'top' | 'middle' | 'bottom'
+  lineHeight?: number
+  letterSpacing?: number
+  textDecoration?: 'none' | 'underline' | 'line-through' | 'underline line-through'
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
+  textGradient?: import('./shapes').LinearGradient | null
 }
 
 export const BUILT_IN_TEXT_STYLES: TextStyleDef[] = [

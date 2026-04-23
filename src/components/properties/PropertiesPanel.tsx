@@ -18,14 +18,16 @@ import { ButtonIconSection } from './sections/ButtonIconSection'
 import { IconSection } from './sections/IconSection'
 import { DocumentSection } from './sections/DocumentSection'
 import { TextStyleDefSection } from './sections/TextStyleDefSection'
+import { ShadowSection } from './sections/ShadowSection'
 import { VariableSection } from './sections/VariableSection'
 import { ImageAssetSection } from './sections/ImageAssetSection'
 import { resolveTextStyle } from '@model/textStyle'
 import type { Variable, VariableType } from '@model/variable'
 import type { ImageShape } from '@model/shapes'
 import type { BoundingBox } from '@model/transform'
-import type { FillStyle, StrokeStyle, TextStyle, Shape } from '@model/shapes'
+import type { FillStyle, StrokeStyle, TextStyle, Shape, CornerRadii } from '@model/shapes'
 import styles from './PropertiesPanel.module.css'
+import { CollapsibleSection } from './CollapsibleSection'
 
 function commonValue<T>(vals: T[]): T | null {
   if (vals.length === 0) return null
@@ -182,8 +184,7 @@ export function PropertiesPanel() {
             <RotateCcw size={11} /> Reset to theme ({getActiveTheme(state.document).name})
           </button>
         </div>
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>Common</div>
+        <CollapsibleSection title="Common">
           <ToggleInput
             label="Visible"
             value={selected.every(s => s.visible)}
@@ -198,10 +199,9 @@ export function PropertiesPanel() {
               dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { locked: v } })
             )}
           />
-        </div>
+        </CollapsibleSection>
         {transformable.length > 0 && (
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Transform</div>
+          <CollapsibleSection title="Transform">
             <div className={styles.transformGrid}>
               {(['x', 'y', 'width', 'height'] as (keyof BoundingBox)[]).map((key, i) => {
                 const label = ['X', 'Y', 'W', 'H'][i]
@@ -225,11 +225,10 @@ export function PropertiesPanel() {
                 )
               })}
             </div>
-          </div>
+          </CollapsibleSection>
         )}
         {withFill.length > 0 && (
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Fill</div>
+          <CollapsibleSection title="Fill">
             <ColorInput
               label="Color"
               value={{ color: commonFillColor ?? '#808080' }}
@@ -245,11 +244,10 @@ export function PropertiesPanel() {
                 dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { fill: { ...s.fill, opacity: v / 100 } } as Partial<Shape> })
               )}
             />
-          </div>
+          </CollapsibleSection>
         )}
         {withStroke.length > 0 && (
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Stroke</div>
+          <CollapsibleSection title="Stroke">
             <ColorInput
               label="Color"
               value={{ color: commonStrokeColor ?? '#808080' }}
@@ -273,7 +271,7 @@ export function PropertiesPanel() {
                 dispatch({ type: 'PATCH_SHAPE', id: s.id, patch: { stroke: { ...s.stroke, opacity: v / 100 } } as Partial<Shape> })
               )}
             />
-          </div>
+          </CollapsibleSection>
         )}
         {repText && withText[0] && (
           <TextSection
@@ -371,22 +369,20 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Rectangle</div>
-            <NumberInput
-              label="Radius"
-              value={shape.cornerRadius}
-              min={0}
-              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
-              unit="px"
-              {...vp('cornerRadius', 'number')}
+          <ShadowSection shape={shape} dispatch={dispatch} />
+          <CollapsibleSection title="Rectangle">
+            <CornerRadiusControl
+              cornerRadius={shape.cornerRadius}
+              cornerRadii={shape.cornerRadii}
+              onChangeUniform={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
+              onChangeRadii={r => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadii: r } })}
             />
             <ToggleInput
               label="Clip"
               value={shape.clipChildren}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { clipChildren: v } })}
             />
-          </div>
+          </CollapsibleSection>
         </>
       )
 
@@ -400,6 +396,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -430,6 +427,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -440,6 +438,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
             wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
           <ImageSection shape={shape} dispatch={dispatch} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -449,8 +448,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
       return (
         <>
           <PageSection shape={shape} dispatch={dispatch} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Grid Override</div>
+          <CollapsibleSection title="Grid Override">
             <div className={styles.row}>
               <label className={styles.label}>Override document grid</label>
               <input
@@ -496,7 +494,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
                 </div>
               </>
             )}
-          </div>
+          </CollapsibleSection>
         </>
       )
     }
@@ -525,17 +523,15 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             icon={shape.icon}
             onChange={ic => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { icon: ic } })}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Button</div>
-            <NumberInput
-              label="Radius"
-              value={shape.cornerRadius}
-              min={0}
-              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
-              unit="px"
-              {...vp('cornerRadius', 'number')}
+          <ShadowSection shape={shape} dispatch={dispatch} />
+          <CollapsibleSection title="Button">
+            <CornerRadiusControl
+              cornerRadius={shape.cornerRadius}
+              cornerRadii={shape.cornerRadii}
+              onChangeUniform={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
+              onChangeRadii={r => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadii: r } })}
             />
-          </div>
+          </CollapsibleSection>
         </>
       )
 
@@ -551,6 +547,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -578,22 +575,20 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               customFonts={state.document.customFonts}
             />
           )}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Panel</div>
-            <NumberInput
-              label="Radius"
-              value={shape.cornerRadius}
-              min={0}
-              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
-              unit="px"
-              {...vp('cornerRadius', 'number')}
+          <ShadowSection shape={shape} dispatch={dispatch} />
+          <CollapsibleSection title="Panel">
+            <CornerRadiusControl
+              cornerRadius={shape.cornerRadius}
+              cornerRadii={shape.cornerRadii}
+              onChangeUniform={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
+              onChangeRadii={r => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadii: r } })}
             />
             <ToggleInput
               label="Clip"
               value={shape.clipChildren}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { clipChildren: v } })}
             />
-          </div>
+          </CollapsibleSection>
         </>
       )
 
@@ -603,8 +598,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
           <TransformSection transform={shape.transform} onChange={patchTransform}
             xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
             wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Slider</div>
+          <CollapsibleSection title="Slider">
             <NumberInput
               label="Value"
               value={Math.round(shape.value * 100)}
@@ -619,11 +613,12 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               min={0} max={20}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { ticks: Math.round(v) } })}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })}
             colorVar={vp('trackFill.color', 'color')} />
           <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })}
             colorVar={vp('thumbFill.color', 'color')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -643,6 +638,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -662,19 +658,19 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Text Field</div>
+          <CollapsibleSection title="Text Field">
             <input
               className={styles.nameInput}
               value={shape.placeholder}
               placeholder="Placeholder text"
               onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { placeholder: e.target.value } as Partial<Shape> })}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -694,19 +690,19 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Checkbox</div>
+          <CollapsibleSection title="Checkbox">
             <ToggleInput
               label="Checked"
               value={shape.checked}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
               {...vp('checked', 'boolean')}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -726,21 +722,21 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Toggle</div>
+          <CollapsibleSection title="Toggle">
             <ToggleInput
               label="Checked"
               value={shape.checked}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
               {...vp('checked', 'boolean')}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })}
             colorVar={vp('trackFill.color', 'color')} />
           <FillSection fill={shape.thumbFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { thumbFill: f } })}
             colorVar={vp('thumbFill.color', 'color')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -754,22 +750,20 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Panel</div>
-            <NumberInput
-              label="Radius"
-              value={shape.cornerRadius}
-              min={0}
-              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
-              unit="px"
-              {...vp('cornerRadius', 'number')}
+          <ShadowSection shape={shape} dispatch={dispatch} />
+          <CollapsibleSection title="Panel">
+            <CornerRadiusControl
+              cornerRadius={shape.cornerRadius}
+              cornerRadii={shape.cornerRadii}
+              onChangeUniform={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
+              onChangeRadii={r => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadii: r } })}
             />
             <ToggleInput
               label="Clip"
               value={shape.clipChildren}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { clipChildren: v } })}
             />
-          </div>
+          </CollapsibleSection>
         </>
       )
 
@@ -783,8 +777,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Dialog</div>
+          <CollapsibleSection title="Dialog">
             <input
               className={styles.nameInput}
               value={shape.title}
@@ -803,7 +796,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               placeholder="Cancel label"
               onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cancelLabel: e.target.value } as Partial<Shape> })}
             />
-          </div>
+          </CollapsibleSection>
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -823,19 +817,19 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Radio Button</div>
+          <CollapsibleSection title="Radio Button">
             <ToggleInput
               label="Checked"
               value={shape.checked}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { checked: v } })}
               {...vp('checked', 'boolean')}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -855,19 +849,19 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Select</div>
+          <CollapsibleSection title="Select">
             <input
               className={styles.nameInput}
               value={shape.placeholder}
               placeholder="Placeholder"
               onChange={e => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { placeholder: e.target.value } as Partial<Shape> })}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -877,8 +871,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
           <TransformSection transform={shape.transform} onChange={patchTransform}
             xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
             wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Progress Bar</div>
+          <CollapsibleSection title="Progress Bar">
             <NumberInput
               label="Value"
               value={shape.value}
@@ -893,13 +886,14 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               min={0} max={20}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { ticks: Math.round(v) } })}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <FillSection fill={shape.trackFill} onChange={f => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { trackFill: f } })}
             colorVar={vp('trackFill.color', 'color')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -918,19 +912,19 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Number Stepper</div>
+          <CollapsibleSection title="Number Stepper">
             <NumberInput
               label="Value"
               value={shape.value}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { value: v } })}
               {...vp('value', 'number')}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -954,6 +948,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -977,6 +972,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -996,19 +992,19 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             dispatch={dispatch}
             customFonts={state.document.customFonts}
           />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>List</div>
+          <CollapsibleSection title="List">
             <NumberInput
               label="Selected row"
               value={shape.selectedIndex}
               min={-1}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { selectedIndex: Math.round(v) } })}
             />
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -1018,21 +1014,27 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
           <TransformSection transform={shape.transform} onChange={patchTransform}
             xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
             wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Scroll Panel</div>
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
+          <CollapsibleSection title="Scroll Panel">
+            <CornerRadiusControl
+              cornerRadius={shape.cornerRadius}
+              cornerRadii={shape.cornerRadii}
+              onChangeUniform={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
+              onChangeRadii={r => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadii: r } })}
+            />
             <NumberInput
-              label="Scroll position"
+              label="Scroll"
               value={shape.scrollPosition}
               min={0} max={1}
               step={0.05}
               onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { scrollPosition: Math.max(0, Math.min(1, v)) } })}
               {...vp('scrollPosition', 'number')}
             />
-          </div>
-          <FillSection fill={shape.fill} onChange={patchFill}
-            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
-          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
-            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          </CollapsibleSection>
         </>
       )
 
@@ -1046,6 +1048,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
 
@@ -1055,8 +1058,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
           <TransformSection transform={shape.transform} onChange={patchTransform}
             xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
             wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Chart Mock</div>
+          <CollapsibleSection title="Chart Mock">
             <div className={styles.row}>
               <label className={styles.label}>Type</label>
               <select
@@ -1068,12 +1070,80 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
                 <option value="line">Line</option>
               </select>
             </div>
-          </div>
+          </CollapsibleSection>
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
           <StrokeSection stroke={shape.stroke} onChange={patchStroke}
             colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
   }
+}
+
+// ─── Per-corner radius control ─────────────────────────────────────────────
+
+interface CornerRadiusControlProps {
+  cornerRadius: number
+  cornerRadii?: CornerRadii
+  onChangeUniform: (v: number) => void
+  onChangeRadii: (r: CornerRadii | undefined) => void
+}
+
+function CornerRadiusControl({ cornerRadius, cornerRadii, onChangeUniform, onChangeRadii }: CornerRadiusControlProps) {
+  const perCorner = !!cornerRadii
+
+  const togglePerCorner = () => {
+    if (perCorner) {
+      onChangeRadii(undefined)
+    } else {
+      onChangeRadii({ topLeft: cornerRadius, topRight: cornerRadius, bottomRight: cornerRadius, bottomLeft: cornerRadius })
+    }
+  }
+
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ flex: 1 }}>
+          <NumberInput
+            label="Radius"
+            value={perCorner ? Math.round((cornerRadii!.topLeft + cornerRadii!.topRight + cornerRadii!.bottomRight + cornerRadii!.bottomLeft) / 4) : cornerRadius}
+            min={0}
+            onChange={v => {
+              if (perCorner) {
+                onChangeRadii({ topLeft: v, topRight: v, bottomRight: v, bottomLeft: v })
+              } else {
+                onChangeUniform(v)
+              }
+            }}
+            unit="px"
+          />
+        </div>
+        <button
+          onClick={togglePerCorner}
+          title={perCorner ? 'Use uniform radius' : 'Set per-corner radius'}
+          style={{
+            width: 20, height: 20, flexShrink: 0, border: '1px solid var(--color-border)',
+            borderRadius: 3, background: perCorner ? 'var(--color-accent)' : 'transparent',
+            color: perCorner ? '#fff' : 'var(--color-text-muted)', fontSize: 9,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          ⌗
+        </button>
+      </div>
+      {perCorner && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, paddingLeft: 4 }}>
+          <NumberInput label="TL" value={cornerRadii!.topLeft} min={0}
+            onChange={v => onChangeRadii({ ...cornerRadii!, topLeft: v })} unit="px" />
+          <NumberInput label="TR" value={cornerRadii!.topRight} min={0}
+            onChange={v => onChangeRadii({ ...cornerRadii!, topRight: v })} unit="px" />
+          <NumberInput label="BR" value={cornerRadii!.bottomRight} min={0}
+            onChange={v => onChangeRadii({ ...cornerRadii!, bottomRight: v })} unit="px" />
+          <NumberInput label="BL" value={cornerRadii!.bottomLeft} min={0}
+            onChange={v => onChangeRadii({ ...cornerRadii!, bottomLeft: v })} unit="px" />
+        </div>
+      )}
+    </>
+  )
 }

@@ -1,3 +1,5 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
 import type { ImageMockShape } from '@model/shapes'
 import { roughRect, roughCircle, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
@@ -13,7 +15,7 @@ interface Props {
 
 export function ImageMockShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke } = shape
-  const { x, y, width: w, height: h, rotation } = transform
+  const { x, y, width: w, height: h } = transform
 
   const seed = seedFromId(shape.id)
   const cx = w / 2
@@ -86,11 +88,12 @@ export function ImageMockShapeComp({ shape, isSelected, onClick, onDoubleClick, 
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width: w,
         height: h,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
       }}
       onClick={onClick}

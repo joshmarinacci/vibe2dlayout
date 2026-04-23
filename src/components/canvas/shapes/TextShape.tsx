@@ -1,8 +1,11 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
 import type { Dispatch } from 'react'
 import type { TextShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -16,7 +19,7 @@ interface Props {
 
 export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, text, fill } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -32,7 +35,7 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
     wordBreak: 'break-word',
     width: '100%',
     userSelect: 'none',
-    ...textShadowCSS(text),
+    ...textExtraCSS(text),
   }
 
   return (
@@ -40,13 +43,14 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
-        background: fill.color === 'transparent' ? 'transparent' : fill.color,
+        background: fillBackground(fill),
         overflow: 'hidden',
       }}
       onClick={onClick}

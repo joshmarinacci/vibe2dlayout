@@ -5,10 +5,33 @@ import type { CanvasGuide } from './guide'
 
 // ─── Shared style types ───────────────────────────────────────────────────
 
+export interface LinearGradient {
+  type: 'linear'
+  angle: number   // degrees
+  stops: Array<{ color: string; position: number; paletteColorId?: string }>
+}
+
 export interface FillStyle {
   color: string    // CSS color string
   opacity: number  // 0–1
   paletteColorId?: string
+  gradient?: LinearGradient | null  // when set, overrides color for rendering
+}
+
+export interface CornerRadii {
+  topLeft: number
+  topRight: number
+  bottomRight: number
+  bottomLeft: number
+}
+
+export interface BoxShadow {
+  offsetX: number
+  offsetY: number
+  blur: number
+  spread: number
+  color: string
+  inset?: boolean
 }
 
 export interface StrokeStyle {
@@ -32,6 +55,11 @@ export interface TextStyle {
   align: 'left' | 'center' | 'right'
   verticalAlign: 'top' | 'middle' | 'bottom'
   textShadow?: { offsetX: number; offsetY: number; blur: number; color: string } | null
+  textGradient?: LinearGradient | null  // when set, renders text with gradient fill instead of color
+  lineHeight?: number        // CSS multiplier, e.g. 1.5 (undefined = browser default)
+  letterSpacing?: number     // pixels
+  textDecoration?: 'none' | 'underline' | 'line-through' | 'underline line-through'
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
   // Named style reference — see src/model/textStyle.ts
   textStyleId?: string
   // Fields explicitly overridden from the style (not inherited)
@@ -51,6 +79,7 @@ interface ShapeBase {
   handDrawn?: boolean  // undefined = inherit from active theme
   // Variable bindings: propPath → variableId. Resolved at render time.
   variableBindings?: Record<string, string>
+  boxShadow?: BoxShadow | null
 }
 
 // ─── Concrete shape types ─────────────────────────────────────────────────
@@ -61,6 +90,7 @@ export interface RectShape extends ShapeBase {
   fill: FillStyle
   stroke: StrokeStyle
   cornerRadius: number
+  cornerRadii?: CornerRadii
   clipChildren: boolean
 }
 
@@ -118,6 +148,7 @@ export interface ButtonShape extends ShapeBase {
   fill: FillStyle
   stroke: StrokeStyle
   cornerRadius: number
+  cornerRadii?: CornerRadii
   text: TextStyle
   icon: { name: string; side: 'left' | 'right' } | null
 }
@@ -136,6 +167,7 @@ export interface PanelShape extends ShapeBase {
   fill: FillStyle
   stroke: StrokeStyle
   cornerRadius: number
+  cornerRadii?: CornerRadii
   title: TextStyle | null
   clipChildren: boolean
 }
@@ -190,6 +222,7 @@ export interface FrameShape extends ShapeBase {
   fill: FillStyle
   stroke: StrokeStyle
   cornerRadius: number
+  cornerRadii?: CornerRadii
   clipChildren: boolean
 }
 
@@ -267,6 +300,7 @@ export interface ScrollPanelShape extends ShapeBase {
   fill: FillStyle
   stroke: StrokeStyle
   cornerRadius: number
+  cornerRadii?: CornerRadii
   scrollPosition: number  // 0–1, controls thumb position
   clipChildren: boolean
 }

@@ -1,3 +1,82 @@
+## 2026-04-23 09:25
+
+- Reordered Transform section fields: X/Y → W/H → SX/SY → KX/KY → °
+- Widened `.tlabel` from 10px to 14px to fit 2-char labels
+
+## 2026-04-23 09:15
+
+- Added `scaleX`, `scaleY`, `skewX`, `skewY` optional fields to `BoundingBox` in `src/model/transform.ts`
+- Added `buildCSSTransform(t)` utility that composes rotate/scale/skew into a single CSS transform string
+- Updated all 25 shape renderers to use `buildCSSTransform(transform)` instead of inline rotate-only expression
+- Added SX (scale X %), SY (scale Y %), KX (skew X °), KY (skew Y °) inputs to `TransformSection`
+
+## 2026-04-23 09:05
+
+- Added `CollapsibleSection` component (`src/components/properties/CollapsibleSection.tsx`) with chevron toggle and `defaultOpen` prop
+- Added `.sectionTitleRow`, `.sectionChevron`, `.sectionChevronOpen`, `.sectionBody` CSS classes to `PropertiesPanel.module.css`
+- Converted all 15 standalone section components to use `<CollapsibleSection>` in place of the raw `<div className={styles.section}>` pattern
+- Converted all 21 inline `<div className={styles.section}>` blocks in `PropertiesPanel.tsx` to use `<CollapsibleSection>`
+- Removed now-unused `styles` import from ContentSection, FillSection, PageSection, ShadowSection, StrokeSection
+
+## 2026-04-23 (gradient text fill + dynamic gradient stops)
+
+- Added `textGradient?: LinearGradient | null` to `TextStyle` in `src/model/shapes.ts` and to `TextStyleDef`
+- `textExtraCSS()` handles `textGradient` via CSS `background-clip: text` + `WebkitTextFillColor: transparent`
+- `TextSection` color control replaced with Solid / Gradient toggle matching the fill gradient editor
+- `FillSection` and `TextSection` gradient editors now support dynamic stop count: add stops (inserted into largest gap), remove stops (min 2), per-stop position input (%)
+
+## 2026-04-23 (Phases 2–4: stroke dash, per-corner radius, box shadow, linear gradients)
+
+### Phase 2: Stroke dash style + per-corner border radius
+
+**Stroke dash style:**
+- Added Solid / Dashed / Dotted selector to the Stroke section in the properties panel
+- Stroke `dash` array was already in the model; now exposed in the UI
+- Created `src/utils/strokeStyleCSS.ts` with `strokeBorderCSS` and `dashToBorderStyle` utilities
+- All 17 CSS-rendered shape components updated to use `strokeBorderCSS` instead of the `border:` shorthand
+
+**Per-corner border radius:**
+- Added `CornerRadii` interface to `src/model/shapes.ts`
+- Added `cornerRadii?: CornerRadii` to RectShape, ButtonShape, FrameShape, PanelShape, ScrollPanelShape
+- Added `cornerRadiiCSS(uniform, radii?)` utility to `strokeStyleCSS.ts`
+- All 5 relevant shape renderers updated to use `cornerRadiiCSS`
+- Properties panel: new `CornerRadiusControl` component — shows a single radius input with a toggle button (⌗) to expand into 4 per-corner inputs (TL/TR/BR/BL)
+
+### Phase 3: Box shadow on shapes
+
+- Added `BoxShadow` interface to `src/model/shapes.ts` and `boxShadow?` to `ShapeBase` (applies to all shapes)
+- Created `src/utils/shadowCSS.ts` with `boxShadowCSS` utility
+- All 25 non-line, non-page shape renderers updated to spread `boxShadowCSS(shape)` onto the outer div
+- Created `src/components/properties/sections/ShadowSection.tsx` with enable/disable toggle, Color, X, Y, Blur, Spread, and Inset controls
+- `ShadowSection` added to all non-line shape cases in `PropertiesPanel`
+
+### Phase 4: Linear gradients on fills
+
+- Added `LinearGradient` interface and `gradient?: LinearGradient | null` to `FillStyle` in `src/model/shapes.ts`
+- Created `src/utils/fillCSS.ts` with `fillBackground(fill)` — returns linear-gradient CSS when gradient is set, otherwise returns solid color
+- All 16 shape renderers that render a fill background updated to use `fillBackground(fill)` instead of `fill.color`
+- `FillSection` updated with Solid / Gradient mode toggle; gradient mode shows: angle input, start color, end color, opacity
+
+## 2026-04-22 (Phase 1: extended text typography properties)
+
+### Feature: Line height, letter spacing, text decoration, text transform
+
+Added four new optional text properties to all text shapes and named text styles:
+
+- **Line Height** — CSS multiplier (0.5–4); number input in Text section
+- **Letter Spacing** — pixel offset (–10 to 50px); number input in Text section
+- **Text Decoration** — Underline / Strikethrough / both; icon toggle buttons (Lucide icons)
+- **Text Transform** — None / Uppercase / Lowercase / Capitalize; select dropdown
+
+All four fields:
+- Live in `TextStyle` in `src/model/shapes.ts` as optional fields (no migration needed)
+- Are rendered via the expanded `textExtraCSS()` utility in `src/utils/textStyleCSS.ts` (replaces `textShadowCSS`)
+- Apply in all 13 text-rendering shape components (ButtonShape, CheckboxShape, LabelShape, ListShape, PanelShape, RadioShape, SelectShape, StepperShape, StickyNoteShape, TableShape, TextFieldShape, TextShape, ToggleShape)
+- Are tracked as style overrides when a named text style is applied
+- Are editable in named text style definitions (TextStyleDefSection) with optional field checkboxes
+
+`textShadowCSS` is kept as a deprecated alias so nothing breaks.
+
 ## 2026-04-22 (custom Google Fonts)
 
 ### Feature: Add custom Google Fonts to a document
@@ -742,3 +821,19 @@ Initial implementation of Vibe 2D Layout.
 
 ### Tests (`tests/`)
 - 64 unit tests across 6 test files covering document tree operations, geometry, connector routing, serialization, reducer actions, and undo/redo history
+## 2026-04-23 09:05
+
+- Converted all inline `<div className={styles.section}>` blocks in `PropertiesPanel.tsx` to use `<CollapsibleSection>` (21 sections total)
+- Removed unused `styles` import from ContentSection, FillSection, PageSection, ShadowSection, StrokeSection
+
+## 2026-04-23 09:15
+
+- Added `scaleX`, `scaleY`, `skewX`, `skewY` optional fields to `BoundingBox` in `src/model/transform.ts`
+- Added `buildCSSTransform(t)` utility that composes rotate/scale/skew into a CSS transform string
+- Updated all 25 shape renderers to use `buildCSSTransform(transform)` instead of inline rotate-only expression
+- Added SX (scale X %), SY (scale Y %), KX (skew X °), KY (skew Y °) inputs to `TransformSection`
+
+## 2026-04-23 09:25
+
+- Reordered Transform section fields: X/Y, W/H, SX/SY, KX/KY, °
+- Widened `.tlabel` from 10px to 14px to fit 2-char labels (SX, SY, KX, KY)

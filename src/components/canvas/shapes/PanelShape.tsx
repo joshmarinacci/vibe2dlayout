@@ -1,9 +1,13 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import { useRef, useEffect, type Dispatch } from 'react'
 import type { PanelShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -19,7 +23,7 @@ interface Props {
 
 export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, children, handDrawn }: Props) {
   const { transform, fill, stroke, title, clipChildren } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const editValueRef = useRef(title?.content ?? '')
   const cancelRef = useRef(false)
@@ -68,11 +72,12 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         opacity: fill.opacity,
         overflow: clipChildren ? 'hidden' : 'visible',
@@ -94,9 +99,9 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           <div style={{
             position: 'absolute',
             inset: 0,
-            background: fill.color === 'transparent' ? 'transparent' : fill.color,
-            border: `${stroke.width}px solid ${stroke.color}`,
-            borderRadius: shape.cornerRadius ?? 0,
+            background: fillBackground(fill),
+            ...strokeBorderCSS(stroke),
+            borderRadius: cornerRadiiCSS(shape.cornerRadius ?? 0, shape.cornerRadii),
           }} />
           {title && (
             <div style={{
@@ -176,7 +181,7 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
                 wordBreak: 'break-word',
                 width: '100%',
                 userSelect: 'none',
-                ...textShadowCSS(title),
+                ...textExtraCSS(title),
               }}>
                 {title.content}
               </div>

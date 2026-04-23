@@ -1,10 +1,14 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { ListShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -19,7 +23,7 @@ interface Props {
 
 export function ListShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, text, selectedIndex } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -70,11 +74,12 @@ export function ListShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         overflow: 'hidden',
       }}
@@ -95,8 +100,8 @@ export function ListShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: fill.color === 'transparent' ? 'transparent' : fill.color,
-          border: `${stroke.width}px solid ${stroke.color}`,
+          background: fillBackground(fill),
+          ...strokeBorderCSS(stroke),
         }} />
       )}
 
@@ -157,7 +162,7 @@ export function ListShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
                   textOverflow: 'ellipsis',
                   userSelect: 'none',
                   width: '100%',
-                  ...textShadowCSS(text),
+                  ...textExtraCSS(text),
                 }}>
                   {item}
                 </span>

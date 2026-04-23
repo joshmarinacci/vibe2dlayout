@@ -1,3 +1,5 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
 import type { IconShape } from '@model/shapes'
 import { lookupIcon } from '@utils/allLucideIcons'
 import styles from './Shape.module.css'
@@ -11,7 +13,7 @@ interface Props {
 
 export function IconShapeComp({ shape, isSelected, onClick, onDoubleClick }: Props) {
   const { transform, fill, icon } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
 
   const IconComp = lookupIcon(icon.name)
   const iconSize = Math.round(Math.min(width, height) * 0.8)
@@ -21,11 +23,12 @@ export function IconShapeComp({ shape, isSelected, onClick, onDoubleClick }: Pro
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         display: 'flex',
         alignItems: 'center',

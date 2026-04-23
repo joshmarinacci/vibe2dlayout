@@ -1,10 +1,14 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { StickyNoteShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 const FOLD = 20
@@ -21,7 +25,7 @@ interface Props {
 
 export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, text } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -57,11 +61,12 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         opacity: fill.opacity,
         clipPath: handDrawn ? undefined : clipPath,
@@ -83,8 +88,8 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
           <div style={{
             position: 'absolute',
             inset: 0,
-            background: fill.color,
-            border: `${stroke.width}px solid ${stroke.color}`,
+            background: fillBackground(fill),
+            ...strokeBorderCSS(stroke),
           }} />
           {/* Fold corner triangle overlay */}
           <svg
@@ -138,7 +143,7 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
             userSelect: 'none',
-            ...textShadowCSS(text),
+            ...textExtraCSS(text),
           }}>
             {text.content}
           </div>

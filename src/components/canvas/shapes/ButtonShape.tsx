@@ -1,3 +1,7 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import { type Dispatch, type CSSProperties } from 'react'
 import type { ButtonShape, TextStyle } from '@model/shapes'
 import type { AppAction } from '@store/types'
@@ -5,7 +9,7 @@ import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { getButtonIcon } from '@utils/buttonIcons'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -20,7 +24,7 @@ interface Props {
 
 export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, text, icon } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -44,11 +48,12 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         opacity: fill.opacity,
       }}
@@ -67,9 +72,9 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: fill.color === 'transparent' ? 'transparent' : fill.color,
-          border: `${stroke.width}px solid ${stroke.color}`,
-          borderRadius: shape.cornerRadius ?? 0,
+          background: fillBackground(fill),
+          ...strokeBorderCSS(stroke),
+          borderRadius: cornerRadiiCSS(shape.cornerRadius ?? 0, shape.cornerRadii),
         }} />
       )}
 
@@ -142,7 +147,7 @@ function ButtonContent({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
     userSelect: 'none',
-    ...textShadowCSS(text),
+    ...textExtraCSS(text),
   }
 
   return (

@@ -2,7 +2,8 @@ import type { StrokeStyle } from '@model/shapes'
 import type { Variable } from '@model/variable'
 import { ColorInput } from '../inputs/ColorInput'
 import { NumberInput } from '../inputs/NumberInput'
-import styles from '../PropertiesPanel.module.css'
+import { SelectInput } from '../inputs/SelectInput'
+import { CollapsibleSection } from '../CollapsibleSection'
 
 interface VarProps {
   variableId?: string | null
@@ -20,30 +21,39 @@ interface Props {
 
 export function StrokeSection({ stroke, onChange, colorVar, widthVar, opacityVar }: Props) {
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>Stroke</div>
-      <ColorInput
-        label="Color"
-        value={{ color: stroke.color, paletteColorId: stroke.paletteColorId }}
-        onChange={ref => onChange({ ...stroke, color: ref.color, paletteColorId: ref.paletteColorId })}
-        {...colorVar}
-      />
-      <NumberInput
-        label="Width"
-        value={stroke.width}
-        min={0} step={0.5}
-        onChange={v => onChange({ ...stroke, width: v })}
-        unit="px"
-        {...widthVar}
-      />
-      <NumberInput
-        label="Opacity"
-        value={Math.round(stroke.opacity * 100)}
-        min={0} max={100}
-        onChange={v => onChange({ ...stroke, opacity: v / 100 })}
-        unit="%"
-        {...opacityVar}
-      />
-    </div>
+    <CollapsibleSection title="Stroke">
+<ColorInput
+  label="Color"
+  value={{ color: stroke.color, paletteColorId: stroke.paletteColorId }}
+  onChange={ref => onChange({ ...stroke, color: ref.color, paletteColorId: ref.paletteColorId })}
+  {...colorVar}
+/>
+<NumberInput
+  label="Width"
+  value={stroke.width}
+  min={0} step={0.5}
+  onChange={v => onChange({ ...stroke, width: v })}
+  unit="px"
+  {...widthVar}
+/>
+<NumberInput
+  label="Opacity"
+  value={Math.round(stroke.opacity * 100)}
+  min={0} max={100}
+  onChange={v => onChange({ ...stroke, opacity: v / 100 })}
+  unit="%"
+  {...opacityVar}
+/>
+<SelectInput
+  label="Style"
+  value={stroke.dash.length === 0 ? 'solid' : stroke.dash[0] <= 3 ? 'dotted' : 'dashed'}
+  options={[
+    { value: 'solid',  label: 'Solid' },
+    { value: 'dashed', label: 'Dashed' },
+    { value: 'dotted', label: 'Dotted' },
+  ]}
+  onChange={v => onChange({ ...stroke, dash: v === 'solid' ? [] : v === 'dashed' ? [6, 4] : [2, 3] })}
+/>
+    </CollapsibleSection>
   )
 }

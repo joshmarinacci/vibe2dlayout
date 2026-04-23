@@ -1,3 +1,7 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { ScrollPanelShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
@@ -20,7 +24,7 @@ interface Props {
 
 export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn, children }: Props) {
   const { transform, fill, stroke, cornerRadius, scrollPosition, clipChildren } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const pad = 2
   const seed = seedFromId(shape.id)
 
@@ -69,11 +73,12 @@ export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         opacity: fill.opacity,
       }}
@@ -95,9 +100,9 @@ export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick
           <div style={{
             position: 'absolute',
             inset: 0,
-            background: fill.color === 'transparent' ? 'transparent' : fill.color,
-            border: `${stroke.width}px solid ${stroke.color}`,
-            borderRadius: cornerRadius ?? 0,
+            background: fillBackground(fill),
+            ...strokeBorderCSS(stroke),
+            borderRadius: cornerRadiiCSS(cornerRadius ?? 0, shape.cornerRadii),
           }} />
           {/* Scrollbar track */}
           <div style={{

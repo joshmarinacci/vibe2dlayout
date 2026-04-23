@@ -1,10 +1,14 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import { type Dispatch } from 'react'
 import type { RadioShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughCircle, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -19,7 +23,7 @@ interface Props {
 
 export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, checked, text, fill, stroke } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -57,11 +61,12 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
       }}
       onClick={onClick}
@@ -83,8 +88,8 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           top: cy - boxSize / 2,
           width: boxSize,
           height: boxSize,
-          background: fill.color === 'transparent' ? 'transparent' : fill.color,
-          border: `${stroke.width}px solid ${stroke.color}`,
+          background: fillBackground(fill),
+          ...strokeBorderCSS(stroke),
           borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',
@@ -141,7 +146,7 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
-          ...textShadowCSS(text),
+          ...textExtraCSS(text),
         }}>
           {text.content}
         </div>

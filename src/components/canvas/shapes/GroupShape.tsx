@@ -1,3 +1,4 @@
+import { boxShadowCSS } from '@utils/shadowCSS'
 import type { GroupShape } from '@model/shapes'
 
 interface Props {
@@ -14,6 +15,7 @@ export function GroupShapeComp({ shape, isSelected, onClick, onDoubleClick, chil
     <div
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,

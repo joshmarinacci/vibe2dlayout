@@ -5,6 +5,7 @@ import { NumberInput } from '../inputs/NumberInput'
 import { ColorInput } from '../inputs/ColorInput'
 import { ToggleInput } from '../inputs/ToggleInput'
 import styles from '../PropertiesPanel.module.css'
+import { CollapsibleSection } from '../CollapsibleSection'
 
 interface Props {
   variable: Variable
@@ -29,57 +30,55 @@ export function VariableSection({ variable, dispatch }: Props) {
 
   return (
     <>
-      <div className={styles.section}>
-        <div className={styles.sectionTitle}>Variable</div>
-        <div className={styles.nameRow}>
-          <input
-            className={styles.nameInput}
-            value={variable.name}
-            onChange={e => update({ name: e.target.value })}
-            placeholder="Variable name"
-          />
-        </div>
-        <div className={styles.row}>
-          <label className={styles.label}>Type</label>
-          <span style={typeBadgeStyle}>{variable.type}</span>
-        </div>
-      </div>
+      <CollapsibleSection title="Variable">
+<div className={styles.nameRow}>
+  <input
+    className={styles.nameInput}
+    value={variable.name}
+    onChange={e => update({ name: e.target.value })}
+    placeholder="Variable name"
+  />
+</div>
+<div className={styles.row}>
+  <label className={styles.label}>Type</label>
+  <span style={typeBadgeStyle}>{variable.type}</span>
+</div>
+      </CollapsibleSection>
 
-      <div className={styles.section}>
-        <div className={styles.sectionTitle}>Value</div>
-        {variable.type === 'number' && (
-          <NumberInput
-            label="Value"
-            value={variable.value as number}
-            onChange={v => update({ value: v })}
-          />
-        )}
-        {variable.type === 'color' && (
-          <ColorInput
-            label="Color"
-            value={{ color: variable.value as string }}
-            onChange={ref => update({ value: ref.color })}
-          />
-        )}
-        {variable.type === 'boolean' && (
-          <ToggleInput
-            label="Value"
-            value={variable.value as boolean}
-            onChange={v => update({ value: v })}
-          />
-        )}
-        {variable.type === 'string' && (
-          <div className={styles.row}>
-            <label className={styles.label}>Text</label>
-            <input
-              className={styles.nameInput}
-              value={variable.value as string}
-              onChange={e => update({ value: e.target.value })}
-              placeholder="Variable value"
-            />
-          </div>
-        )}
-      </div>
+      <CollapsibleSection title="Value">
+{variable.type === 'number' && (
+  <NumberInput
+    label="Value"
+    value={variable.value as number}
+    onChange={v => update({ value: v })}
+  />
+)}
+{variable.type === 'color' && (
+  <ColorInput
+    label="Color"
+    value={{ color: variable.value as string }}
+    onChange={ref => update({ value: ref.color })}
+  />
+)}
+{variable.type === 'boolean' && (
+  <ToggleInput
+    label="Value"
+    value={variable.value as boolean}
+    onChange={v => update({ value: v })}
+  />
+)}
+{variable.type === 'string' && (
+  <div className={styles.row}>
+    <label className={styles.label}>Text</label>
+    <input
+      className={styles.nameInput}
+      value={variable.value as string}
+      onChange={e => update({ value: e.target.value })}
+      placeholder="Variable value"
+    />
+  </div>
+)}
+      </CollapsibleSection>
     </>
   )
 }

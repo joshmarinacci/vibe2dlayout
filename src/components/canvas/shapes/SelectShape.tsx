@@ -1,10 +1,14 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import { useRef, useEffect, type Dispatch } from 'react'
 import type { SelectShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { ChevronDown } from 'lucide-react'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -19,7 +23,7 @@ interface Props {
 
 export function SelectShapeComp({ shape, isSelected, isEditing, handDrawn, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, placeholder, text, fill, stroke } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
   const inputRef = useRef<HTMLInputElement>(null)
   const editValueRef = useRef(text.content)
   const cancelRef = useRef(false)
@@ -62,11 +66,12 @@ export function SelectShapeComp({ shape, isSelected, isEditing, handDrawn, dispa
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
       }}
       onClick={onClick}
@@ -84,8 +89,8 @@ export function SelectShapeComp({ shape, isSelected, isEditing, handDrawn, dispa
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: fill.color === 'transparent' ? 'transparent' : fill.color,
-          border: `${stroke.width}px solid ${stroke.color}`,
+          background: fillBackground(fill),
+          ...strokeBorderCSS(stroke),
           borderRadius: 4,
           opacity: fill.opacity,
         }} />
@@ -136,7 +141,7 @@ export function SelectShapeComp({ shape, isSelected, isEditing, handDrawn, dispa
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
-          ...textShadowCSS(text),
+          ...textExtraCSS(text),
         }}>
           {displayText}
         </div>

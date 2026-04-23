@@ -1,3 +1,7 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { fillBackground } from '@utils/fillCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { DialogShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
@@ -18,7 +22,7 @@ interface Props {
 
 export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, children, handDrawn, themeFontFamily }: Props) {
   const { transform, fill, stroke, title, titleFontSize, titleColor, okLabel, cancelLabel } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
 
   const titleBarHeight = titleFontSize + 12
   const footerHeight = 44
@@ -81,11 +85,12 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
         opacity: fill.opacity,
       }}
@@ -108,8 +113,8 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: fill.color === 'transparent' ? 'transparent' : fill.color,
-          border: `${stroke.width}px solid ${stroke.color}`,
+          background: fillBackground(fill),
+          ...strokeBorderCSS(stroke),
           borderRadius: 6,
           display: 'flex',
           flexDirection: 'column',
@@ -127,7 +132,7 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
               top: (footerHeight - btnH) / 2,
               width: btnW,
               height: btnH,
-              border: `${stroke.width}px solid ${stroke.color}`,
+              ...strokeBorderCSS(stroke),
               borderRadius: 4,
             }} />
             {/* OK button */}

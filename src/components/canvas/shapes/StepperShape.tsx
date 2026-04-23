@@ -1,9 +1,12 @@
+import { buildCSSTransform } from '@model/transform'
+import { boxShadowCSS } from '@utils/shadowCSS'
+import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { StepperShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import { textShadowCSS } from '@utils/textStyleCSS'
+import { textExtraCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -19,7 +22,7 @@ const BTN_W = 30
 
 export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, value, text, fill, stroke } = shape
-  const { x, y, width, height, rotation } = transform
+  const { x, y, width, height } = transform
 
   const seed = seedFromId(shape.id)
   const pad = 2
@@ -62,11 +65,12 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, ha
       className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
       style={{
         position: 'absolute',
+        ...boxShadowCSS(shape),
         left: x,
         top: y,
         width,
         height,
-        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transform: buildCSSTransform(transform),
         transformOrigin: 'center center',
       }}
       onClick={onClick}
@@ -83,7 +87,7 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, ha
           <RoughSvgPaths paths={plusPaths} />
         </svg>
       ) : (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', border: `${stroke.width}px solid ${stroke.color}`, borderRadius: 4, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', ...strokeBorderCSS(stroke), borderRadius: 4, overflow: 'hidden' }}>
           <div style={{ width: BTN_W, background: btnBg, borderRight: `${stroke.width}px solid ${stroke.color}`, flexShrink: 0 }} />
           <div style={{ flex: 1 }} />
           <div style={{ width: BTN_W, background: btnBg, borderLeft: `${stroke.width}px solid ${stroke.color}`, flexShrink: 0 }} />
@@ -120,7 +124,7 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, ha
         fontSize: text.fontSize,
         color: text.color,
         userSelect: 'none',
-        ...textShadowCSS(text),
+        ...textExtraCSS(text),
       }}>{value}</div>
 
       {/* + button label */}
