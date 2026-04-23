@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   MousePointer2, Hand, Square, Circle, Minus, Type, Image, FileText,
   RectangleHorizontal, PanelLeft, SlidersHorizontal,
@@ -76,6 +76,20 @@ export function Toolbar() {
   const [nameInputValue, setNameInputValue] = useState('')
 
   const [theme, toggleTheme] = useTheme()
+
+  // Close any open menu when clicking outside
+  const anyMenuOpen = showFileMenu || showShapesMenu || showComponentMenu
+  useEffect(() => {
+    if (!anyMenuOpen) return
+    const handler = () => {
+      setShowFileMenu(false)
+      setShowShapesMenu(false)
+      setShowComponentMenu(false)
+    }
+    window.addEventListener('pointerdown', handler, { capture: true })
+    return () => window.removeEventListener('pointerdown', handler, { capture: true })
+  }, [anyMenuOpen])
+
 
   const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode)
   const activeComponentTool = ALL_COMPONENT_TOOLS.find(t => t.mode === state.toolMode)

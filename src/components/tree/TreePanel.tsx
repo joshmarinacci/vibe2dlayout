@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ShapeType } from '@model/shapes'
 import { createShape } from '@utils/shapeFactory'
@@ -52,6 +52,14 @@ export function TreePanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
   const [showAddMenu, setShowAddMenu] = useState(false)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!showAddMenu) return
+    const handler = () => setShowAddMenu(false)
+    window.addEventListener('pointerdown', handler, { capture: true })
+    return () => window.removeEventListener('pointerdown', handler, { capture: true })
+  }, [showAddMenu])
 
   const { rootNodes, shapes, pageFolders } = state.document
 
