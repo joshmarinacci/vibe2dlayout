@@ -7,7 +7,7 @@ import { linearGradientCSS } from './fillCSS'
  * Spread this into any style object that renders text.
  */
 export function textExtraCSS(
-  text: Pick<TextStyle, 'textShadow' | 'lineHeight' | 'letterSpacing' | 'textDecoration' | 'textTransform' | 'textGradient'>
+  text: Pick<TextStyle, 'textShadow' | 'lineHeight' | 'letterSpacing' | 'textDecoration' | 'textTransform' | 'textGradient' | 'fontVariantCaps'>
 ): CSSProperties {
   const result: CSSProperties = {}
   if (text.textShadow) {
@@ -25,6 +25,7 @@ export function textExtraCSS(
   if (text.letterSpacing != null) result.letterSpacing = `${text.letterSpacing}px`
   if (text.textDecoration && text.textDecoration !== 'none') result.textDecoration = text.textDecoration
   if (text.textTransform && text.textTransform !== 'none') result.textTransform = text.textTransform
+  if (text.fontVariantCaps === 'small-caps') result.fontVariant = 'small-caps'
   return result
 }
 

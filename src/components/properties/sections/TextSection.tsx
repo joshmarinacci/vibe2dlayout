@@ -1,15 +1,16 @@
-import type { Dispatch } from 'react'
+import { useState, useEffect, type Dispatch } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { TextStyle, LinearGradient } from '@model/shapes'
 import type { TextStyleDef } from '@model/textStyle'
 import type { AppAction } from '@store/types'
-import { AlignLeft, AlignCenter, AlignRight, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd, Underline, Strikethrough } from 'lucide-react'
+import { AlignLeft, AlignCenter, AlignRight, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd, Underline, Strikethrough, Italic, ALargeSmall } from 'lucide-react'
 import { ColorInput } from '../inputs/ColorInput'
 import { SelectInput } from '../inputs/SelectInput'
 import { NumberInput } from '../inputs/NumberInput'
 import styles from '../PropertiesPanel.module.css'
 import inputStyles from '../inputs/inputs.module.css'
 import { CollapsibleSection } from '../CollapsibleSection'
+import { detectSmallCaps } from '@utils/fontFeatures'
 
 // Logarithmic slider: maps slider 0–100 to font size 5–500
 // Midpoint (50) ≈ 50px, which feels natural for font size picking
@@ -20,6 +21,52 @@ function fontSizeToSlider(size: number): number {
 }
 function sliderToFontSize(slider: number): number {
   return Math.round(FONT_SIZE_MIN * Math.pow(FONT_SIZE_MAX / FONT_SIZE_MIN, slider / 100))
+}
+
+const ALL_WEIGHT_OPTIONS = [
+  { value: '100', label: 'Thin' },
+  { value: '200', label: 'ExtraLight' },
+  { value: '300', label: 'Light' },
+  { value: 'normal', label: 'Normal' },
+  { value: '500', label: 'Medium' },
+  { value: '600', label: 'SemiBold' },
+  { value: 'bold', label: 'Bold' },
+  { value: '800', label: 'ExtraBold' },
+  { value: '900', label: 'Black' },
+]
+
+const WEIGHT_VALUE_TO_NUM: Record<string, number> = {
+  normal: 400, bold: 700,
+  '100': 100, '200': 200, '300': 300, '400': 400, '500': 500,
+  '600': 600, '700': 700, '800': 800, '900': 900,
+}
+
+// Returns the subset of ALL_WEIGHT_OPTIONS that the given font family supports,
+// based on loaded FontFace descriptors. Falls back to all weights for system fonts.
+function detectAvailableWeights(fontFamily: string): typeof ALL_WEIGHT_OPTIONS {
+  if (typeof document === 'undefined') return ALL_WEIGHT_OPTIONS
+  const target = fontFamily.split(',')[0].trim().replace(/['"]/g, '').toLowerCase()
+  const matched: number[] = []
+  document.fonts.forEach(face => {
+    const name = face.family.replace(/['"]/g, '').toLowerCase()
+    if (name !== target) return
+    const w = face.weight ?? 'normal'
+    const parts = w.trim().split(/\s+/)
+    if (parts.length === 2) {
+      // Weight range e.g. "100 900"
+      const min = Number(parts[0]), max = Number(parts[1])
+      for (const opt of ALL_WEIGHT_OPTIONS) {
+        const n = WEIGHT_VALUE_TO_NUM[opt.value]
+        if (n >= min && n <= max) matched.push(n)
+      }
+    } else {
+      const raw = parts[0] === 'bold' ? 700 : parts[0] === 'normal' ? 400 : Number(parts[0])
+      if (!isNaN(raw)) matched.push(raw)
+    }
+  })
+  if (matched.length === 0) return ALL_WEIGHT_OPTIONS
+  const numSet = new Set(matched)
+  return ALL_WEIGHT_OPTIONS.filter(opt => numSet.has(WEIGHT_VALUE_TO_NUM[opt.value]))
 }
 
 const COMMON_FONTS = [
@@ -35,7 +82,7 @@ const COMMON_FONTS = [
 const STYLE_FIELDS = new Set([
   'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
   'color', 'paletteColorId', 'align', 'verticalAlign', 'textShadow',
-  'lineHeight', 'letterSpacing', 'textDecoration', 'textTransform', 'textGradient',
+  'lineHeight', 'letterSpacing', 'textDecoration', 'textTransform', 'textGradient', 'fontVariantCaps',
 ])
 
 const DEFAULT_TEXT_GRADIENT: LinearGradient = {
@@ -87,6 +134,21 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
 
   const resetOverride = (field: string) =>
     dispatch({ type: 'CLEAR_TEXT_OVERRIDE', shapeId, field })
+
+  // Detect which weights the current font actually supports
+  const [weightOptions, setWeightOptions] = useState(() => detectAvailableWeights(text.fontFamily))
+  useEffect(() => {
+    setWeightOptions(detectAvailableWeights(text.fontFamily))
+    document.fonts.ready.then(() => setWeightOptions(detectAvailableWeights(text.fontFamily)))
+  }, [text.fontFamily])
+
+  // Detect whether the current font has a true OpenType small-caps feature.
+  // null = unknown (WOFF2 only / not a Google Font) — show toggle without warning.
+  const [hasSmallCaps, setHasSmallCaps] = useState<boolean | null>(null)
+  useEffect(() => {
+    setHasSmallCaps(null)
+    detectSmallCaps(text.fontFamily).then(setHasSmallCaps)
+  }, [text.fontFamily])
 
   return (
     <CollapsibleSection title="Text">
@@ -270,21 +332,43 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
   )}
 </div>
 
-{/* Font weight */}
+{/* Font weight + italic */}
 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
   <div style={{ flex: 1 }}>
     <SelectInput
       label="Weight"
       value={text.fontWeight}
-      options={[
-        { value: 'normal', label: 'Normal' },
-        { value: 'bold', label: 'Bold' },
-      ]}
+      options={weightOptions}
       onChange={v => applyChange({ fontWeight: v as TextStyle['fontWeight'] })}
     />
   </div>
+  <button
+    className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
+    title="Italic"
+    onClick={() => applyChange({ fontStyle: text.fontStyle === 'italic' ? 'normal' : 'italic' })}
+  >
+    <Italic size={13} />
+  </button>
+  <button
+    className={`${inputStyles.iconBtn}${text.fontVariantCaps === 'small-caps' ? ` ${inputStyles.iconBtnActive}` : ''}`}
+    title={hasSmallCaps === false ? 'Small Caps (synthesized — font has no native smcp)' : 'Small Caps'}
+    style={{ opacity: hasSmallCaps === false ? 0.45 : 1 }}
+    onClick={() => applyChange({ fontVariantCaps: text.fontVariantCaps === 'small-caps' ? 'normal' : 'small-caps' })}
+  >
+    <ALargeSmall size={13} />
+  </button>
   {hasStyle && overrides.has('fontWeight') && (
     <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontWeight')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+  {hasStyle && overrides.has('fontStyle') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontStyle')} title="Reset to style">
+      <RotateCcw size={10} />
+    </button>
+  )}
+  {hasStyle && overrides.has('fontVariantCaps') && (
+    <button className={styles.resetOverrideBtn} onClick={() => resetOverride('fontVariantCaps')} title="Reset to style">
       <RotateCcw size={10} />
     </button>
   )}

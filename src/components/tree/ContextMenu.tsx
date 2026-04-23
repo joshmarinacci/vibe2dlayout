@@ -24,15 +24,22 @@ interface Props {
 export function ContextMenu({ x, y, groups, onClose }: Props) {
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Adjust position so menu doesn't overflow the viewport
+  // Adjust position so menu stays within the viewport
   useEffect(() => {
     const el = menuRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
     const vw = window.innerWidth
     const vh = window.innerHeight
-    if (rect.right > vw) el.style.left = `${x - rect.width}px`
-    if (rect.bottom > vh) el.style.top = `${y - rect.height}px`
+    let left = x
+    let top = y
+    if (left + rect.width > vw) left = x - rect.width
+    if (top + rect.height > vh) top = y - rect.height
+    // Clamp to viewport edges with 8px margin
+    left = Math.max(8, Math.min(left, vw - rect.width - 8))
+    top  = Math.max(8, Math.min(top,  vh - rect.height - 8))
+    el.style.left = `${left}px`
+    el.style.top  = `${top}px`
   }, [x, y])
 
   // Close on outside click or Escape

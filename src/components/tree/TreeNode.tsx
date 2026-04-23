@@ -111,7 +111,24 @@ export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, acti
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [dropZone, setDropZone] = useState<'before' | 'into' | 'after' | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState(shape.name)
+  const nameInputRef = useRef<HTMLInputElement>(null)
   const isDraggingSelf = useRef(false)
+
+  const startRename = useCallback(() => {
+    setEditName(shape.name)
+    setIsEditing(true)
+    setTimeout(() => nameInputRef.current?.select(), 0)
+  }, [shape.name])
+
+  const commitRename = useCallback(() => {
+    const trimmed = editName.trim()
+    if (trimmed && trimmed !== shape.name) {
+      dispatch({ type: 'PATCH_SHAPE', id: node.id, patch: { name: trimmed } })
+    }
+    setIsEditing(false)
+  }, [dispatch, editName, node.id, shape.name])
 
   const handleDragStart = (e: React.DragEvent) => {
     e.stopPropagation()
@@ -384,8 +401,9 @@ export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, acti
           dropZone === 'after'  ? styles.dropAfter  : '',
         ].join(' ')}
         style={{ paddingLeft: 8 + depth * 14 }}
-        draggable
+        draggable={!isEditing}
         onClick={handleClick}
+        onDoubleClick={e => { e.stopPropagation(); startRename() }}
         onContextMenu={handleContextMenu}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -405,7 +423,23 @@ export function TreeNodeComp({ node, rootNodes, shapes, depth, selectedIds, acti
         )}
 
         <span className={styles.icon}>{SHAPE_ICON_MAP[shape.type] ?? <Square size={11} />}</span>
-        <span className={`${styles.name} ${!shape.visible ? styles.hidden : ''}`}>{shape.name}</span>
+        {isEditing ? (
+          <input
+            ref={nameInputRef}
+            className={styles.nameInput}
+            value={editName}
+            autoFocus
+            onChange={e => setEditName(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={e => {
+              if (e.key === 'Enter') { e.preventDefault(); commitRename() }
+              if (e.key === 'Escape') setIsEditing(false)
+            }}
+            onClick={e => e.stopPropagation()}
+          />
+        ) : (
+          <span className={`${styles.name} ${!shape.visible ? styles.hidden : ''}`}>{shape.name}</span>
+        )}
 
         <div className={styles.actions}>
           <button

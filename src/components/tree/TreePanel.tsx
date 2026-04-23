@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import type { ShapeType } from '@model/shapes'
 import { createShape } from '@utils/shapeFactory'
@@ -52,11 +52,15 @@ export function TreePanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
   const [showAddMenu, setShowAddMenu] = useState(false)
+  const addMenuRef = useRef<HTMLDivElement>(null)
 
-  // Close menu when clicking outside
+  // Close menu when clicking outside (but not inside the menu itself)
   useEffect(() => {
     if (!showAddMenu) return
-    const handler = () => setShowAddMenu(false)
+    const handler = (e: PointerEvent) => {
+      if (addMenuRef.current?.contains(e.target as Node)) return
+      setShowAddMenu(false)
+    }
     window.addEventListener('pointerdown', handler, { capture: true })
     return () => window.removeEventListener('pointerdown', handler, { capture: true })
   }, [showAddMenu])
@@ -95,7 +99,7 @@ export function TreePanel() {
       <div className={styles.header}>
         <span className={styles.title}>Layers</span>
         <div className={styles.headerActions}>
-          <div style={{ position: 'relative' }}>
+          <div ref={addMenuRef} style={{ position: 'relative' }}>
             <button
               className={styles.addBtn}
               onClick={() => setShowAddMenu(v => !v)}
@@ -156,6 +160,8 @@ export function TreePanel() {
           documentName={state.documentName}
           documentSelected={state.documentSelected}
           dispatch={dispatch}
+          onAddPage={addPage}
+          onRename={name => dispatch({ type: 'SET_DOCUMENT_META', id: state.documentId, name })}
         />
 
         <div className={styles.separator} />

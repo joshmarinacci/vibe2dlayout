@@ -60,6 +60,7 @@ export interface TextStyle {
   letterSpacing?: number     // pixels
   textDecoration?: 'none' | 'underline' | 'line-through' | 'underline line-through'
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
+  fontVariantCaps?: 'normal' | 'small-caps'
   // Named style reference — see src/model/textStyle.ts
   textStyleId?: string
   // Fields explicitly overridden from the style (not inherited)

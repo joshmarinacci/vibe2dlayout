@@ -70,6 +70,18 @@
   opacity: 0.4;
 }
 
+.nameInput {
+  flex: 1;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-accent);
+  border-radius: 2px;
+  padding: 1px 4px;
+  outline: none;
+  background: var(--color-bg-surface);
+  min-width: 0;
+}
+
 .actions {
   display: flex;
   gap: 2px;

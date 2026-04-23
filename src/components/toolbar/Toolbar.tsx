@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   MousePointer2, Hand, Square, Circle, Minus, Type, Image, FileText,
   RectangleHorizontal, PanelLeft, SlidersHorizontal,
@@ -76,12 +76,18 @@ export function Toolbar() {
   const [nameInputValue, setNameInputValue] = useState('')
 
   const [theme, toggleTheme] = useTheme()
+  const fileMenuRef = useRef<HTMLDivElement>(null)
+  const shapesMenuRef = useRef<HTMLDivElement>(null)
+  const componentMenuRef = useRef<HTMLDivElement>(null)
 
-  // Close any open menu when clicking outside
+  // Close any open menu when clicking outside (but not inside the menu itself)
   const anyMenuOpen = showFileMenu || showShapesMenu || showComponentMenu
   useEffect(() => {
     if (!anyMenuOpen) return
-    const handler = () => {
+    const handler = (e: PointerEvent) => {
+      if (fileMenuRef.current?.contains(e.target as Node)) return
+      if (shapesMenuRef.current?.contains(e.target as Node)) return
+      if (componentMenuRef.current?.contains(e.target as Node)) return
       setShowFileMenu(false)
       setShowShapesMenu(false)
       setShowComponentMenu(false)
@@ -152,7 +158,7 @@ export function Toolbar() {
 
       {/* File menu */}
       <div className={styles.group}>
-        <div style={{ position: 'relative' }}>
+        <div ref={fileMenuRef} style={{ position: 'relative' }}>
           <button
             className={`${styles.btn} ${styles.formBtn}`}
             title="File"
@@ -279,7 +285,7 @@ export function Toolbar() {
 
       <div className={styles.group}>
         {/* Shapes dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div ref={shapesMenuRef} style={{ position: 'relative' }}>
           <button
             className={`${styles.btn} ${styles.formBtn} ${SHAPE_MODES.has(state.toolMode) ? styles.active : ''}`}
             title="Shapes"
@@ -326,7 +332,7 @@ export function Toolbar() {
         ><FileText size={15} /></button>
 
         {/* Components dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div ref={componentMenuRef} style={{ position: 'relative' }}>
           <button
             className={`${styles.btn} ${styles.formBtn} ${COMPONENT_MODES.has(state.toolMode) ? styles.active : ''}`}
             title="Components"

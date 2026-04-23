@@ -1,3 +1,42 @@
+## 2026-04-23 11:45
+
+- Context menu now scrolls when it's taller than the viewport (`max-height: calc(100vh - 16px)` + `overflow-y: auto`)
+- Repositioning logic improved: clamps to all four viewport edges with 8px margin (previously only handled right/bottom overflow)
+
+## 2026-04-23 11:30
+
+- Added `fontVariantCaps?: 'normal' | 'small-caps'` to `TextStyle` model
+- Applied via `fontVariant: 'small-caps'` CSS in `textExtraCSS`
+- Added Small Caps toggle (ALargeSmall icon) next to italic button in TextSection
+- Added `src/utils/fontFeatures.ts` with `detectSmallCaps()` using opentype.js:
+  - Fetches the Google Fonts CSS link tag for the current font
+  - Extracts a TTF/WOFF1 URL (opentype.js cannot parse WOFF2)
+  - Parses GSUB feature tables to check for the `smcp` OpenType feature
+  - Returns null when detection is impossible (WOFF2 only / not a Google Font)
+- Toggle shows dimmed when font is confirmed to lack native smcp; full opacity when supported or unknown
+- Installed `opentype.js` + `@types/opentype.js`
+
+## 2026-04-23 11:15
+
+- Double-clicking any item in the tree view opens an inline name editor
+  - Shapes and pages: dispatches `PATCH_SHAPE` with new name on commit
+  - Document row: dispatches `SET_DOCUMENT_META` with new name on commit
+  - Page folders: already supported (no change needed)
+- Enter/Blur commits; Escape cancels; drag is disabled while editing
+
+## 2026-04-23 11:00
+
+- Font weight dropdown now detects which weights the selected font actually supports via the CSS Font Loading API (`document.fonts`)
+- System fonts (not in `document.fonts`) fall back to showing all 9 weights
+- Web fonts (Google Fonts, custom fonts) show only their registered weight variants
+- Re-checks after `document.fonts.ready` resolves so async-loaded fonts are handled correctly
+
+## 2026-04-23 10:45
+
+- Added italic toggle button to Text section in PropertiesPanel (toggles `fontStyle` between `'normal'` and `'italic'`)
+- Expanded font weight dropdown from Normal/Bold to full 9-step range: Thin (100), ExtraLight (200), Light (300), Normal (400), Medium (500), SemiBold (600), Bold (700), ExtraBold (800), Black (900)
+- Reset-to-style buttons shown for both `fontWeight` and `fontStyle` when a named text style is active
+
 ## 2026-04-23 09:25
 
 - Reordered Transform section fields: X/Y → W/H → SX/SY → KX/KY → °
