@@ -14,9 +14,10 @@ import {
   Eye, EyeOff, Lock, Unlock, Trash2,
   AlignLeft, AlignCenter, AlignRight,
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
-  ArrowLeftRight, ArrowUpDown, Group, Ungroup,
+  ArrowLeftRight, ArrowUpDown, Group, Ungroup, FileImage,
 } from 'lucide-react'
 import type { AlignType } from '@store/types'
+import { exportGroupAsPng } from '@utils/exportPng'
 
 interface Props {
   menuState: CanvasContextMenuState
@@ -179,11 +180,18 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
             icon: <Copy size={14} />,
             onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: [shapeId!] }),
           },
-          ...(shape.type === 'group' ? [{
-            label: 'Ungroup',
-            icon: <Ungroup size={14} />,
-            onClick: () => dispatch({ type: 'UNGROUP_SHAPES', id: shapeId! }),
-          }] : []),
+          ...(shape.type === 'group' ? [
+            {
+              label: 'Ungroup',
+              icon: <Ungroup size={14} />,
+              onClick: () => dispatch({ type: 'UNGROUP_SHAPES', id: shapeId! }),
+            },
+            {
+              label: 'Export as PNG',
+              icon: <FileImage size={14} />,
+              onClick: () => exportGroupAsPng(shapeId!, state),
+            },
+          ] : []),
         ],
       },
       {

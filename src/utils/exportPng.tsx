@@ -4,6 +4,78 @@ import html2canvas from 'html2canvas'
 import { ShapeRenderer } from '@components/canvas/ShapeRenderer'
 import type { AppState } from '@store/types'
 import { getActiveTheme } from '@model/theme'
+import type { TreeNode } from '@model/document'
+
+function findNode(nodes: TreeNode[], id: string): TreeNode | null {
+  for (const n of nodes) {
+    if (n.id === id) return n
+    const found = findNode(n.children, id)
+    if (found) return found
+  }
+  return null
+}
+
+export async function exportGroupAsPng(groupId: string, state: AppState): Promise<void> {
+  const group = state.document.shapes[groupId]
+  if (!group || group.type !== 'group') throw new Error('Shape is not a group')
+
+  const groupNode = findNode(state.document.rootNodes, groupId)
+  if (!groupNode) throw new Error('Group node not found')
+
+  const { width, height } = group.transform
+  const theme = getActiveTheme(state.document)
+
+  const container = document.createElement('div')
+  container.style.cssText = `
+    position: fixed;
+    left: ${-(width + 200)}px;
+    top: 0;
+    width: ${width}px;
+    height: ${height}px;
+    overflow: hidden;
+  `
+  document.body.appendChild(container)
+
+  const root = createRoot(container)
+  try {
+    await new Promise<void>(resolve => {
+      root.render(
+        React.createElement(ShapeRenderer, {
+          nodes: groupNode.children,
+          shapes: state.document.shapes,
+          selectedIds: [],
+          editingTextId: null,
+          dispatch: () => {},
+          handDrawn: theme.handDrawn,
+          themeFontFamily: theme.fontFamily,
+          textStyles: state.document.textStyles,
+          variables: state.document.variables,
+        })
+      )
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    })
+
+    const canvas = await html2canvas(container, {
+      width,
+      height,
+      scale: window.devicePixelRatio || 2,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false,
+    })
+
+    const url = canvas.toDataURL('image/png')
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${state.documentName || 'export'}-group.png`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } finally {
+    root.unmount()
+    document.body.removeChild(container)
+  }
+}
 
 export async function exportPageAsPng(state: AppState): Promise<void> {
   const pageId = state.activePageId

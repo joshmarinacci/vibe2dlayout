@@ -1,3 +1,10 @@
+## 2026-04-23 16:00
+
+### Export group as PNG
+
+- Added `exportGroupAsPng(groupId, state)` to `src/utils/exportPng.tsx`: renders the group's children into an off-screen container sized to the group's bounding box and captures it with html2canvas (transparent background)
+- Added "Export as PNG" context menu item (with FileImage icon) for group shapes in `CanvasContextMenu.tsx`, alongside the existing Ungroup item
+
 ## 2026-04-23 15:30
 
 ### UX improvements batch
