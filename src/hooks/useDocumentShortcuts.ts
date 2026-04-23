@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useAppDispatch, useAppState } from '@store/context'
 import { getEffectiveGridSettings } from '@utils/snapping'
+import { saveDoc } from '@utils/localStorageDB'
 
 export function useDocumentShortcuts() {
   const { state } = useAppState()
@@ -8,13 +9,25 @@ export function useDocumentShortcuts() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey
+
+      // Cmd+S: save document — intercept before input guard to prevent browser save dialog
+      if (meta && e.key === 's' && !e.shiftKey) {
+        e.preventDefault()
+        try {
+          const entry = saveDoc(state.documentId, state.documentName, state.document)
+          dispatch({ type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name })
+        } catch (err) {
+          console.error('Save failed:', err)
+        }
+        return
+      }
+
       const target = e.target as HTMLElement
       // Don't fire shortcuts when typing in inputs
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return
       }
-
-      const meta = e.metaKey || e.ctrlKey
 
       if (meta && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
@@ -80,5 +93,5 @@ export function useDocumentShortcuts() {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [state.selection, state.drilledInContainerStack, state.activePageId, state.document.shapes, state.document.gridSettings, dispatch])
+  }, [state.selection, state.drilledInContainerStack, state.activePageId, state.document, state.document.gridSettings, state.documentId, state.documentName, dispatch])
 }

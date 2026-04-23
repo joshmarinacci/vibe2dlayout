@@ -24,6 +24,7 @@ const DOCUMENT_ACTION_TYPES = new Set<string>([
   'ADD_VARIABLE', 'UPDATE_VARIABLE', 'DELETE_VARIABLE', 'REORDER_VARIABLE', 'BIND_VARIABLE',
   'ADD_IMAGE_ASSET', 'UPDATE_IMAGE_ASSET', 'DELETE_IMAGE_ASSET',
   'ADD_GUIDE', 'DELETE_GUIDE', 'MOVE_GUIDE',
+  'ADD_CUSTOM_FONT', 'DELETE_CUSTOM_FONT',
 ])
 
 function isDocumentAction(action: AppAction): action is DocumentAction {
@@ -37,7 +38,7 @@ export function historyReducer(state: HistoryState, action: AppAction): HistoryS
     const newPast = state.past.slice(0, -1)
     return {
       past: newPast,
-      present: { ...state.present, document: previous },
+      present: { ...state.present, document: previous, isDirty: true },
       future: [state.present.document, ...state.future],
     }
   }
@@ -48,7 +49,7 @@ export function historyReducer(state: HistoryState, action: AppAction): HistoryS
     const newFuture = state.future.slice(1)
     return {
       past: [...state.past, state.present.document].slice(-MAX_HISTORY),
-      present: { ...state.present, document: next },
+      present: { ...state.present, document: next, isDirty: true },
       future: newFuture,
     }
   }
@@ -57,7 +58,7 @@ export function historyReducer(state: HistoryState, action: AppAction): HistoryS
     const nextPresent = appReducer(state.present, action)
     return {
       past: [],
-      present: nextPresent,
+      present: { ...nextPresent, isDirty: false },
       future: [],
     }
   }
@@ -66,7 +67,7 @@ export function historyReducer(state: HistoryState, action: AppAction): HistoryS
     const nextPresent = appReducer(state.present, action)
     return {
       past: [...state.past, state.present.document].slice(-MAX_HISTORY),
-      present: nextPresent,
+      present: { ...nextPresent, isDirty: true },
       future: [],
     }
   }

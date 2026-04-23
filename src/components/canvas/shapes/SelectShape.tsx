@@ -4,6 +4,7 @@ import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { ChevronDown } from 'lucide-react'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -135,6 +136,7 @@ export function SelectShapeComp({ shape, isSelected, isEditing, handDrawn, dispa
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
+          ...textShadowCSS(text),
         }}>
           {displayText}
         </div>

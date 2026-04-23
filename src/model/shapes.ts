@@ -31,6 +31,7 @@ export interface TextStyle {
   paletteColorId?: string
   align: 'left' | 'center' | 'right'
   verticalAlign: 'top' | 'middle' | 'bottom'
+  textShadow?: { offsetX: number; offsetY: number; blur: number; color: string } | null
   // Named style reference — see src/model/textStyle.ts
   textStyleId?: string
   // Fields explicitly overridden from the style (not inherited)

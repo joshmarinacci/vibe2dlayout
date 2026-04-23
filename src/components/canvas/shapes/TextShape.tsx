@@ -2,6 +2,7 @@ import type { Dispatch } from 'react'
 import type { TextShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -31,6 +32,7 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
     wordBreak: 'break-word',
     width: '100%',
     userSelect: 'none',
+    ...textShadowCSS(text),
   }
 
   return (

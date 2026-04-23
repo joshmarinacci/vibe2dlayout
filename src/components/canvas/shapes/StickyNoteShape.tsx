@@ -4,6 +4,7 @@ import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 const FOLD = 20
@@ -137,6 +138,7 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
             userSelect: 'none',
+            ...textShadowCSS(text),
           }}>
             {text.content}
           </div>

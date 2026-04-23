@@ -6,16 +6,20 @@ import type { AppAction } from '@store/types'
 import { AlignLeft, AlignCenter, AlignRight, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd } from 'lucide-react'
 import { ColorInput } from '../inputs/ColorInput'
 import { SelectInput } from '../inputs/SelectInput'
+import { NumberInput } from '../inputs/NumberInput'
 import styles from '../PropertiesPanel.module.css'
 import inputStyles from '../inputs/inputs.module.css'
 
-const FONT_SIZES: { value: number; label: string }[] = [
-  { value: 10, label: 'XS' },
-  { value: 14, label: 'Small' },
-  { value: 20, label: 'Medium' },
-  { value: 32, label: 'Large' },
-  { value: 56, label: 'XL' },
-]
+// Logarithmic slider: maps slider 0–100 to font size 5–500
+// Midpoint (50) ≈ 50px, which feels natural for font size picking
+const FONT_SIZE_MIN = 5
+const FONT_SIZE_MAX = 500
+function fontSizeToSlider(size: number): number {
+  return Math.round(Math.log(size / FONT_SIZE_MIN) / Math.log(FONT_SIZE_MAX / FONT_SIZE_MIN) * 100)
+}
+function sliderToFontSize(slider: number): number {
+  return Math.round(FONT_SIZE_MIN * Math.pow(FONT_SIZE_MAX / FONT_SIZE_MIN, slider / 100))
+}
 
 const COMMON_FONTS = [
   { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
@@ -29,7 +33,7 @@ const COMMON_FONTS = [
 // Style-able fields — any change to these is tracked as an override when a style is applied
 const STYLE_FIELDS = new Set([
   'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
-  'color', 'paletteColorId', 'align', 'verticalAlign',
+  'color', 'paletteColorId', 'align', 'verticalAlign', 'textShadow',
 ])
 
 interface Props {
@@ -39,9 +43,10 @@ interface Props {
   shapeId: string
   onChange: (t: TextStyle) => void
   dispatch: Dispatch<AppAction>
+  customFonts?: string[]    // document-level custom Google Font names
 }
 
-export function TextSection({ text, rawText, textStyles, shapeId, onChange, dispatch }: Props) {
+export function TextSection({ text, rawText, textStyles, shapeId, onChange, dispatch, customFonts }: Props) {
   // Apply a partial change to the text, preserving style connection and tracking overrides.
   // Always uses rawText as the base so textStyleId is never lost.
   // Explicitly adds changed style-able fields to textStyleOverrides so that a field whose
@@ -58,12 +63,6 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
     }
   }
 
-  const isPreset = FONT_SIZES.some(s => s.value === text.fontSize)
-  const sizeOptions = [
-    ...FONT_SIZES.map(s => ({ value: String(s.value), label: s.label })),
-    ...(!isPreset ? [{ value: String(text.fontSize), label: `${text.fontSize}px` }] : []),
-  ]
-
   const activeStyleId = rawText.textStyleId ?? ''
   const overrides = new Set(rawText.textStyleOverrides ?? [])
   const hasStyle = !!rawText.textStyleId
@@ -73,8 +72,9 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
     ...textStyles.map(s => ({ value: s.id, label: s.name })),
   ]
 
-  const fontOptions = [...COMMON_FONTS]
-  if (text.fontFamily && !COMMON_FONTS.some(f => f.value === text.fontFamily)) {
+  const customFontEntries = (customFonts ?? []).map(name => ({ value: name, label: name }))
+  const fontOptions = [...COMMON_FONTS, ...customFontEntries]
+  if (text.fontFamily && !fontOptions.some(f => f.value === text.fontFamily)) {
     fontOptions.push({ value: text.fontFamily, label: text.fontFamily.split(',')[0].trim() })
   }
 
@@ -112,11 +112,23 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
       {/* Font size */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <div style={{ flex: 1 }}>
-          <SelectInput
+          <NumberInput
             label="Size"
-            value={String(text.fontSize)}
-            options={sizeOptions}
-            onChange={v => applyChange({ fontSize: Number(v) })}
+            value={text.fontSize}
+            min={FONT_SIZE_MIN}
+            max={FONT_SIZE_MAX}
+            step={1}
+            unit="px"
+            onChange={v => applyChange({ fontSize: v })}
+          />
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={fontSizeToSlider(Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, text.fontSize)))}
+            onChange={e => applyChange({ fontSize: sliderToFontSize(Number(e.target.value)) })}
+            style={{ width: '100%', marginTop: 2, accentColor: 'var(--color-accent)' }}
           />
         </div>
         {hasStyle && overrides.has('fontSize') && (
@@ -218,6 +230,42 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
           </button>
         )}
       </div>
+
+      {/* Text shadow */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ flex: 1 }} className={inputStyles.field}>
+          <span className={inputStyles.label}>Shadow</span>
+          <input
+            type="checkbox"
+            className={inputStyles.checkbox}
+            checked={!!text.textShadow}
+            onChange={e => applyChange({ textShadow: e.target.checked
+              ? { offsetX: 2, offsetY: 2, blur: 4, color: 'rgba(0,0,0,0.5)' }
+              : null
+            })}
+          />
+        </div>
+        {hasStyle && overrides.has('textShadow') && (
+          <button className={styles.resetOverrideBtn} onClick={() => resetOverride('textShadow')} title="Reset to style">
+            <RotateCcw size={10} />
+          </button>
+        )}
+      </div>
+      {text.textShadow && (
+        <div style={{ paddingLeft: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <ColorInput
+            label="Color"
+            value={{ color: text.textShadow.color }}
+            onChange={ref => applyChange({ textShadow: { ...text.textShadow!, color: ref.color } })}
+          />
+          <NumberInput label="X" value={text.textShadow.offsetX} min={-100} max={100} step={1} unit="px"
+            onChange={v => applyChange({ textShadow: { ...text.textShadow!, offsetX: v } })} />
+          <NumberInput label="Y" value={text.textShadow.offsetY} min={-100} max={100} step={1} unit="px"
+            onChange={v => applyChange({ textShadow: { ...text.textShadow!, offsetY: v } })} />
+          <NumberInput label="Blur" value={text.textShadow.blur} min={0} max={100} step={1} unit="px"
+            onChange={v => applyChange({ textShadow: { ...text.textShadow!, blur: v } })} />
+        </div>
+      )}
     </div>
   )
 }

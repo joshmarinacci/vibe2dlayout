@@ -4,6 +4,7 @@ import type { AppAction } from '@store/types'
 import { roughRect, roughCircle, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -151,6 +152,7 @@ export function ToggleShapeComp({ shape, isSelected, isEditing, dispatch, onClic
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
+          ...textShadowCSS(text),
         }}>
           {text.content}
         </div>

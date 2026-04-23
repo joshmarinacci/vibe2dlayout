@@ -1,3 +1,38 @@
+## 2026-04-22 (custom Google Fonts)
+
+### Feature: Add custom Google Fonts to a document
+
+Users can now type any Google Fonts family name in Document Settings → Custom Fonts and click Add (or press Enter). The font is saved to the document, dynamically loaded via a `<link>` tag injection, and immediately available in the Font dropdown across all text shapes and text style definitions.
+
+- Fonts persist in the document JSON and are re-loaded on open
+- Undo/redo supported for add/remove operations
+- Font names shown in their own typeface in the font list
+- Old documents without `customFonts` field migrate automatically
+
+**Files added:** `src/hooks/useDynamicFonts.ts`  
+**Files modified:** `src/model/document.ts`, `src/store/types.ts`, `src/store/history.ts`, `src/store/reducer.ts`, `src/components/layout/AppShell.tsx`, `src/components/layout/DocumentSettingsModal.tsx`, `src/components/properties/sections/TextSection.tsx`, `src/components/properties/sections/TextStyleDefSection.tsx`, `src/components/properties/PropertiesPanel.tsx`
+
+## 2026-04-22 14:00 (text-shadow CSS support for all text shapes)
+
+### Feature: text-shadow applied to all display-mode text renderers
+
+Added `import { textShadowCSS } from '@utils/textStyleCSS'` and spread `...textShadowCSS(text)` (or `title` for PanelShape) into the display-mode text style object of every text-rendering shape component. Textarea/input editing styles are intentionally unchanged.
+
+**Files modified:**
+- `src/components/canvas/shapes/TextShape.tsx`
+- `src/components/canvas/shapes/LabelShape.tsx`
+- `src/components/canvas/shapes/ButtonShape.tsx`
+- `src/components/canvas/shapes/CheckboxShape.tsx`
+- `src/components/canvas/shapes/RadioShape.tsx`
+- `src/components/canvas/shapes/ToggleShape.tsx`
+- `src/components/canvas/shapes/SelectShape.tsx`
+- `src/components/canvas/shapes/TextFieldShape.tsx`
+- `src/components/canvas/shapes/StickyNoteShape.tsx`
+- `src/components/canvas/shapes/ListShape.tsx`
+- `src/components/canvas/shapes/PanelShape.tsx`
+- `src/components/canvas/shapes/StepperShape.tsx`
+- `src/components/canvas/shapes/TableShape.tsx`
+
 ## 2026-04-22 (fix guide snap stale closure)
 
 ### Fix: shapes not snapping to user guide lines

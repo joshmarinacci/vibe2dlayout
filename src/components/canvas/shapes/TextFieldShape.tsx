@@ -3,6 +3,7 @@ import type { TextFieldShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -134,6 +135,7 @@ export function TextFieldShapeComp({ shape, isSelected, isEditing, handDrawn, di
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
+          ...textShadowCSS(text),
         }}>
           {showPlaceholder ? placeholder : text.content}
         </div>

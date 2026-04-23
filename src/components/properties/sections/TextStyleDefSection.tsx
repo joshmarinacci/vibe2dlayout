@@ -21,9 +21,10 @@ const COMMON_FONTS = [
 interface Props {
   style: TextStyleDef
   dispatch: Dispatch<AppAction>
+  customFonts?: string[]
 }
 
-export function TextStyleDefSection({ style, dispatch }: Props) {
+export function TextStyleDefSection({ style, dispatch, customFonts }: Props) {
   const update = (patch: Partial<TextStyleDef>) =>
     dispatch({ type: 'UPDATE_TEXT_STYLE', style: { ...style, ...patch } })
 
@@ -37,8 +38,11 @@ export function TextStyleDefSection({ style, dispatch }: Props) {
     }
   }
 
-  const fontFamilyOptions = COMMON_FONTS.map(f => ({ value: f, label: f.split(',')[0].trim() }))
-  if (style.fontFamily && !COMMON_FONTS.includes(style.fontFamily)) {
+  const fontFamilyOptions = [
+    ...COMMON_FONTS.map(f => ({ value: f, label: f.split(',')[0].trim() })),
+    ...(customFonts ?? []).map(name => ({ value: name, label: name })),
+  ]
+  if (style.fontFamily && !fontFamilyOptions.some(f => f.value === style.fontFamily)) {
     fontFamilyOptions.push({ value: style.fontFamily, label: style.fontFamily.split(',')[0].trim() })
   }
 

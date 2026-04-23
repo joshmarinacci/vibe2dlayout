@@ -12,6 +12,7 @@ import { SectionHeader } from './SectionHeader'
 import { StylesSection } from './StylesSection'
 import { VariablesSection } from './VariablesSection'
 import { AssetsSection } from './AssetsSection'
+import { FontsSection } from './FontsSection'
 import styles from './TreePanel.module.css'
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -204,6 +205,10 @@ export function TreePanel() {
         <StylesSection
           textStyles={state.document.textStyles}
           selectedStyleId={state.selectedStyleId}
+          dispatch={dispatch}
+        />
+        <FontsSection
+          customFonts={state.document.customFonts}
           dispatch={dispatch}
         />
       </div>

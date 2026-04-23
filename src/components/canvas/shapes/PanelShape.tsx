@@ -3,6 +3,7 @@ import type { PanelShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -175,6 +176,7 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
                 wordBreak: 'break-word',
                 width: '100%',
                 userSelect: 'none',
+                ...textShadowCSS(title),
               }}>
                 {title.content}
               </div>

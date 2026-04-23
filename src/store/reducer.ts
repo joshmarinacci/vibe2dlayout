@@ -390,6 +390,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         textStyles: d.textStyles ?? [...BUILT_IN_TEXT_STYLES],
         variables: d.variables ?? [],
         images,
+        customFonts: d.customFonts ?? [],
       }
     }
 
@@ -633,6 +634,14 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         g.id === action.guideId ? { ...g, position: action.position } : g)
       return { ...doc, shapes: { ...doc.shapes, [action.pageId]: { ...page, guides } } }
     }
+
+    case 'ADD_CUSTOM_FONT': {
+      const existing = doc.customFonts ?? []
+      if (existing.includes(action.fontName)) return doc
+      return { ...doc, customFonts: [...existing, action.fontName] }
+    }
+    case 'DELETE_CUSTOM_FONT':
+      return { ...doc, customFonts: (doc.customFonts ?? []).filter(f => f !== action.fontName) }
 
     case 'ADD_THEME':
       return { ...doc, themes: [...doc.themes, action.theme] }
@@ -952,6 +961,7 @@ export function createInitialDocument(): VibeDocument {
     textStyles: [...BUILT_IN_TEXT_STYLES],
     variables: [],
     images: [],
+    customFonts: [],
   }
 }
 
@@ -972,6 +982,7 @@ export const initialState: AppState = {
   drilledInContainerStack: [],
   documentId: null,
   documentName: 'Untitled',
+  isDirty: false,
   documentSelected: false,
   selectedStyleId: null,
   selectedVariableId: null,
@@ -1034,6 +1045,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'ADD_GUIDE':
     case 'DELETE_GUIDE':
     case 'MOVE_GUIDE':
+    case 'ADD_CUSTOM_FONT':
+    case 'DELETE_CUSTOM_FONT':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
@@ -1107,7 +1120,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.patch } }
     case 'SET_DOCUMENT_META':
-      return { ...state, documentId: action.id, documentName: action.name }
+      return { ...state, documentId: action.id, documentName: action.name, isDirty: false }
     case 'ENTER_DRILL_MODE':
       return {
         ...state,

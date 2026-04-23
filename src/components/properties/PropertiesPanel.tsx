@@ -101,7 +101,7 @@ export function PropertiesPanel() {
             <span className={styles.shapeType}>style</span>
             <span className={styles.shapeName}>{style.name}</span>
           </div>
-          <TextStyleDefSection style={style} dispatch={dispatch} />
+          <TextStyleDefSection style={style} dispatch={dispatch} customFonts={state.document.customFonts} />
         </div>
       )
     }
@@ -283,6 +283,7 @@ export function PropertiesPanel() {
             shapeId={withText[0].id}
             onChange={onChangeText}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
         )}
       </div>
@@ -425,6 +426,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
@@ -517,6 +519,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <ButtonIconSection
             icon={shape.icon}
@@ -572,6 +575,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               shapeId={shape.id}
               onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { title: t } })}
               dispatch={dispatch}
+              customFonts={state.document.customFonts}
             />
           )}
           <div className={styles.section}>
@@ -637,6 +641,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
         </>
       )
@@ -655,6 +660,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Text Field</div>
@@ -686,6 +692,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Checkbox</div>
@@ -717,6 +724,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Toggle</div>
@@ -813,6 +821,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Radio Button</div>
@@ -844,6 +853,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Select</div>
@@ -906,6 +916,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Number Stepper</div>
@@ -937,6 +948,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
@@ -959,6 +971,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
@@ -981,6 +994,7 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
+            customFonts={state.document.customFonts}
           />
           <div className={styles.section}>
             <div className={styles.sectionTitle}>List</div>

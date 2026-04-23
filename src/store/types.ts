@@ -79,6 +79,7 @@ export interface AppState {
   // current document identity (localStorage)
   documentId: string | null
   documentName: string
+  isDirty: boolean  // true when document has unsaved changes
   // true when user clicked the Document row in the tree (shows document properties)
   documentSelected: boolean
   // ID of the text style selected in the tree (shows style editor in props panel)
@@ -144,6 +145,8 @@ export type DocumentAction =
   | { type: 'ADD_GUIDE';    pageId: string; guide: CanvasGuide }
   | { type: 'DELETE_GUIDE'; pageId: string; guideId: string }
   | { type: 'MOVE_GUIDE';   pageId: string; guideId: string; position: number }
+  | { type: 'ADD_CUSTOM_FONT';    fontName: string }
+  | { type: 'DELETE_CUSTOM_FONT'; fontName: string }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'

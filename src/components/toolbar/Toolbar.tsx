@@ -218,9 +218,12 @@ export function Toolbar() {
         <span
           title="Click to rename"
           onClick={() => { setNameInputValue(state.documentName); setEditingName(true) }}
-          style={{ fontWeight: 'bold', color: 'var(--color-text-secondary)', fontSize: 12, padding: '0 8px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+          style={{ fontWeight: 'bold', color: 'var(--color-text-secondary)', fontSize: 12, padding: '0 8px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', display: 'flex', alignItems: 'center', gap: 4 }}
         >
           {state.documentName}
+          {state.isDirty && (
+            <span title="Unsaved changes" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-accent)', display: 'inline-block', flexShrink: 0 }} />
+          )}
         </span>
       )}
 

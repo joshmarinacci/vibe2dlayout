@@ -40,6 +40,7 @@ export interface VibeDocument {
   textStyles: TextStyleDef[]  // named text style definitions
   variables: Variable[]       // named document-level variables
   images: ImageAsset[]        // document-level image asset registry
+  customFonts: string[]       // Google Font family names added by the user, e.g. ["Roboto"]
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

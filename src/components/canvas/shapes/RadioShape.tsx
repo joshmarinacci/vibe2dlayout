@@ -4,6 +4,7 @@ import type { AppAction } from '@store/types'
 import { roughCircle, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -140,6 +141,7 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           userSelect: 'none',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
+          ...textShadowCSS(text),
         }}>
           {text.content}
         </div>

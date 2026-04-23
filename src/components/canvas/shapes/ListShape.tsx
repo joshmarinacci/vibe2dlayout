@@ -4,6 +4,7 @@ import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -156,6 +157,7 @@ export function ListShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
                   textOverflow: 'ellipsis',
                   userSelect: 'none',
                   width: '100%',
+                  ...textShadowCSS(text),
                 }}>
                   {item}
                 </span>

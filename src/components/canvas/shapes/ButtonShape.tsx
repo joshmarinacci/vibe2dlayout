@@ -5,6 +5,7 @@ import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { getButtonIcon } from '@utils/buttonIcons'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -141,6 +142,7 @@ function ButtonContent({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
     userSelect: 'none',
+    ...textShadowCSS(text),
   }
 
   return (

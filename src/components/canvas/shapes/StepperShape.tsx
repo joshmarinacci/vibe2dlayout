@@ -3,6 +3,7 @@ import type { StepperShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
+import { textShadowCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -119,6 +120,7 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, ha
         fontSize: text.fontSize,
         color: text.color,
         userSelect: 'none',
+        ...textShadowCSS(text),
       }}>{value}</div>
 
       {/* + button label */}
