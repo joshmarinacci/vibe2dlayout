@@ -7,7 +7,7 @@ import type { TextFieldShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import { textExtraCSS } from '@utils/textStyleCSS'
+import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -142,7 +142,7 @@ export function TextFieldShapeComp({ shape, isSelected, isEditing, handDrawn, di
           whiteSpace: 'nowrap',
           ...textExtraCSS(text),
         }}>
-          {showPlaceholder ? placeholder : text.content}
+          {showPlaceholder ? placeholder : (() => { const g = textGradientSpanCSS(text); return g ? <span style={g}>{text.content}</span> : text.content })()}
         </div>
       )}
     </div>

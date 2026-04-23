@@ -1047,9 +1047,18 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'MOVE_GUIDE':
     case 'ADD_CUSTOM_FONT':
     case 'DELETE_CUSTOM_FONT':
+    case 'MOVE_SHAPES_START':
       return {
         ...state,
         document: applyDocumentAction(state.document, action),
+      }
+
+    // DRAG_SHAPES: same move logic as MOVE_SHAPES but NOT recorded in undo history.
+    // The undo anchor is set by MOVE_SHAPES_START which fires once at drag start.
+    case 'DRAG_SHAPES':
+      return {
+        ...state,
+        document: applyDocumentAction(state.document, { type: 'MOVE_SHAPES', ids: action.ids, dx: action.dx, dy: action.dy }),
       }
 
     // ── Selection actions ──────────────────────────────────────────────

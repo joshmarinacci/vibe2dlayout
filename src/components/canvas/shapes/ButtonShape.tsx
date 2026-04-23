@@ -9,7 +9,7 @@ import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { getButtonIcon } from '@utils/buttonIcons'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
-import { textExtraCSS } from '@utils/textStyleCSS'
+import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -148,6 +148,7 @@ function ButtonContent({
     wordBreak: 'break-word',
     userSelect: 'none',
     ...textExtraCSS(text),
+    ...(textGradientSpanCSS(text) ?? {}),
   }
 
   return (

@@ -3,7 +3,7 @@ import { snapToGrid, getEffectiveGridSettings } from '../../src/utils/snapping'
 import type { GridSettings } from '../../src/model/grid'
 import type { Shape } from '../../src/model/shapes'
 
-const DOC_GRID: GridSettings = { size: 10, style: 'lines', snapEnabled: true }
+const DOC_GRID: GridSettings = { size: 10, style: 'lines', snapEnabled: true, snapAlignment: true }
 
 describe('snapToGrid', () => {
   it('snaps to nearest grid line below', () => {

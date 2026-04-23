@@ -6,7 +6,7 @@ import {
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
   HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage, Paintbrush,
-  StickyNote, ScrollText, ListOrdered, Table2, Grid, Sun, Moon, Star,
+  StickyNote, ScrollText, ListOrdered, Table2, Grid, Sun, Moon, Star, Magnet,
 } from 'lucide-react'
 import { useTheme } from '@hooks/useTheme'
 import { useAppState, useAppDispatch } from '@store/context'
@@ -69,6 +69,7 @@ export function Toolbar() {
   const dispatch = useAppDispatch()
   const [showShapesMenu, setShowShapesMenu] = useState(false)
   const [showComponentMenu, setShowComponentMenu] = useState(false)
+  const [componentSubMenu, setComponentSubMenu] = useState<'containers' | 'forms' | null>(null)
   const [showFileMenu, setShowFileMenu] = useState(false)
   const [showDocumentsModal, setShowDocumentsModal] = useState(false)
   const [documentsModalMode, setDocumentsModalMode] = useState<'open' | 'save-as'>('open')
@@ -91,6 +92,7 @@ export function Toolbar() {
       setShowFileMenu(false)
       setShowShapesMenu(false)
       setShowComponentMenu(false)
+      setComponentSubMenu(null)
     }
     window.addEventListener('pointerdown', handler, { capture: true })
     return () => window.removeEventListener('pointerdown', handler, { capture: true })
@@ -342,30 +344,53 @@ export function Toolbar() {
             <ChevronDown size={10} />
           </button>
           {showComponentMenu && (
-            <div className={styles.formMenu}>
-              <div className={styles.formMenuSection}>Containers</div>
-              {CONTAINER_CONTROLS.map(t => (
-                <button
-                  key={t.mode}
-                  className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
-                  onClick={() => { dispatch({ type: 'SET_TOOL_MODE', mode: t.mode }); setShowComponentMenu(false) }}
-                >
-                  {t.icon}
-                  <span>{t.title}</span>
-                </button>
-              ))}
-              <div className={styles.formMenuDivider} />
-              <div className={styles.formMenuSection}>Form Controls</div>
-              {FORM_CONTROLS.map(t => (
-                <button
-                  key={t.mode}
-                  className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
-                  onClick={() => { dispatch({ type: 'SET_TOOL_MODE', mode: t.mode }); setShowComponentMenu(false) }}
-                >
-                  {t.icon}
-                  <span>{t.title}</span>
-                </button>
-              ))}
+            <div className={styles.formMenu} onMouseLeave={() => setComponentSubMenu(null)}>
+              {/* Containers sub-menu item */}
+              <div
+                className={styles.formMenuItem}
+                style={{ justifyContent: 'space-between', cursor: 'default', position: 'relative' }}
+                onMouseEnter={() => setComponentSubMenu('containers')}
+              >
+                <span>Containers</span>
+                <span style={{ opacity: 0.5, fontSize: 10 }}>›</span>
+                {componentSubMenu === 'containers' && (
+                  <div className={styles.formMenu} style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 2 }}>
+                    {CONTAINER_CONTROLS.map(t => (
+                      <button
+                        key={t.mode}
+                        className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
+                        onClick={() => { dispatch({ type: 'SET_TOOL_MODE', mode: t.mode }); setShowComponentMenu(false); setComponentSubMenu(null) }}
+                      >
+                        {t.icon}
+                        <span>{t.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Form Controls sub-menu item */}
+              <div
+                className={styles.formMenuItem}
+                style={{ justifyContent: 'space-between', cursor: 'default', position: 'relative' }}
+                onMouseEnter={() => setComponentSubMenu('forms')}
+              >
+                <span>Form Controls</span>
+                <span style={{ opacity: 0.5, fontSize: 10 }}>›</span>
+                {componentSubMenu === 'forms' && (
+                  <div className={styles.formMenu} style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 2 }}>
+                    {FORM_CONTROLS.map(t => (
+                      <button
+                        key={t.mode}
+                        className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
+                        onClick={() => { dispatch({ type: 'SET_TOOL_MODE', mode: t.mode }); setShowComponentMenu(false); setComponentSubMenu(null) }}
+                      >
+                        {t.icon}
+                        <span>{t.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -380,6 +405,11 @@ export function Toolbar() {
           title="Toggle grid snap"
           onClick={() => dispatch({ type: 'UPDATE_GRID_SETTINGS', patch: { snapEnabled: !state.document.gridSettings.snapEnabled } })}
         ><Grid size={15} /></button>
+        <button
+          className={`${styles.btn} ${state.document.gridSettings.snapAlignment ?? true ? styles.active : ''}`}
+          title="Toggle snap to shapes and guides"
+          onClick={() => dispatch({ type: 'UPDATE_GRID_SETTINGS', patch: { snapAlignment: !(state.document.gridSettings.snapAlignment ?? true) } })}
+        ><Magnet size={15} /></button>
       </div>
 
       <div className={styles.separator} />

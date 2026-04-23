@@ -11,6 +11,7 @@ import styles from '../PropertiesPanel.module.css'
 import inputStyles from '../inputs/inputs.module.css'
 import { CollapsibleSection } from '../CollapsibleSection'
 import { detectSmallCaps } from '@utils/fontFeatures'
+import { linearGradientCSS } from '@utils/fillCSS'
 
 // Logarithmic slider: maps slider 0–100 to font size 5–500
 // Midpoint (50) ≈ 50px, which feels natural for font size picking
@@ -444,20 +445,38 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
           onChange={ref => applyChange({ color: ref.color, paletteColorId: ref.paletteColorId })}
         />
       ) : (
-        <>
+        <div style={{
+          background: 'var(--color-bg-panel)',
+          border: '1px solid var(--color-border-subtle)',
+          borderRadius: 4,
+          padding: '6px 6px 4px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          marginTop: 2,
+        }}>
+          {/* Preview bar */}
+          <div style={{
+            height: 12,
+            borderRadius: 3,
+            background: linearGradientCSS(gradient),
+            marginBottom: 2,
+          }} />
+          {/* Angle */}
           <NumberInput label="Angle" value={gradient.angle} min={0} max={360} step={1} unit="°"
             onChange={v => patchGradient({ ...gradient, angle: v })} />
+          {/* Stop rows */}
           {gradient.stops.map((stop, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ flex: 1 }}>
-                <ColorInput label={`Stop ${idx + 1}`} value={{ color: stop.color }}
+                <ColorInput label="" value={{ color: stop.color }}
                   onChange={ref => {
                     const stops = gradient.stops.map((s, i) => i === idx ? { ...s, color: ref.color } : s)
                     patchGradient({ ...gradient, stops })
                   }} />
               </div>
-              <div style={{ width: 48, flexShrink: 0 }}>
-                <NumberInput label="" value={Math.round(stop.position * 100)} min={0} max={100} step={1} unit="%"
+              <div style={{ width: 60, flexShrink: 0 }}>
+                <NumberInput label="%" value={Math.round(stop.position * 100)} min={0} max={100} step={1}
                   onChange={v => {
                     const stops = gradient.stops.map((s, i) => i === idx ? { ...s, position: v / 100 } : s)
                     patchGradient({ ...gradient, stops })
@@ -473,11 +492,12 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
               >×</button>
             </div>
           ))}
+          {/* Add stop */}
           <button onClick={addStop}
             style={{ width: '100%', marginTop: 2, fontSize: 11, border: '1px dashed var(--color-border)', borderRadius: 3, background: 'transparent', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '2px 0' }}>
             + Add stop
           </button>
-        </>
+        </div>
       )}
     </>
   )

@@ -80,7 +80,7 @@ interface ShapeBase {
   handDrawn?: boolean  // undefined = inherit from active theme
   // Variable bindings: propPath → variableId. Resolved at render time.
   variableBindings?: Record<string, string>
-  boxShadow?: BoxShadow | null
+  boxShadow?: BoxShadow[]
 }
 
 // ─── Concrete shape types ─────────────────────────────────────────────────

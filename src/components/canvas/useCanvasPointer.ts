@@ -115,6 +115,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
   // Effective grid settings for the active page
   const gridSettings = getEffectiveGridSettings(state.activePageId, state.document.shapes, state.document.gridSettings)
   const snapEnabled = gridSettings.snapEnabled
+  const snapAlignment = gridSettings.snapAlignment ?? true
   const gridSize = gridSettings.size
 
   const dragStart = useRef<{ sx: number; sy: number; cx: number; cy: number } | null>(null)
@@ -343,6 +344,9 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
 
     if (!isDragging.current && Math.sqrt(dx * dx + dy * dy) > 4) {
       isDragging.current = true
+      if (draggingIds.current.length > 0) {
+        dispatch({ type: 'MOVE_SHAPES_START' })
+      }
     }
 
     // Guide creation drag
@@ -408,7 +412,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       let snappedDy: number
       let guides: GuideLines = { x: null, y: null }
 
-      if (!altDownAtStart.current && initialDragAbsTransforms.current.size > 0) {
+      if (!altDownAtStart.current && snapAlignment && initialDragAbsTransforms.current.size > 0) {
         const threshold = 8 / state.viewTransform.zoom
         const candidateBox = unionOfBoxes(
           [...initialDragAbsTransforms.current.values()].map(b => ({
@@ -433,13 +437,13 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       const canvasDy = snappedDy - lastSnappedDelta.current.y
       lastSnappedDelta.current = { x: snappedDx, y: snappedDy }
       if (canvasDx !== 0 || canvasDy !== 0) {
-        dispatch({ type: 'MOVE_SHAPES', ids: draggingIds.current, dx: canvasDx, dy: canvasDy })
+        dispatch({ type: 'DRAG_SHAPES', ids: draggingIds.current, dx: canvasDx, dy: canvasDy })
       }
       lastCanvasPos.current = { x: pos.x, y: pos.y }
       return
     }
     lastCanvasPos.current = { x: pos.x, y: pos.y }
-  }, [state.toolMode, dispatch, getCanvasPos, containerRef, snapEnabled, gridSize])
+  }, [state.toolMode, dispatch, getCanvasPos, containerRef, snapEnabled, snapAlignment, gridSize])
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     if (!dragStart.current) return

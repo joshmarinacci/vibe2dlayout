@@ -5,7 +5,7 @@ import type { Dispatch } from 'react'
 import type { TextShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
-import { textExtraCSS } from '@utils/textStyleCSS'
+import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -24,6 +24,7 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
 
+  const gradientSpan = textGradientSpanCSS(text)
   const textStyle: React.CSSProperties = {
     fontFamily: text.fontFamily,
     fontSize: text.fontSize,
@@ -89,7 +90,9 @@ export function TextShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
           padding: '4px 8px',
           overflow: 'hidden',
         }}>
-          <div style={textStyle}>{text.content}</div>
+          <div style={textStyle}>
+              {gradientSpan ? <span style={gradientSpan}>{text.content}</span> : text.content}
+            </div>
         </div>
       )}
     </div>

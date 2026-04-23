@@ -97,6 +97,7 @@ export type DocumentAction =
   | { type: 'ADD_SHAPE'; parentId: string | null; shape: Shape; index?: number }
   | { type: 'DELETE_SHAPES'; ids: string[] }
   | { type: 'MOVE_SHAPES'; ids: string[]; dx: number; dy: number }
+  | { type: 'MOVE_SHAPES_START' }
   | { type: 'SET_TRANSFORM'; id: string; transform: BoundingBox }
   | { type: 'SET_CONNECTOR_START'; id: string; endpoint: ConnectorEndpoint }
   | { type: 'SET_CONNECTOR_END'; id: string; endpoint: ConnectorEndpoint }
@@ -183,9 +184,14 @@ export type ViewAction =
   | { type: 'SELECT_VARIABLE'; variableId: string | null }
   | { type: 'SELECT_IMAGE_ASSET'; assetId: string | null }
 
+// Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
+// A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.
+export type DragAction =
+  | { type: 'DRAG_SHAPES'; ids: string[]; dx: number; dy: number }
+
 // Undo/redo
 export type HistoryAction =
   | { type: 'UNDO' }
   | { type: 'REDO' }
 
-export type AppAction = DocumentAction | SelectionAction | ViewAction | HistoryAction
+export type AppAction = DocumentAction | SelectionAction | ViewAction | DragAction | HistoryAction

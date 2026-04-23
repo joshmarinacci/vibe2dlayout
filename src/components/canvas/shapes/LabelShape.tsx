@@ -6,7 +6,7 @@ import type { AppAction } from '@store/types'
 import { roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
-import { textExtraCSS } from '@utils/textStyleCSS'
+import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -34,6 +34,7 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
     strokeWidth: 0.8,
   }) : []
 
+  const gradientSpan = textGradientSpanCSS(text)
   const textStyle: React.CSSProperties = {
     fontFamily: text.fontFamily,
     fontSize: text.fontSize,
@@ -115,7 +116,9 @@ export function LabelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           padding: '0 2px',
           overflow: 'hidden',
         }}>
-          <div style={textStyle}>{text.content}</div>
+          <div style={textStyle}>
+              {gradientSpan ? <span style={gradientSpan}>{text.content}</span> : text.content}
+            </div>
         </div>
       )}
     </div>

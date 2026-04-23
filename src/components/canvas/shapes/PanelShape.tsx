@@ -7,7 +7,7 @@ import type { PanelShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import { textExtraCSS } from '@utils/textStyleCSS'
+import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -183,7 +183,7 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
                 userSelect: 'none',
                 ...textExtraCSS(title),
               }}>
-                {title.content}
+                {(() => { const g = textGradientSpanCSS(title); return g ? <span style={g}>{title.content}</span> : title.content })()}
               </div>
             </div>
           )}

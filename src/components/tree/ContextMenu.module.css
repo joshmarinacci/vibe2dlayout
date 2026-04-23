@@ -60,3 +60,32 @@
   background: var(--color-border-subtle);
   margin: 3px 0;
 }
+
+.hasSubmenu {
+  position: relative;
+  cursor: default;
+}
+
+.hasSubmenu:hover {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.submenuArrow {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.submenu {
+  position: fixed;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px;
+  min-width: 160px;
+  box-shadow: 0 4px 20px var(--color-shadow);
+  z-index: 10000;
+  user-select: none;
+}

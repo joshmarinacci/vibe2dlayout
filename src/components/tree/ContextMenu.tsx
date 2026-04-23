@@ -1,13 +1,15 @@
 import type React from 'react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import styles from './ContextMenu.module.css'
 
 export interface ContextMenuItem {
   label: string
   icon?: React.ReactNode
-  onClick: () => void
+  onClick?: () => void
   danger?: boolean
   disabled?: boolean
+  submenu?: ContextMenuItem[]
 }
 
 export interface ContextMenuGroup {
@@ -19,6 +21,67 @@ interface Props {
   y: number
   groups: ContextMenuGroup[]
   onClose: () => void
+}
+
+function SubMenuItem({ item, onClose }: { item: ContextMenuItem; onClose: () => void }) {
+  const [open, setOpen] = useState(false)
+  const rowRef = useRef<HTMLDivElement>(null)
+  const [submenuPos, setSubmenuPos] = useState({ x: 0, y: 0 })
+
+  if (!item.submenu) {
+    return (
+      <button
+        className={`${styles.item} ${item.danger ? styles.danger : ''}`}
+        disabled={item.disabled}
+        onClick={() => { item.onClick?.(); onClose() }}
+      >
+        {item.icon && <span className={styles.icon}>{item.icon}</span>}
+        {item.label}
+      </button>
+    )
+  }
+
+  const handleMouseEnter = () => {
+    if (rowRef.current) {
+      const rect = rowRef.current.getBoundingClientRect()
+      setSubmenuPos({ x: rect.right + 2, y: rect.top - 4 })
+    }
+    setOpen(true)
+  }
+
+  return (
+    <div
+      ref={rowRef}
+      className={`${styles.item} ${styles.hasSubmenu}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setOpen(false)}
+    >
+      {item.icon && <span className={styles.icon}>{item.icon}</span>}
+      <span style={{ flex: 1 }}>{item.label}</span>
+      <span className={styles.submenuArrow}>›</span>
+      {open && createPortal(
+        <div
+          className={styles.submenu}
+          style={{ left: submenuPos.x, top: submenuPos.y }}
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+        >
+          {item.submenu!.map((sub, i) => (
+            <button
+              key={i}
+              className={`${styles.item} ${sub.danger ? styles.danger : ''}`}
+              disabled={sub.disabled}
+              onClick={() => { sub.onClick?.(); onClose() }}
+            >
+              {sub.icon && <span className={styles.icon}>{sub.icon}</span>}
+              {sub.label}
+            </button>
+          ))}
+        </div>,
+        document.body,
+      )}
+    </div>
+  )
 }
 
 export function ContextMenu({ x, y, groups, onClose }: Props) {
@@ -74,15 +137,7 @@ export function ContextMenu({ x, y, groups, onClose }: Props) {
         <div key={gi}>
           {gi > 0 && <div className={styles.divider} />}
           {group.items.map((item, ii) => (
-            <button
-              key={ii}
-              className={`${styles.item} ${item.danger ? styles.danger : ''}`}
-              disabled={item.disabled}
-              onClick={() => { item.onClick(); onClose() }}
-            >
-              {item.icon && <span className={styles.icon}>{item.icon}</span>}
-              {item.label}
-            </button>
+            <SubMenuItem key={ii} item={item} onClose={onClose} />
           ))}
         </div>
       ))}

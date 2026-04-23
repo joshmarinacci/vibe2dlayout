@@ -40,6 +40,23 @@ export function fromJSON(json: string): VibeDocument {
   if (!Array.isArray(docObj.images)) {
     docObj.images = []
   }
+  // Migrate older docs missing snapAlignment in gridSettings
+  if (typeof docObj.gridSettings === 'object' && docObj.gridSettings !== null) {
+    const gs = docObj.gridSettings as Record<string, unknown>
+    if (gs.snapAlignment === undefined) gs.snapAlignment = true
+  }
+  // Migrate older docs: boxShadow was BoxShadow | null, now BoxShadow[]
+  if (typeof docObj.shapes === 'object' && docObj.shapes !== null) {
+    for (const shape of Object.values(docObj.shapes as Record<string, unknown>)) {
+      if (typeof shape !== 'object' || shape === null) continue
+      const s = shape as Record<string, unknown>
+      if (s.boxShadow === null || s.boxShadow === undefined) {
+        s.boxShadow = []
+      } else if (!Array.isArray(s.boxShadow)) {
+        s.boxShadow = [s.boxShadow]
+      }
+    }
+  }
   return parsed as VibeDocument
 }
 

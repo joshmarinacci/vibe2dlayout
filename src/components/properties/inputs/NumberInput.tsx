@@ -110,6 +110,18 @@ export function NumberInput({ label, value, onChange, min, max, step = 1, unit, 
                 setLocalText(String(value))
                 e.currentTarget.blur()
               }
+              if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !localText.startsWith('@')) {
+                e.preventDefault()
+                const current = parseFloat(localText)
+                if (!isNaN(current)) {
+                  const delta = e.key === 'ArrowUp' ? step : -step
+                  const next = current + delta
+                  const clamped = min !== undefined ? Math.max(min, next) : next
+                  const final = max !== undefined ? Math.min(max, clamped) : clamped
+                  setLocalText(String(final))
+                  onChange(final)
+                }
+              }
             }}
             min={min}
             max={max}

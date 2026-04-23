@@ -160,6 +160,15 @@ export function TransformSection({ transform, onChange, xVar, yVar, wVar, hVar }
   <TField label="KY" value={transform.skewY ?? 0} onChange={set('skewY')} />
   <TField label="°" value={transform.rotation} onChange={set('rotation')} />
 </div>
+<div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+  <button
+    title="Reset rotation, scale, and skew"
+    style={{ fontSize: 11, padding: '2px 6px', cursor: 'pointer' }}
+    onClick={() => onChange({ ...transform, rotation: 0, scaleX: 1, scaleY: 1, skewX: 0, skewY: 0 })}
+  >
+    Reset transform
+  </button>
+</div>
     </CollapsibleSection>
   )
 }

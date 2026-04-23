@@ -1,3 +1,50 @@
+## 2026-04-23 15:30
+
+### UX improvements batch
+
+**Snap toggle (Feature 1):**
+- Added `snapAlignment: boolean` field to `GridSettings` in `src/model/grid.ts` (default `true`)
+- Added migration in `src/utils/serialization.ts` for older docs missing this field
+- Added Magnet toolbar button next to grid snap button to toggle alignment/guide snap on/off
+- `src/components/canvas/useCanvasPointer.ts` reads `gridSettings.snapAlignment` to conditionally call `computeAlignmentSnap`
+
+**NumberInput arrow keys (Feature 2):**
+- `src/components/properties/inputs/NumberInput.tsx`: ArrowUp/Down keys now increment/decrement the value by `step` (default 1) when the field contains a plain number (not a `@variable` reference)
+
+**Reset transform button (Feature 3):**
+- `src/components/properties/sections/TransformSection.tsx`: Added "Reset transform" button below the grid; resets rotation to 0, scaleX/scaleY to 1, skewX/skewY to 0
+
+**Components sub-menus (Feature 4):**
+- `src/components/toolbar/Toolbar.tsx`: Components dropdown now shows "Containers ›" and "Form Controls ›" items; hovering each reveals a flyout sub-menu with the respective tools
+
+**Single undo for drag (Feature 5):**
+- Added `MOVE_SHAPES_START` action (DocumentAction): records the undo anchor exactly once when a drag begins
+- Added `DRAG_SHAPES` action (DragAction, NOT in history): applies incremental moves without creating undo entries
+- `src/store/types.ts`: Added `MOVE_SHAPES_START` to `DocumentAction` and new `DragAction` union; added `DragAction` to `AppAction`
+- `src/store/history.ts`: Added `MOVE_SHAPES_START` to `DOCUMENT_ACTION_TYPES`
+- `src/store/reducer.ts`: Routes `MOVE_SHAPES_START` through `applyDocumentAction` (no-op); routes `DRAG_SHAPES` to `MOVE_SHAPES` logic without history recording
+- `src/components/canvas/useCanvasPointer.ts`: Dispatches `MOVE_SHAPES_START` once when drag threshold is crossed, then `DRAG_SHAPES` for each subsequent mouse move
+
+**CollapsibleSection persistence (Feature 6):**
+- `src/components/properties/CollapsibleSection.tsx`: Module-level `Map<string, boolean>` stores open/closed state by section title; state is preserved when switching selected objects
+
+## 2026-04-23 14:00
+
+### Multiple box shadows + gradient editor fixes
+
+**Multiple box shadows:**
+- Changed `ShapeBase.boxShadow` from `BoxShadow | null` to `BoxShadow[]` (array) in `src/model/shapes.ts`
+- Updated `src/utils/shadowCSS.ts` to map the array into a comma-joined CSS `box-shadow` value
+- Added migration in `src/utils/serialization.ts`: old `BoxShadow | null` values are converted to `[]` or `[shadow]` on document load
+- Redesigned `ShadowSection` component: shows "+ Add Shadow" button, each shadow in a compact sub-panel with Color, X/Y row, Blur/Spread row, Inset checkbox, and × remove button
+
+**Gradient editor fixes:**
+- Wrapped gradient controls in a visually distinct sub-panel that only appears when Gradient mode is active; Solid/Gradient toggle always visible
+- Added a gradient preview bar (12px tall CSS linear-gradient div) at the top of the sub-panel
+- Redesigned stop rows: removed "Stop N" label, color swatch fills available width (`flex: 1`), position input is explicitly `60px` wide so it no longer overflows
+- Fixed gradient rendering bug: extracted gradient CSS from `textExtraCSS` into new `textGradientSpanCSS()` in `src/utils/textStyleCSS.ts`; each text-rendering shape now wraps content in an inline `<span>` with the gradient styles (inline elements have reliable `background-clip: text` support)
+- Updated shapes: `TextShape`, `LabelShape`, `ButtonShape`, `StickyNoteShape`, `PanelShape`, `TextFieldShape`
+
 ## 2026-04-23 12:15
 
 - Moved Color/Gradient and Shadow to the bottom of the Text section (they are appearance effects, not core typography properties)

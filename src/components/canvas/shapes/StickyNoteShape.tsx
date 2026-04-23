@@ -8,7 +8,7 @@ import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
-import { textExtraCSS } from '@utils/textStyleCSS'
+import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
 
 const FOLD = 20
@@ -145,7 +145,7 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
             userSelect: 'none',
             ...textExtraCSS(text),
           }}>
-            {text.content}
+            {(() => { const g = textGradientSpanCSS(text); return g ? <span style={g}>{text.content}</span> : text.content })()}
           </div>
         )}
       </div>
