@@ -266,5 +266,11 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         stroke: themeStroke(),
         chartType: 'bar',
       }
+    case 'pixelimage':
+      return {
+        ...base, name: 'Pixel Image', type: 'pixelimage',
+        transform: defaultTransform(x, y, 128, 128),
+        assetId: '',
+      }
   }
 }

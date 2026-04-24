@@ -21,6 +21,7 @@ import { TextStyleDefSection } from './sections/TextStyleDefSection'
 import { ShadowSection } from './sections/ShadowSection'
 import { VariableSection } from './sections/VariableSection'
 import { ImageAssetSection } from './sections/ImageAssetSection'
+import { PixelImageSection } from './sections/PixelImageSection'
 import { resolveTextStyle } from '@model/textStyle'
 import type { Variable, VariableType } from '@model/variable'
 import type { ImageShape } from '@model/shapes'
@@ -56,6 +57,40 @@ export function PropertiesPanel() {
   const { state } = useAppState()
   const dispatch = useAppDispatch()
   const selected = selectSelectedShapes(state)
+
+  if (state.selectedPixelAssetId !== null) {
+    const pixelAsset = state.document.pixelAssets.find(a => a.id === state.selectedPixelAssetId)
+    if (pixelAsset) {
+      const usedByShapes = Object.values(state.document.shapes)
+        .filter(s => s.type === 'pixelimage' && (s as { assetId?: string }).assetId === pixelAsset.id)
+      return (
+        <div className={styles.panel}>
+          <div className={styles.header}>
+            <span className={styles.shapeType}>pixel image</span>
+            <span className={styles.shapeName}>{pixelAsset.name}</span>
+          </div>
+          <div className={styles.section}>
+            <div className={styles.row}>
+              <span className={styles.label}>Size</span>
+              <span className={styles.value}>{pixelAsset.width}×{pixelAsset.height} px</span>
+            </div>
+            <div className={styles.row}>
+              <span className={styles.label}>Used by</span>
+              <span className={styles.value}>{usedByShapes.length} shape{usedByShapes.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div className={styles.row}>
+              <button
+                className={styles.actionBtn}
+                onClick={() => dispatch({ type: 'START_PIXEL_EDIT', assetId: pixelAsset.id })}
+              >
+                Edit Pixels
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  }
 
   if (state.selectedAssetId !== null) {
     const asset = state.document.images.find(a => a.id === state.selectedAssetId)
@@ -1078,6 +1113,18 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
           <ShadowSection shape={shape} dispatch={dispatch} />
         </>
       )
+
+    case 'pixelimage': {
+      const pixelAsset = state.document.pixelAssets.find(a => a.id === shape.assetId)
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <PixelImageSection shape={shape} asset={pixelAsset} dispatch={dispatch} />
+        </>
+      )
+    }
   }
 }
 

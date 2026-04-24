@@ -6,7 +6,7 @@ import {
   Undo2, Redo2, Home, FolderOpen, Save, ZoomIn, ZoomOut,
   AppWindow, CircleDot, List, GanttChart, Hash,
   HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage, Paintbrush,
-  StickyNote, ScrollText, ListOrdered, Table2, Grid, Sun, Moon, Star, Magnet,
+  StickyNote, ScrollText, ListOrdered, Table2, Grid, Sun, Moon, Star, Magnet, Grid2X2,
 } from 'lucide-react'
 import { useTheme } from '@hooks/useTheme'
 import { useAppState, useAppDispatch } from '@store/context'
@@ -31,9 +31,10 @@ interface ToolButton {
 }
 
 const SHAPE_TOOLS: ToolButton[] = [
-  { mode: 'insert-rect',   icon: <Square size={14} />,        title: 'Rectangle' },
-  { mode: 'insert-circle', icon: <Circle size={14} />,        title: 'Circle' },
-  { mode: 'insert-line',   icon: <Minus size={14} />,         title: 'Line / Connector' },
+  { mode: 'insert-rect',       icon: <Square size={14} />,    title: 'Rectangle' },
+  { mode: 'insert-circle',     icon: <Circle size={14} />,    title: 'Circle' },
+  { mode: 'insert-line',       icon: <Minus size={14} />,     title: 'Line / Connector' },
+  { mode: 'insert-pixelimage', icon: <Grid2X2 size={14} />,   title: 'Pixel Image' },
 ]
 const SHAPE_MODES = new Set(SHAPE_TOOLS.map(t => t.mode))
 

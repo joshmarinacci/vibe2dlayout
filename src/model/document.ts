@@ -5,6 +5,7 @@ import type { GridSettings } from './grid'
 import type { TextStyleDef } from './textStyle'
 import type { Variable } from './variable'
 import type { ImageAsset } from './imageAsset'
+import type { PixelAsset } from './pixelAsset'
 
 /**
  * The document tree stores topology separately from shape data.
@@ -40,6 +41,7 @@ export interface VibeDocument {
   textStyles: TextStyleDef[]  // named text style definitions
   variables: Variable[]       // named document-level variables
   images: ImageAsset[]        // document-level image asset registry
+  pixelAssets: PixelAsset[]   // pixel image asset registry
   customFonts: string[]       // Google Font family names added by the user, e.g. ["Roboto"]
 }
 

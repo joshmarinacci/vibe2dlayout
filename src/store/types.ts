@@ -3,6 +3,7 @@ import type { VibeDocument, PageFolder } from '@model/document'
 import type { TextStyleDef } from '@model/textStyle'
 import type { Variable } from '@model/variable'
 import type { ImageAsset } from '@model/imageAsset'
+import type { PixelAsset } from '@model/pixelAsset'
 import type { ConnectorEndpoint } from '@model/connector'
 import type { Point, BoundingBox } from '@model/transform'
 import type { SelectionState } from '@model/selection'
@@ -47,6 +48,7 @@ export type ToolMode =
   | 'insert-scrollpanel'
   | 'insert-table'
   | 'insert-group'
+  | 'insert-pixelimage'
 
 // ─── Settings ──────────────────────────────────────────────────────────────
 
@@ -88,6 +90,10 @@ export interface AppState {
   selectedVariableId: string | null
   // ID of the image asset selected in the tree (shows asset editor in props panel)
   selectedAssetId: string | null
+  // ID of the pixel asset selected in the tree
+  selectedPixelAssetId: string | null
+  // ID of the pixel asset currently being edited in the overlay
+  editingPixelAssetId: string | null
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -143,6 +149,9 @@ export type DocumentAction =
   | { type: 'ADD_IMAGE_ASSET';    asset: ImageAsset }
   | { type: 'UPDATE_IMAGE_ASSET'; asset: ImageAsset }
   | { type: 'DELETE_IMAGE_ASSET'; assetId: string }
+  | { type: 'ADD_PIXEL_ASSET';    asset: PixelAsset }
+  | { type: 'UPDATE_PIXEL_ASSET'; asset: PixelAsset }
+  | { type: 'DELETE_PIXEL_ASSET'; assetId: string }
   | { type: 'ADD_GUIDE';    pageId: string; guide: CanvasGuide }
   | { type: 'DELETE_GUIDE'; pageId: string; guideId: string }
   | { type: 'MOVE_GUIDE';   pageId: string; guideId: string; position: number }
@@ -182,7 +191,10 @@ export type ViewAction =
   | { type: 'SET_FOLDER_COLLAPSED'; folderId: string; collapsed: boolean }
   | { type: 'SELECT_STYLE'; styleId: string | null }
   | { type: 'SELECT_VARIABLE'; variableId: string | null }
-  | { type: 'SELECT_IMAGE_ASSET'; assetId: string | null }
+  | { type: 'SELECT_IMAGE_ASSET';  assetId: string | null }
+  | { type: 'SELECT_PIXEL_ASSET';  assetId: string | null }
+  | { type: 'START_PIXEL_EDIT';    assetId: string }
+  | { type: 'STOP_PIXEL_EDIT' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

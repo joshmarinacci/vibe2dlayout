@@ -334,6 +334,12 @@ export interface ChartMockShape extends ShapeBase {
   chartType: 'bar' | 'line'
 }
 
+export interface PixelImageShape extends ShapeBase {
+  type: 'pixelimage'
+  transform: BoundingBox
+  assetId: string   // references PixelAsset.id in document.pixelAssets
+}
+
 // ─── Union ────────────────────────────────────────────────────────────────
 
 export type Shape =
@@ -344,6 +350,7 @@ export type Shape =
   | FrameShape | DialogShape | RadioShape | SelectShape | ProgressShape | StepperShape
   | StickyNoteShape | ListShape | ScrollPanelShape | TableShape
   | GroupShape | ImageMockShape | ChartMockShape
+  | PixelImageShape
 
 export type ShapeType = Shape['type']
 

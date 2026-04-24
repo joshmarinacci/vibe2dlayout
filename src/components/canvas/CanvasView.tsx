@@ -13,6 +13,7 @@ import { getEffectiveGridSettings } from '@utils/snapping'
 import { CanvasGrid } from './CanvasGrid'
 import { SnapGuides } from './SnapGuides'
 import { CanvasGuides } from './CanvasGuides'
+import { PixelEditorOverlay } from './PixelEditorOverlay'
 import styles from './CanvasView.module.css'
 
 export function CanvasView() {
@@ -44,6 +45,13 @@ export function CanvasView() {
     : null
 
   const bgColor = activePage?.type === 'page' ? activePage.background : '#f0f0f0'
+
+  const pixelAssetsMap = Object.fromEntries(
+    state.document.pixelAssets.map(a => [a.id, a])
+  )
+  const editingPixelAsset = state.editingPixelAssetId
+    ? pixelAssetsMap[state.editingPixelAssetId]
+    : null
 
   const pageOriginX = activePage?.type === 'page' ? activePage.transform.x : 0
   const pageOriginY = activePage?.type === 'page' ? activePage.transform.y : 0
@@ -109,6 +117,7 @@ export function CanvasView() {
             themeFontFamily={getActiveTheme(state.document).fontFamily}
             textStyles={state.document.textStyles}
             variables={state.document.variables}
+            pixelAssets={pixelAssetsMap}
           />
         )}
 
@@ -213,6 +222,15 @@ export function CanvasView() {
           activePageId={state.activePageId}
           dispatch={dispatch}
           onClose={closeContextMenu}
+        />
+      )}
+
+      {/* Pixel editor overlay */}
+      {editingPixelAsset && (
+        <PixelEditorOverlay
+          asset={editingPixelAsset}
+          palettes={state.document.palettes}
+          dispatch={dispatch}
         />
       )}
     </div>

@@ -61,8 +61,9 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
 ]
 
 const MOCKUP_SHAPES: { type: ShapeType; label: string }[] = [
-  { type: 'imagemock', label: 'Image Mock' },
-  { type: 'chartmock', label: 'Chart Mock' },
+  { type: 'imagemock',  label: 'Image Mock' },
+  { type: 'chartmock',  label: 'Chart Mock' },
+  { type: 'pixelimage', label: 'Pixel Image' },
 ]
 
 export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose }: Props) {

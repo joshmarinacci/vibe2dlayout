@@ -15,6 +15,7 @@ import type { CanvasGuide } from '@model/guide'
 import { findNode, getAllIds } from '@model/document'
 import type { VibeDocument } from '@model/document'
 import { resolveEndpoint } from '@utils/connectors'
+import { createEmptyPixelAsset } from '@model/pixelAsset'
 import { RULER_SIZE } from './CanvasRuler'
 
 interface GhostRect {
@@ -366,7 +367,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }
 
     const shapeType = TOOL_SHAPE[state.toolMode]
-    if (shapeType) {
+    if (shapeType || state.toolMode === 'insert-pixelimage') {
       const { sx, sy } = dragStart.current
       const rect = containerRef.current!.getBoundingClientRect()
       const startScreenX = sx - rect.left
@@ -526,6 +527,41 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
       dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape })
       dispatch({ type: 'SELECT_SHAPES', ids: [shape.id], additive: false })
       if (shapeType === 'page') dispatch({ type: 'SET_ACTIVE_PAGE', pageId: shape.id })
+      dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
+    }
+
+    // Insert pixel image: create asset + shape together
+    if (state.toolMode === 'insert-pixelimage') {
+      const drillParentId = drilledInContainerId ?? state.activePageId
+      const parentMap = buildParentMap(state.document.rootNodes)
+      const origin = getContentOrigin(drillParentId, state.document.shapes, parentMap)
+      let lx: number, ly: number, sw: number, sh: number
+      if (isDragging.current && dragStart.current) {
+        const startCx = dragStart.current.cx
+        const startCy = dragStart.current.cy
+        lx = Math.min(startCx, pos.x) - origin.x
+        ly = Math.min(startCy, pos.y) - origin.y
+        sw = Math.max(16, Math.abs(pos.x - startCx))
+        sh = Math.max(16, Math.abs(pos.y - startCy))
+      } else {
+        lx = pos.x - 64 - origin.x
+        ly = pos.y - 64 - origin.y
+        sw = 128; sh = 128
+      }
+      if (snapEnabled) {
+        lx = snapToGrid(lx, gridSize)
+        ly = snapToGrid(ly, gridSize)
+        sw = Math.max(gridSize, snapToGrid(sw, gridSize))
+        sh = Math.max(gridSize, snapToGrid(sh, gridSize))
+      }
+      const asset = createEmptyPixelAsset(generateId(), 'Pixel Image')
+      const shape = createShape('pixelimage', lx, ly, getActiveTheme(state.document))
+      if (shape.type === 'pixelimage') {
+        const newShape = { ...shape, assetId: asset.id, transform: { ...shape.transform, x: lx, y: ly, width: sw, height: sh } }
+        dispatch({ type: 'ADD_PIXEL_ASSET', asset })
+        dispatch({ type: 'ADD_SHAPE', parentId: drillParentId, shape: newShape })
+        dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
+      }
       dispatch({ type: 'SET_TOOL_MODE', mode: 'select' })
     }
 

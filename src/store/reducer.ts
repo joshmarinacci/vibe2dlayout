@@ -597,6 +597,24 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
       return { ...doc, images: newImages, shapes: newShapes }
     }
 
+    case 'ADD_PIXEL_ASSET':
+      return { ...doc, pixelAssets: [...(doc.pixelAssets ?? []), action.asset] }
+
+    case 'UPDATE_PIXEL_ASSET':
+      return { ...doc, pixelAssets: (doc.pixelAssets ?? []).map(a => a.id === action.asset.id ? action.asset : a) }
+
+    case 'DELETE_PIXEL_ASSET': {
+      const remaining = (doc.pixelAssets ?? []).filter(a => a.id !== action.assetId)
+      // Also remove shapes that reference this asset
+      const newShapes = { ...doc.shapes }
+      for (const [id, shape] of Object.entries(doc.shapes)) {
+        if (shape.type === 'pixelimage' && shape.assetId === action.assetId) {
+          delete newShapes[id]
+        }
+      }
+      return { ...doc, pixelAssets: remaining, shapes: newShapes }
+    }
+
     case 'BIND_VARIABLE': {
       const shape = doc.shapes[action.shapeId]
       if (!shape) return doc
@@ -961,6 +979,7 @@ export function createInitialDocument(): VibeDocument {
     textStyles: [...BUILT_IN_TEXT_STYLES],
     variables: [],
     images: [],
+    pixelAssets: [],
     customFonts: [],
   }
 }
@@ -987,6 +1006,8 @@ export const initialState: AppState = {
   selectedStyleId: null,
   selectedVariableId: null,
   selectedAssetId: null,
+  selectedPixelAssetId: null,
+  editingPixelAssetId: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1042,6 +1063,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'ADD_IMAGE_ASSET':
     case 'UPDATE_IMAGE_ASSET':
     case 'DELETE_IMAGE_ASSET':
+    case 'ADD_PIXEL_ASSET':
+    case 'UPDATE_PIXEL_ASSET':
+    case 'DELETE_PIXEL_ASSET':
     case 'ADD_GUIDE':
     case 'DELETE_GUIDE':
     case 'MOVE_GUIDE':
@@ -1069,6 +1093,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedStyleId: null,
         selectedVariableId: null,
         selectedAssetId: null,
+        selectedPixelAssetId: null,
         selection: {
           ...state.selection,
           ids: action.additive
@@ -1077,10 +1102,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       }
     case 'DESELECT_ALL':
-      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selection: { ids: [], editingTextId: null } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selectedPixelAssetId: null, selection: { ids: [], editingTextId: null } }
     case 'SELECT_ALL': {
       const allIds = getAllIds(state.document.rootNodes)
-      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selection: { ...state.selection, ids: allIds } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selectedPixelAssetId: null, selection: { ...state.selection, ids: allIds } }
     }
     case 'START_TEXT_EDIT':
       return { ...state, selection: { ...state.selection, editingTextId: action.id } }
@@ -1149,6 +1174,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedStyleId: null,
         selectedVariableId: null,
         selectedAssetId: null,
+        selectedPixelAssetId: null,
         selection: { ids: [], editingTextId: null },
       }
     case 'SELECT_STYLE':
@@ -1157,6 +1183,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedStyleId: action.styleId,
         selectedVariableId: null,
         selectedAssetId: null,
+        selectedPixelAssetId: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
@@ -1166,6 +1193,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedVariableId: action.variableId,
         selectedStyleId: null,
         selectedAssetId: null,
+        selectedPixelAssetId: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
@@ -1173,11 +1201,26 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         selectedAssetId: action.assetId,
+        selectedPixelAssetId: null,
         selectedVariableId: null,
         selectedStyleId: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
+    case 'SELECT_PIXEL_ASSET':
+      return {
+        ...state,
+        selectedPixelAssetId: action.assetId,
+        selectedAssetId: null,
+        selectedVariableId: null,
+        selectedStyleId: null,
+        documentSelected: false,
+        selection: { ids: [], editingTextId: null },
+      }
+    case 'START_PIXEL_EDIT':
+      return { ...state, editingPixelAssetId: action.assetId }
+    case 'STOP_PIXEL_EDIT':
+      return { ...state, editingPixelAssetId: null }
     case 'SET_FOLDER_COLLAPSED':
       return {
         ...state,

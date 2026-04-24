@@ -7,7 +7,7 @@ import {
   Eye, EyeOff, Lock, Unlock, Trash2, ChevronRight, ChevronDown,
   AppWindow, CircleDot, List, GanttChart, Hash,
   Copy, ChevronsUp, ChevronsDown, ChevronUp, LayoutPanelLeft,
-  ImageIcon, BarChart2,
+  ImageIcon, BarChart2, Grid2X2,
 } from 'lucide-react'
 import type { TreeNode } from '@model/document'
 import { findAncestorPage } from '@model/document'
@@ -40,8 +40,9 @@ const SHAPE_ICON_MAP: Record<string, React.ReactNode> = {
   select:    <List size={11} />,
   progress:  <GanttChart size={11} />,
   stepper:   <Hash size={11} />,
-  imagemock: <ImageIcon size={11} />,
-  chartmock: <BarChart2 size={11} />,
+  imagemock:  <ImageIcon size={11} />,
+  chartmock:  <BarChart2 size={11} />,
+  pixelimage: <Grid2X2 size={11} />,
 }
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -74,8 +75,9 @@ const FORM_CONTROL_TYPES: { type: ShapeType; label: string }[] = [
 ]
 
 const MOCKUP_TYPES: { type: ShapeType; label: string }[] = [
-  { type: 'imagemock', label: 'Image Mock' },
-  { type: 'chartmock', label: 'Chart Mock' },
+  { type: 'imagemock',  label: 'Image Mock' },
+  { type: 'chartmock',  label: 'Chart Mock' },
+  { type: 'pixelimage', label: 'Pixel Image' },
 ]
 
 interface DragPayload {

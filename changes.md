@@ -1,3 +1,17 @@
+## 2026-04-23 18:00
+
+### Pixel image editor
+
+- New `PixelAsset` document asset (`src/model/pixelAsset.ts`): flat RGBA pixel array, `createEmptyPixelAsset`, `setPixel`, `hexToRgba` helpers
+- `VibeDocument` gains `pixelAssets: PixelAsset[]`; serialization migration fills it in for older documents
+- New `PixelImageShape` shape type (`type: 'pixelimage'`, `assetId` reference); added to shape union, `shapeFactory`, `ShapeRenderer`
+- Store: `ADD_PIXEL_ASSET`, `UPDATE_PIXEL_ASSET`, `DELETE_PIXEL_ASSET` document actions (undo-tracked); `START_PIXEL_EDIT`, `STOP_PIXEL_EDIT`, `SELECT_PIXEL_ASSET` view actions; `editingPixelAssetId` and `selectedPixelAssetId` in `AppState`; `DELETE_PIXEL_ASSET` also removes referencing shapes
+- `PixelImageShapeComp`: renders pixels as `cellW×cellH` rectangles on a `<canvas>`; checkerboard CSS background for transparent pixels; "16×16" placeholder when asset missing
+- `PixelEditorOverlay`: full in-place pixel editor opened by double-clicking a pixel image shape. Pencil, line (Bresenham), and eraser tools; palette color swatches + custom color picker; grid lines; double-click outside canvas to close; each completed stroke dispatches one `UPDATE_PIXEL_ASSET` for undo
+- Toolbar: added "Pixel Image" (`Grid2X2` icon) to the Shapes dropdown; `insert-pixelimage` tool mode creates asset + shape together on pointer up
+- Tree panel: `PixelAssetsSection` lists pixel assets under Assets with rename (double-click), usage count, and delete
+- Properties panel: `PixelImageSection` for `pixelimage` shapes (asset name, pixel size, "Edit Pixels" button); separate panel for selected pixel asset (size, usage count, "Edit Pixels" button)
+
 ## 2026-04-23 16:30
 
 ### Unit tests for export bounds computation

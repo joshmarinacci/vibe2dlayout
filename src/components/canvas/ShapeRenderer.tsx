@@ -33,6 +33,8 @@ import { TableShapeComp } from './shapes/TableShape'
 import { GroupShapeComp } from './shapes/GroupShape'
 import { ImageMockShapeComp } from './shapes/ImageMockShape'
 import { ChartMockShapeComp } from './shapes/ChartMockShape'
+import { PixelImageShapeComp } from './shapes/PixelImageShape'
+import type { PixelAsset } from '@model/pixelAsset'
 
 interface Props {
   nodes: TreeNode[]
@@ -44,9 +46,10 @@ interface Props {
   themeFontFamily: string
   textStyles?: TextStyleDef[]
   variables?: Variable[]
+  pixelAssets?: Record<string, PixelAsset>
 }
 
-export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles = [], variables = [] }: Props) {
+export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles = [], variables = [], pixelAssets = {} }: Props) {
   return (
     <>
       {nodes.map(node => {
@@ -65,6 +68,7 @@ export function ShapeRenderer({ nodes, shapes, selectedIds, editingTextId, dispa
             themeFontFamily={themeFontFamily}
             textStyles={textStyles}
             variables={variables}
+            pixelAssets={pixelAssets}
           />
         )
       })}
@@ -83,9 +87,10 @@ interface ShapeNodeProps {
   themeFontFamily: string
   textStyles: TextStyleDef[]
   variables: Variable[]
+  pixelAssets: Record<string, PixelAsset>
 }
 
-function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles, variables }: ShapeNodeProps) {
+function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, handDrawn, themeFontFamily, textStyles, variables, pixelAssets }: ShapeNodeProps) {
   const isSelected = selectedIds.includes(shape.id)
   const isEditingText = editingTextId === shape.id
   // Per-shape override takes precedence over theme-level setting
@@ -107,6 +112,8 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       dispatch({ type: 'START_TEXT_EDIT', id: shape.id })
     } else if (DRILLABLE.has(shape.type)) {
       dispatch({ type: 'ENTER_DRILL_MODE', containerId: shape.id })
+    } else if (shape.type === 'pixelimage') {
+      dispatch({ type: 'START_PIXEL_EDIT', assetId: shape.assetId })
     }
   }
 
@@ -121,6 +128,7 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       themeFontFamily={themeFontFamily}
       textStyles={textStyles}
       variables={variables}
+      pixelAssets={pixelAssets}
     />
   ) : null
 
@@ -181,5 +189,7 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       return <ImageMockShapeComp shape={resolvedShape} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'chartmock':
       return <ChartMockShapeComp shape={resolvedShape} handDrawn={effectiveHandDrawn} {...commonProps} />
+    case 'pixelimage':
+      return <PixelImageShapeComp shape={resolvedShape} asset={pixelAssets[resolvedShape.assetId]} {...commonProps} />
   }
 }

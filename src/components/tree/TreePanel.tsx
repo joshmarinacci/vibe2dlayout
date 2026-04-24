@@ -12,6 +12,7 @@ import { SectionHeader } from './SectionHeader'
 import { StylesSection } from './StylesSection'
 import { VariablesSection } from './VariablesSection'
 import { AssetsSection } from './AssetsSection'
+import { PixelAssetsSection } from './PixelAssetsSection'
 import { FontsSection } from './FontsSection'
 import styles from './TreePanel.module.css'
 
@@ -44,8 +45,9 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
 ]
 
 const MOCKUP_TYPES: { type: ShapeType; label: string }[] = [
-  { type: 'imagemock', label: 'Image Mock' },
-  { type: 'chartmock', label: 'Chart Mock' },
+  { type: 'imagemock',  label: 'Image Mock' },
+  { type: 'chartmock',  label: 'Chart Mock' },
+  { type: 'pixelimage', label: 'Pixel Image' },
 ]
 
 export function TreePanel() {
@@ -208,6 +210,12 @@ export function TreePanel() {
         <AssetsSection
           assets={state.document.images}
           selectedAssetId={state.selectedAssetId}
+          dispatch={dispatch}
+          shapes={state.document.shapes}
+        />
+        <PixelAssetsSection
+          assets={state.document.pixelAssets}
+          selectedPixelAssetId={state.selectedPixelAssetId}
           dispatch={dispatch}
           shapes={state.document.shapes}
         />

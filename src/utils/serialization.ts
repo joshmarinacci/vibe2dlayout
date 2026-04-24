@@ -40,6 +40,10 @@ export function fromJSON(json: string): VibeDocument {
   if (!Array.isArray(docObj.images)) {
     docObj.images = []
   }
+  // Migrate older docs missing pixelAssets
+  if (!Array.isArray(docObj.pixelAssets)) {
+    docObj.pixelAssets = []
+  }
   // Migrate older docs missing snapAlignment in gridSettings
   if (typeof docObj.gridSettings === 'object' && docObj.gridSettings !== null) {
     const gs = docObj.gridSettings as Record<string, unknown>

@@ -25,6 +25,7 @@ const DOCUMENT_ACTION_TYPES = new Set<string>([
   'ADD_IMAGE_ASSET', 'UPDATE_IMAGE_ASSET', 'DELETE_IMAGE_ASSET',
   'ADD_GUIDE', 'DELETE_GUIDE', 'MOVE_GUIDE',
   'ADD_CUSTOM_FONT', 'DELETE_CUSTOM_FONT',
+  'ADD_PIXEL_ASSET', 'UPDATE_PIXEL_ASSET', 'DELETE_PIXEL_ASSET',
 ])
 
 function isDocumentAction(action: AppAction): action is DocumentAction {
