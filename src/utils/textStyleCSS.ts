@@ -8,7 +8,7 @@ import { linearGradientCSS } from './fillCSS'
  * NOTE: Does NOT include gradient styles — use textGradientSpanCSS for those.
  */
 export function textExtraCSS(
-  text: Pick<TextStyle, 'textShadow' | 'lineHeight' | 'letterSpacing' | 'textDecoration' | 'textTransform' | 'textGradient' | 'fontVariantCaps'>
+  text: Pick<TextStyle, 'textShadow' | 'lineHeight' | 'letterSpacing' | 'textDecoration' | 'textTransform' | 'textGradient' | 'fontVariantCaps' | 'fontVariationSettings'>
 ): CSSProperties {
   const result: CSSProperties = {}
   if (text.textShadow) {
@@ -20,6 +20,11 @@ export function textExtraCSS(
   if (text.textDecoration && text.textDecoration !== 'none') result.textDecoration = text.textDecoration
   if (text.textTransform && text.textTransform !== 'none') result.textTransform = text.textTransform
   if (text.fontVariantCaps === 'small-caps') result.fontVariant = 'small-caps'
+  if (text.fontVariationSettings && Object.keys(text.fontVariationSettings).length > 0) {
+    result.fontVariationSettings = Object.entries(text.fontVariationSettings)
+      .map(([tag, v]) => `'${tag}' ${v}`)
+      .join(', ')
+  }
   return result
 }
 

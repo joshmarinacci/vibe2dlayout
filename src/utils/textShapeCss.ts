@@ -57,6 +57,13 @@ export function textStyleToCss(text: TextStyle, selector: string): string {
     rules.push(`text-shadow: ${s.offsetX}px ${s.offsetY}px ${s.blur}px ${s.color};`)
   }
 
+  if (text.fontVariationSettings && Object.keys(text.fontVariationSettings).length > 0) {
+    const val = Object.entries(text.fontVariationSettings)
+      .map(([tag, v]) => `'${tag}' ${v}`)
+      .join(', ')
+    rules.push(`font-variation-settings: ${val};`)
+  }
+
   const indent = '  '
   const body = rules.map(r => `${indent}${r}`).join('\n')
   return `${selector} {\n${body}\n}`

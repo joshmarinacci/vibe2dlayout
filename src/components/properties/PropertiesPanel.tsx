@@ -22,6 +22,7 @@ import { ShadowSection } from './sections/ShadowSection'
 import { VariableSection } from './sections/VariableSection'
 import { ImageAssetSection } from './sections/ImageAssetSection'
 import { PixelImageSection } from './sections/PixelImageSection'
+import { FontInfoSection } from './sections/FontInfoSection'
 import { resolveTextStyle } from '@model/textStyle'
 import type { Variable, VariableType } from '@model/variable'
 import type { ImageShape } from '@model/shapes'
@@ -92,6 +93,21 @@ export function PropertiesPanel() {
     }
   }
 
+  if (state.selectedFontName !== null) {
+    const font = state.document.customFonts.find(f => f.name === state.selectedFontName)
+    if (font) {
+      return (
+        <div className={styles.panel}>
+          <div className={styles.header}>
+            <span className={styles.shapeType}>font</span>
+            <span className={styles.shapeName}>{font.name}</span>
+          </div>
+          <FontInfoSection font={font} dispatch={dispatch} />
+        </div>
+      )
+    }
+  }
+
   if (state.selectedAssetId !== null) {
     const asset = state.document.images.find(a => a.id === state.selectedAssetId)
     if (asset) {
@@ -138,7 +154,7 @@ export function PropertiesPanel() {
             <span className={styles.shapeType}>style</span>
             <span className={styles.shapeName}>{style.name}</span>
           </div>
-          <TextStyleDefSection style={style} dispatch={dispatch} customFonts={state.document.customFonts} />
+          <TextStyleDefSection style={style} dispatch={dispatch} customFonts={state.document.customFonts.map(f => f.name)} />
         </div>
       )
     }
@@ -316,7 +332,8 @@ export function PropertiesPanel() {
             shapeId={withText[0].id}
             onChange={onChangeText}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={state.document.customFonts.map(f => f.name)}
+            activeFont={repText.fontFamily ? (state.document.customFonts.find(f => f.name === repText.fontFamily) ?? null) : null}
           />
         )}
       </div>
@@ -389,6 +406,11 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
     dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { stroke: s } as Partial<Shape> })
 
   const textStyles = state.document.textStyles
+  const customFontNames = state.document.customFonts.map(f => f.name)
+  const shapeText = (shape as unknown as { text?: { fontFamily?: string } }).text
+  const activeFont = shapeText?.fontFamily
+    ? (state.document.customFonts.find(f => f.name === shapeText.fontFamily) ?? null)
+    : null
 
   // Shorthand for building variable binding props for this shape's property path
   const vp = (path: string, type: VariableType) => makeVarProps(shape, path, type, variables, dispatch)
@@ -458,7 +480,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
@@ -552,7 +575,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <ButtonIconSection
             icon={shape.icon}
@@ -607,7 +631,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
               shapeId={shape.id}
               onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { title: t } })}
               dispatch={dispatch}
-              customFonts={state.document.customFonts}
+              customFonts={customFontNames}
+            activeFont={activeFont}
             />
           )}
           <ShadowSection shape={shape} dispatch={dispatch} />
@@ -671,7 +696,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <ShadowSection shape={shape} dispatch={dispatch} />
         </>
@@ -691,7 +717,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <CollapsibleSection title="Text Field">
             <input
@@ -723,7 +750,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <CollapsibleSection title="Checkbox">
             <ToggleInput
@@ -755,7 +783,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <CollapsibleSection title="Toggle">
             <ToggleInput
@@ -850,7 +879,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <CollapsibleSection title="Radio Button">
             <ToggleInput
@@ -882,7 +912,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <CollapsibleSection title="Select">
             <input
@@ -945,7 +976,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <CollapsibleSection title="Number Stepper">
             <NumberInput
@@ -977,7 +1009,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
@@ -1001,7 +1034,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <FillSection fill={shape.fill} onChange={patchFill}
             colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
@@ -1025,7 +1059,8 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
             shapeId={shape.id}
             onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { text: t } })}
             dispatch={dispatch}
-            customFonts={state.document.customFonts}
+            customFonts={customFontNames}
+            activeFont={activeFont}
           />
           <CollapsibleSection title="List">
             <NumberInput

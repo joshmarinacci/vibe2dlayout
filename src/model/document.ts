@@ -29,6 +29,19 @@ export interface PageFolder {
   collapsed: boolean
 }
 
+export interface FontAxis {
+  tag: string        // e.g. "wght" | "wdth" | "ital" | "opsz" | custom
+  min: number
+  max: number
+  default: number
+}
+
+export interface CustomFont {
+  name: string
+  isVariable: boolean | null  // null = detection not yet run or failed (e.g. WOFF2-only)
+  axes: FontAxis[]
+}
+
 export interface VibeDocument {
   version: number             // serialization format version
   rootNodes: TreeNode[]       // top-level pages
@@ -42,7 +55,7 @@ export interface VibeDocument {
   variables: Variable[]       // named document-level variables
   images: ImageAsset[]        // document-level image asset registry
   pixelAssets: PixelAsset[]   // pixel image asset registry
-  customFonts: string[]       // Google Font family names added by the user, e.g. ["Roboto"]
+  customFonts: CustomFont[]   // Google Font family names added by the user, with metadata
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

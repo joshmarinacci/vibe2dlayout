@@ -1,5 +1,5 @@
 import type { Shape } from '@model/shapes'
-import type { VibeDocument, PageFolder } from '@model/document'
+import type { VibeDocument, PageFolder, CustomFont } from '@model/document'
 import type { TextStyleDef } from '@model/textStyle'
 import type { Variable } from '@model/variable'
 import type { ImageAsset } from '@model/imageAsset'
@@ -94,6 +94,8 @@ export interface AppState {
   selectedPixelAssetId: string | null
   // ID of the pixel asset currently being edited in the overlay
   editingPixelAssetId: string | null
+  // Name of the font selected in the tree (shows font info in props panel)
+  selectedFontName: string | null
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -155,8 +157,9 @@ export type DocumentAction =
   | { type: 'ADD_GUIDE';    pageId: string; guide: CanvasGuide }
   | { type: 'DELETE_GUIDE'; pageId: string; guideId: string }
   | { type: 'MOVE_GUIDE';   pageId: string; guideId: string; position: number }
-  | { type: 'ADD_CUSTOM_FONT';    fontName: string }
-  | { type: 'DELETE_CUSTOM_FONT'; fontName: string }
+  | { type: 'ADD_CUSTOM_FONT';         font: CustomFont }
+  | { type: 'DELETE_CUSTOM_FONT';      fontName: string }
+  | { type: 'UPDATE_CUSTOM_FONT_META'; fontName: string; patch: Partial<CustomFont> }
 
 export type AlignType =
   | 'left' | 'center-h' | 'right'
@@ -195,6 +198,7 @@ export type ViewAction =
   | { type: 'SELECT_PIXEL_ASSET';  assetId: string | null }
   | { type: 'START_PIXEL_EDIT';    assetId: string }
   | { type: 'STOP_PIXEL_EDIT' }
+  | { type: 'SELECT_FONT'; fontName: string | null }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

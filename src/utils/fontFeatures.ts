@@ -1,4 +1,5 @@
 import opentype from 'opentype.js'
+import type { FontAxis } from '@model/document'
 
 // Cache results: true = has smcp, false = no smcp, null = detection failed (WOFF2 / network error)
 const smcpCache = new Map<string, boolean | null>()
@@ -33,6 +34,50 @@ export async function detectSmallCaps(fontFamily: string): Promise<boolean | nul
     return result
   } catch {
     smcpCache.set(name, null)
+    return null
+  }
+}
+
+// Cache results: FontAxis[] (may be empty for static fonts), or null (detection failed)
+const axisCache = new Map<string, FontAxis[] | null>()
+
+/**
+ * Detects variable font axes using the opentype.js fvar table.
+ * Returns an empty array for static fonts, a populated array for variable fonts,
+ * or null if detection failed (WOFF2-only, network error, or font not loaded).
+ * Reuses the same resolveFontUrl infrastructure as detectSmallCaps.
+ */
+export async function detectVariableAxes(fontFamily: string): Promise<FontAxis[] | null> {
+  const name = fontFamily.split(',')[0].trim()
+  if (axisCache.has(name)) return axisCache.get(name)!
+
+  try {
+    const url = await resolveFontUrl(name)
+    if (!url) { axisCache.set(name, null); return null }
+
+    const resp = await fetch(url)
+    if (!resp.ok) { axisCache.set(name, null); return null }
+
+    const buf = await resp.arrayBuffer()
+    const font = opentype.parse(buf)
+    const fvar = (font as unknown as {
+      tables: {
+        fvar?: {
+          axes?: Array<{ tag: string; minValue: number; maxValue: number; defaultValue: number }>
+        }
+      }
+    }).tables.fvar
+
+    const axes: FontAxis[] = (fvar?.axes ?? []).map(a => ({
+      tag: a.tag.trim(),
+      min: a.minValue,
+      max: a.maxValue,
+      default: a.defaultValue,
+    }))
+    axisCache.set(name, axes)
+    return axes
+  } catch {
+    axisCache.set(name, null)
     return null
   }
 }

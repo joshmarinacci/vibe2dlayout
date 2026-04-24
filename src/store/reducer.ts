@@ -1,6 +1,6 @@
 import type { AppState, AppAction, DocumentAction, ViewTransform } from './types'
 import { DEFAULT_SETTINGS } from './types'
-import type { VibeDocument, TreeNode } from '@model/document'
+import type { VibeDocument, TreeNode, CustomFont } from '@model/document'
 import type { Shape, ImageShape } from '@model/shapes'
 import type { ImageAsset } from '@model/imageAsset'
 import { findNode, findParent, removeNode, insertNode, getAllIds } from '@model/document'
@@ -390,7 +390,9 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
         textStyles: d.textStyles ?? [...BUILT_IN_TEXT_STYLES],
         variables: d.variables ?? [],
         images,
-        customFonts: d.customFonts ?? [],
+        customFonts: (d.customFonts ?? []).map((f: unknown) =>
+          typeof f === 'string' ? { name: f, isVariable: null as null, axes: [] } : f as CustomFont
+        ),
       }
     }
 
@@ -655,11 +657,18 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
 
     case 'ADD_CUSTOM_FONT': {
       const existing = doc.customFonts ?? []
-      if (existing.includes(action.fontName)) return doc
-      return { ...doc, customFonts: [...existing, action.fontName] }
+      if (existing.some(f => f.name === action.font.name)) return doc
+      return { ...doc, customFonts: [...existing, action.font] }
     }
     case 'DELETE_CUSTOM_FONT':
-      return { ...doc, customFonts: (doc.customFonts ?? []).filter(f => f !== action.fontName) }
+      return { ...doc, customFonts: (doc.customFonts ?? []).filter(f => f.name !== action.fontName) }
+    case 'UPDATE_CUSTOM_FONT_META':
+      return {
+        ...doc,
+        customFonts: (doc.customFonts ?? []).map(f =>
+          f.name === action.fontName ? { ...f, ...action.patch } : f
+        ),
+      }
 
     case 'ADD_THEME':
       return { ...doc, themes: [...doc.themes, action.theme] }
@@ -1008,6 +1017,7 @@ export const initialState: AppState = {
   selectedAssetId: null,
   selectedPixelAssetId: null,
   editingPixelAssetId: null,
+  selectedFontName: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1071,6 +1081,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'MOVE_GUIDE':
     case 'ADD_CUSTOM_FONT':
     case 'DELETE_CUSTOM_FONT':
+    case 'UPDATE_CUSTOM_FONT_META':
     case 'MOVE_SHAPES_START':
       return {
         ...state,
@@ -1094,6 +1105,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedVariableId: null,
         selectedAssetId: null,
         selectedPixelAssetId: null,
+        selectedFontName: null,
         selection: {
           ...state.selection,
           ids: action.additive
@@ -1102,10 +1114,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       }
     case 'DESELECT_ALL':
-      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selectedPixelAssetId: null, selection: { ids: [], editingTextId: null } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selectedPixelAssetId: null, selectedFontName: null, selection: { ids: [], editingTextId: null } }
     case 'SELECT_ALL': {
       const allIds = getAllIds(state.document.rootNodes)
-      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selectedPixelAssetId: null, selection: { ...state.selection, ids: allIds } }
+      return { ...state, documentSelected: false, selectedStyleId: null, selectedVariableId: null, selectedAssetId: null, selectedPixelAssetId: null, selectedFontName: null, selection: { ...state.selection, ids: allIds } }
     }
     case 'START_TEXT_EDIT':
       return { ...state, selection: { ...state.selection, editingTextId: action.id } }
@@ -1175,6 +1187,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedVariableId: null,
         selectedAssetId: null,
         selectedPixelAssetId: null,
+        selectedFontName: null,
         selection: { ids: [], editingTextId: null },
       }
     case 'SELECT_STYLE':
@@ -1184,6 +1197,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedVariableId: null,
         selectedAssetId: null,
         selectedPixelAssetId: null,
+        selectedFontName: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
@@ -1194,6 +1208,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedStyleId: null,
         selectedAssetId: null,
         selectedPixelAssetId: null,
+        selectedFontName: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
@@ -1204,6 +1219,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedPixelAssetId: null,
         selectedVariableId: null,
         selectedStyleId: null,
+        selectedFontName: null,
         documentSelected: false,
         selection: { ids: [], editingTextId: null },
       }
@@ -1212,6 +1228,18 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         selectedPixelAssetId: action.assetId,
         selectedAssetId: null,
+        selectedVariableId: null,
+        selectedStyleId: null,
+        selectedFontName: null,
+        documentSelected: false,
+        selection: { ids: [], editingTextId: null },
+      }
+    case 'SELECT_FONT':
+      return {
+        ...state,
+        selectedFontName: action.fontName,
+        selectedAssetId: null,
+        selectedPixelAssetId: null,
         selectedVariableId: null,
         selectedStyleId: null,
         documentSelected: false,

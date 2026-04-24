@@ -231,6 +231,7 @@ export function TreePanel() {
         />
         <FontsSection
           customFonts={state.document.customFonts}
+          selectedFontName={state.selectedFontName}
           dispatch={dispatch}
         />
       </div>

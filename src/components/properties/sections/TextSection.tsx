@@ -3,6 +3,7 @@ import { RotateCcw } from 'lucide-react'
 import type { TextStyle, LinearGradient } from '@model/shapes'
 import type { TextStyleDef } from '@model/textStyle'
 import type { AppAction } from '@store/types'
+import type { CustomFont } from '@model/document'
 import { AlignLeft, AlignCenter, AlignRight, AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd, Underline, Strikethrough, Italic, ALargeSmall } from 'lucide-react'
 import { ColorInput } from '../inputs/ColorInput'
 import { SelectInput } from '../inputs/SelectInput'
@@ -84,6 +85,7 @@ const STYLE_FIELDS = new Set([
   'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
   'color', 'paletteColorId', 'align', 'verticalAlign', 'textShadow',
   'lineHeight', 'letterSpacing', 'textDecoration', 'textTransform', 'textGradient', 'fontVariantCaps',
+  'fontVariationSettings',
 ])
 
 const DEFAULT_TEXT_GRADIENT: LinearGradient = {
@@ -99,9 +101,10 @@ interface Props {
   onChange: (t: TextStyle) => void
   dispatch: Dispatch<AppAction>
   customFonts?: string[]    // document-level custom Google Font names
+  activeFont?: CustomFont | null  // CustomFont object for the current fontFamily (if any)
 }
 
-export function TextSection({ text, rawText, textStyles, shapeId, onChange, dispatch, customFonts }: Props) {
+export function TextSection({ text, rawText, textStyles, shapeId, onChange, dispatch, customFonts, activeFont }: Props) {
   // Apply a partial change to the text, preserving style connection and tracking overrides.
   // Always uses rawText as the base so textStyleId is never lost.
   // Explicitly adds changed style-able fields to textStyleOverrides so that a field whose
@@ -537,6 +540,28 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
     <NumberInput label="Blur" value={text.textShadow.blur} min={0} max={100} step={1} unit="px"
       onChange={v => applyChange({ textShadow: { ...text.textShadow!, blur: v } })} />
   </div>
+)}
+
+{/* 9 — Variable font axes */}
+{activeFont?.isVariable === true && activeFont.axes.length > 0 && (
+  <>
+    {activeFont.axes.map(axis => (
+      <NumberInput
+        key={axis.tag}
+        label={axis.tag}
+        value={text.fontVariationSettings?.[axis.tag] ?? axis.default}
+        min={axis.min}
+        max={axis.max}
+        step={1}
+        onChange={v => applyChange({
+          fontVariationSettings: {
+            ...(rawText.fontVariationSettings ?? {}),
+            [axis.tag]: v,
+          },
+        })}
+      />
+    ))}
+  </>
 )}
 
     </CollapsibleSection>

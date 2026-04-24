@@ -8,15 +8,18 @@ import { PropertiesPanel } from '@components/properties/PropertiesPanel'
 import { StatusBar } from './StatusBar'
 import { ShortcutsModal } from './ShortcutsModal'
 import { SettingsModal } from './SettingsModal'
-import { useAppState } from '@store/context'
+import { useAppState, useAppDispatch } from '@store/context'
 import { useDynamicFonts } from '@hooks/useDynamicFonts'
+import { useFontMetadataEnrichment } from '@hooks/useFontMetadataEnrichment'
 
 const MIN_SIDEBAR = 150
 const MAX_SIDEBAR = 500
 
 export function AppShell() {
   const { state } = useAppState()
-  useDynamicFonts(state.document.customFonts)
+  const dispatch = useAppDispatch()
+  useDynamicFonts(state.document.customFonts.map(f => f.name))
+  useFontMetadataEnrichment(state.document.customFonts, dispatch)
 
   const [leftWidth, setLeftWidth] = useState(220)
   const [rightWidth, setRightWidth] = useState(300)

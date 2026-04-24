@@ -1,3 +1,35 @@
+## 2026-04-23 21:00
+
+### Google Fonts improvements: validation, font info panel, variable font axes
+
+**Data model**
+- `src/model/document.ts` — `customFonts: string[]` upgraded to `customFonts: CustomFont[]`; added `FontAxis` and `CustomFont` interfaces (`name`, `isVariable: boolean | null`, `axes: FontAxis[]`)
+- `src/model/shapes.ts` — added `fontVariationSettings?: Record<string, number>` to `TextStyle`
+- `src/utils/serialization.ts` — migration: existing `string[]` entries are converted to `{ name, isVariable: null, axes: [] }` on load
+
+**Store**
+- `src/store/types.ts` — `ADD_CUSTOM_FONT` payload changed to `font: CustomFont`; added `UPDATE_CUSTOM_FONT_META`, `SELECT_FONT` actions; added `selectedFontName: string | null` to `AppState`
+- `src/store/reducer.ts` — updated all font cases; `SELECT_FONT` clears other selections; `selectedFontName` cleared on any selection action; `LOAD_DOCUMENT` normalizes the string→object migration
+- `src/store/history.ts` — `UPDATE_CUSTOM_FONT_META` added as undoable
+
+**Variable font detection**
+- `src/utils/fontFeatures.ts` — added `detectVariableAxes(fontFamily)` using opentype.js fvar table (reuses existing `resolveFontUrl` helper)
+- `src/hooks/useFontMetadataEnrichment.ts` — new hook; watches `customFonts` for `isVariable === null` entries and enriches them asynchronously via `detectVariableAxes`
+- `src/components/layout/AppShell.tsx` — added `useFontMetadataEnrichment` call alongside `useDynamicFonts`
+
+**CSS rendering**
+- `src/utils/textStyleCSS.ts` — `textExtraCSS` now includes `fontVariationSettings` → `font-variation-settings` CSS (covers all shape renderers)
+- `src/utils/textShapeCss.ts` — `textStyleToCss` also outputs `font-variation-settings` for CSS export
+
+**Tree panel**
+- `src/components/tree/FontsSection.tsx` — validation: fetches Google Fonts CSS2 API before dispatching, shows error if `@font-face` absent; font rows are clickable (dispatches `SELECT_FONT`); "var" badge shown for variable fonts; selected row highlighted
+- `src/components/tree/TreePanel.tsx` — passes `selectedFontName` to `FontsSection`
+
+**Properties panel**
+- `src/components/properties/sections/FontInfoSection.tsx` — new: shows font name (in its own typeface), variable/static/detecting label, read-only axes table, Remove button
+- `src/components/properties/sections/TextSection.tsx` — added `activeFont?: CustomFont | null` prop; axis sliders rendered when font is variable; `fontVariationSettings` added to `STYLE_FIELDS`
+- `src/components/properties/PropertiesPanel.tsx` — `selectedFontName` guard renders `FontInfoSection`; all `TextSection` calls pass `customFontNames` and `activeFont`
+
 ## 2026-04-23 20:15
 
 ### Fix "Export CSS" menu item doing nothing
