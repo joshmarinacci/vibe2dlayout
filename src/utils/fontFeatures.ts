@@ -38,42 +38,52 @@ export async function detectSmallCaps(fontFamily: string): Promise<boolean | nul
   }
 }
 
-// Cache results: FontAxis[] (may be empty for static fonts), or null (detection failed)
+// Cache results: FontAxis[] (may be empty for static fonts), or null (network error)
 const axisCache = new Map<string, FontAxis[] | null>()
 
 /**
- * Detects variable font axes using the opentype.js fvar table.
- * Returns an empty array for static fonts, a populated array for variable fonts,
- * or null if detection failed (WOFF2-only, network error, or font not loaded).
- * Reuses the same resolveFontUrl infrastructure as detectSmallCaps.
+ * Detects variable font axes using the Google Fonts CSS2 API.
+ * Requests the font with broad axis ranges; if the response contains range-style
+ * `font-weight: X Y` values (two numbers), the font is variable.
+ *
+ * Works reliably in modern browsers (no WOFF2 / opentype.js issues).
+ * Returns an empty array for static fonts, an array of axes for variable fonts,
+ * or null on network failure.
  */
 export async function detectVariableAxes(fontFamily: string): Promise<FontAxis[] | null> {
   const name = fontFamily.split(',')[0].trim()
   if (axisCache.has(name)) return axisCache.get(name)!
 
   try {
-    const url = await resolveFontUrl(name)
-    if (!url) { axisCache.set(name, null); return null }
-
+    const encoded = name.replace(/ /g, '+')
+    // Request with broad axis ranges. Google Fonts returns range-style @font-face values
+    // for variable fonts (e.g. `font-weight: 100 900`) and discrete values for static fonts.
+    const url = `https://fonts.googleapis.com/css2?family=${encoded}:ital,opsz,wdth,wght@0,6..144,25..151,1..1000&display=swap`
     const resp = await fetch(url)
     if (!resp.ok) { axisCache.set(name, null); return null }
+    const css = await resp.text()
+    if (!css.includes('@font-face')) { axisCache.set(name, null); return null }
 
-    const buf = await resp.arrayBuffer()
-    const font = opentype.parse(buf)
-    const fvar = (font as unknown as {
-      tables: {
-        fvar?: {
-          axes?: Array<{ tag: string; minValue: number; maxValue: number; defaultValue: number }>
-        }
-      }
-    }).tables.fvar
+    const axes: FontAxis[] = []
 
-    const axes: FontAxis[] = (fvar?.axes ?? []).map(a => ({
-      tag: a.tag.trim(),
-      min: a.minValue,
-      max: a.maxValue,
-      default: a.defaultValue,
-    }))
+    // `font-weight: X Y` (two numbers separated by space) → wght axis
+    const wghtMatch = css.match(/font-weight:\s*(\d+)\s+(\d+)/)
+    if (wghtMatch) {
+      axes.push({ tag: 'wght', min: Number(wghtMatch[1]), max: Number(wghtMatch[2]), default: 400 })
+    }
+
+    // `font-stretch: X% Y%` → wdth axis
+    const wdthMatch = css.match(/font-stretch:\s*([\d.]+)%\s+([\d.]+)%/)
+    if (wdthMatch) {
+      axes.push({ tag: 'wdth', min: Math.round(Number(wdthMatch[1])), max: Math.round(Number(wdthMatch[2])), default: 100 })
+    }
+
+    // `font-style: oblique Xdeg Ydeg` → slnt axis (oblique range indicates slant)
+    const slntMatch = css.match(/font-style:\s*oblique\s+([-\d.]+)deg\s+([-\d.]+)deg/)
+    if (slntMatch) {
+      axes.push({ tag: 'slnt', min: Number(slntMatch[1]), max: Number(slntMatch[2]), default: 0 })
+    }
+
     axisCache.set(name, axes)
     return axes
   } catch {
