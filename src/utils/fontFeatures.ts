@@ -56,13 +56,8 @@ export async function detectVariableAxes(fontFamily: string): Promise<FontAxis[]
 
   try {
     const encoded = name.replace(/ /g, '+')
-    // Request with broad axis ranges. Google Fonts returns range-style @font-face values
-    // for variable fonts (e.g. `font-weight: 100 900`) and discrete values for static fonts.
-    const url = `https://fonts.googleapis.com/css2?family=${encoded}:ital,opsz,wdth,wght@0,6..144,25..151,1..1000&display=swap`
-    const resp = await fetch(url)
-    if (!resp.ok) { axisCache.set(name, null); return null }
-    const css = await resp.text()
-    if (!css.includes('@font-face')) { axisCache.set(name, null); return null }
+    const css = await fetchFontCss(encoded)
+    if (css === null) { axisCache.set(name, null); return null }
 
     const axes: FontAxis[] = []
 
@@ -78,7 +73,7 @@ export async function detectVariableAxes(fontFamily: string): Promise<FontAxis[]
       axes.push({ tag: 'wdth', min: Math.round(Number(wdthMatch[1])), max: Math.round(Number(wdthMatch[2])), default: 100 })
     }
 
-    // `font-style: oblique Xdeg Ydeg` → slnt axis (oblique range indicates slant)
+    // `font-style: oblique Xdeg Ydeg` → slnt axis
     const slntMatch = css.match(/font-style:\s*oblique\s+([-\d.]+)deg\s+([-\d.]+)deg/)
     if (slntMatch) {
       axes.push({ tag: 'slnt', min: Number(slntMatch[1]), max: Number(slntMatch[2]), default: 0 })
@@ -88,6 +83,34 @@ export async function detectVariableAxes(fontFamily: string): Promise<FontAxis[]
     return axes
   } catch {
     axisCache.set(name, null)
+    return null
+  }
+}
+
+/**
+ * Fetches Google Fonts CSS with axis ranges to allow variable font detection.
+ * Tries a broad multi-axis request first; falls back to wght-only if the
+ * server rejects the unsupported axes (HTTP 400).
+ */
+async function fetchFontCss(encoded: string): Promise<string | null> {
+  // Try broad request first (covers ital, opsz, wdth, wght in one go)
+  const broad = `https://fonts.googleapis.com/css2?family=${encoded}:ital,opsz,wdth,wght@0,6..144,25..151,1..1000&display=swap`
+  try {
+    const r = await fetch(broad)
+    if (r.ok) {
+      const css = await r.text()
+      if (css.includes('@font-face')) return css
+    }
+  } catch { /* fall through */ }
+
+  // Fallback: just wght range — works for all fonts, even those without other axes
+  const simple = `https://fonts.googleapis.com/css2?family=${encoded}:wght@1..1000&display=swap`
+  try {
+    const r = await fetch(simple)
+    if (!r.ok) return null
+    const css = await r.text()
+    return css.includes('@font-face') ? css : null
+  } catch {
     return null
   }
 }

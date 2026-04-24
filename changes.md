@@ -1,8 +1,12 @@
-## 2026-04-23 21:30
+## 2026-04-23 21:45
 
 ### Fix variable font detection always showing "Detecting…"
 
-Root cause: `detectVariableAxes` used opentype.js to parse the font file, but modern browsers always receive WOFF2 from Google Fonts (which opentype.js cannot parse), so `resolveFontUrl` always returned `null`. Replaced with a CSS2 API approach: fetch the font with broad axis range syntax (`ital,opsz,wdth,wght@0,6..144,25..151,1..1000`); if the response contains range-style `font-weight: X Y` values, the font is variable. Also detects `wdth` (font-stretch range) and `slnt` (oblique range) axes.
+Root cause: `detectVariableAxes` used opentype.js to parse the font file, but modern browsers always receive WOFF2 from Google Fonts (which opentype.js cannot parse), so `resolveFontUrl` always returned `null`. Replaced with a CSS2 API approach:
+
+- Fetches the font with a broad axis range request (`ital,opsz,wdth,wght@0,6..144,...`); if Google Fonts rejects it (HTTP 400 for unsupported axes), falls back to a simpler `wght@1..1000` request
+- Parses the CSS response: `font-weight: X Y` (range) → wght axis; `font-stretch: X% Y%` → wdth; `font-style: oblique Xdeg Ydeg` → slnt
+- Static fonts return only discrete weight values — no range match → empty axes array → `isVariable: false`
 
 ## 2026-04-23 21:00
 
