@@ -407,9 +407,13 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
 
   const textStyles = state.document.textStyles
   const customFontNames = state.document.customFonts.map(f => f.name)
-  const shapeText = (shape as unknown as { text?: { fontFamily?: string } }).text
-  const activeFont = shapeText?.fontFamily
-    ? (state.document.customFonts.find(f => f.name === shapeText.fontFamily) ?? null)
+  // Use the resolved font family (accounts for inherited text styles) for activeFont lookup
+  const shapeRawText = (shape as unknown as { text?: { fontFamily?: string; textStyleId?: string; textStyleOverrides?: string[] } }).text
+  const resolvedFontFamily = shapeRawText
+    ? resolveTextStyle(shapeRawText as Parameters<typeof resolveTextStyle>[0], textStyles).fontFamily
+    : undefined
+  const activeFont = resolvedFontFamily
+    ? (state.document.customFonts.find(f => f.name === resolvedFontFamily) ?? null)
     : null
 
   // Shorthand for building variable binding props for this shape's property path

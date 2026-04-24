@@ -89,12 +89,13 @@ export async function detectVariableAxes(fontFamily: string): Promise<FontAxis[]
 
 /**
  * Fetches Google Fonts CSS with axis ranges to allow variable font detection.
- * Tries a broad multi-axis request first; falls back to wght-only if the
- * server rejects the unsupported axes (HTTP 400).
+ * Tries a wdth+wght request first; falls back to wght-only if the server
+ * rejects the unsupported wdth axis (HTTP 400).
+ * wght range 100..900 is within the valid range of every Google variable font.
  */
 async function fetchFontCss(encoded: string): Promise<string | null> {
-  // Try broad request first (covers ital, opsz, wdth, wght in one go)
-  const broad = `https://fonts.googleapis.com/css2?family=${encoded}:ital,opsz,wdth,wght@0,6..144,25..151,1..1000&display=swap`
+  // Try wdth+wght range first (detects both axes in one request)
+  const broad = `https://fonts.googleapis.com/css2?family=${encoded}:wdth,wght@25..151,100..900&display=swap`
   try {
     const r = await fetch(broad)
     if (r.ok) {
@@ -103,8 +104,8 @@ async function fetchFontCss(encoded: string): Promise<string | null> {
     }
   } catch { /* fall through */ }
 
-  // Fallback: just wght range — works for all fonts, even those without other axes
-  const simple = `https://fonts.googleapis.com/css2?family=${encoded}:wght@1..1000&display=swap`
+  // Fallback: wght range only — works for every Google Font
+  const simple = `https://fonts.googleapis.com/css2?family=${encoded}:wght@100..900&display=swap`
   try {
     const r = await fetch(simple)
     if (!r.ok) return null

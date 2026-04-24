@@ -1,3 +1,11 @@
+## 2026-04-23 22:00
+
+### Fix variable font axis sliders not appearing for Roboto Flex
+
+Two fixes:
+- `src/utils/fontFeatures.ts` — the broad CSS2 API request (`ital,opsz,wdth,wght@0,...`) was using an invalid tuple format (mixing a discrete ital value with axis ranges), causing a 400 for many fonts. Replaced with a `wdth,wght@25..151,100..900` request (valid for all Google variable fonts) with a simpler `wght@100..900` fallback.
+- `src/components/properties/PropertiesPanel.tsx` — `activeFont` was derived from the raw `shape.text.fontFamily`, which is wrong when the font is inherited from a named text style. Now uses `resolveTextStyle(...)` to get the effective font family, matching what TextSection actually displays.
+
 ## 2026-04-23 21:45
 
 ### Fix variable font detection always showing "Detecting…"
