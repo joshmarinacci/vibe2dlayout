@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   MousePointer2, Hand, Square, Circle, Minus, Type, Image, FileText,
   RectangleHorizontal, PanelLeft, SlidersHorizontal,
@@ -71,6 +71,19 @@ export function Toolbar() {
   const [showShapesMenu, setShowShapesMenu] = useState(false)
   const [showComponentMenu, setShowComponentMenu] = useState(false)
   const [componentSubMenu, setComponentSubMenu] = useState<'containers' | 'forms' | null>(null)
+  const subMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelSubMenuClose = useCallback(() => {
+    if (subMenuCloseTimer.current !== null) {
+      clearTimeout(subMenuCloseTimer.current)
+      subMenuCloseTimer.current = null
+    }
+  }, [])
+
+  const scheduleSubMenuClose = useCallback(() => {
+    cancelSubMenuClose()
+    subMenuCloseTimer.current = setTimeout(() => setComponentSubMenu(null), 300)
+  }, [cancelSubMenuClose])
   const [showFileMenu, setShowFileMenu] = useState(false)
   const [showDocumentsModal, setShowDocumentsModal] = useState(false)
   const [documentsModalMode, setDocumentsModalMode] = useState<'open' | 'save-as'>('open')
@@ -345,17 +358,22 @@ export function Toolbar() {
             <ChevronDown size={10} />
           </button>
           {showComponentMenu && (
-            <div className={styles.formMenu} onMouseLeave={() => setComponentSubMenu(null)}>
+            <div className={styles.formMenu} onMouseLeave={scheduleSubMenuClose}>
               {/* Containers sub-menu item */}
               <div
                 className={styles.formMenuItem}
                 style={{ justifyContent: 'space-between', cursor: 'default', position: 'relative' }}
-                onMouseEnter={() => setComponentSubMenu('containers')}
+                onMouseEnter={() => { cancelSubMenuClose(); setComponentSubMenu('containers') }}
               >
                 <span>Containers</span>
                 <span style={{ opacity: 0.5, fontSize: 10 }}>›</span>
                 {componentSubMenu === 'containers' && (
-                  <div className={styles.formMenu} style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 2 }}>
+                  <div
+                    className={styles.formMenu}
+                    style={{ position: 'absolute', left: '100%', top: 0 }}
+                    onMouseEnter={cancelSubMenuClose}
+                    onMouseLeave={scheduleSubMenuClose}
+                  >
                     {CONTAINER_CONTROLS.map(t => (
                       <button
                         key={t.mode}
@@ -373,12 +391,17 @@ export function Toolbar() {
               <div
                 className={styles.formMenuItem}
                 style={{ justifyContent: 'space-between', cursor: 'default', position: 'relative' }}
-                onMouseEnter={() => setComponentSubMenu('forms')}
+                onMouseEnter={() => { cancelSubMenuClose(); setComponentSubMenu('forms') }}
               >
                 <span>Form Controls</span>
                 <span style={{ opacity: 0.5, fontSize: 10 }}>›</span>
                 {componentSubMenu === 'forms' && (
-                  <div className={styles.formMenu} style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 2 }}>
+                  <div
+                    className={styles.formMenu}
+                    style={{ position: 'absolute', left: '100%', top: 0 }}
+                    onMouseEnter={cancelSubMenuClose}
+                    onMouseLeave={scheduleSubMenuClose}
+                  >
                     {FORM_CONTROLS.map(t => (
                       <button
                         key={t.mode}

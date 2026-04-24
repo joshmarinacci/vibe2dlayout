@@ -1,3 +1,11 @@
+## 2026-04-23 19:00
+
+### Fix sub-menu dismissal on mouse-out
+
+- Replace instant `onMouseLeave` close with a 300 ms debounced close in both `ContextMenu.tsx` (portal-based sub-menus) and `Toolbar.tsx` (component dropdown sub-menus)
+- `cancelClose`/`scheduleClose` (ContextMenu) and `cancelSubMenuClose`/`scheduleSubMenuClose` (Toolbar) cancel the timer whenever the cursor enters either the parent row or the sub-menu, giving the cursor time to travel across any gap
+- Reduced the sub-menu offset from +2 px to –4 px overlap in `ContextMenu` so the parent row and sub-menu share a common hover zone with no gap
+
 ## 2026-04-23 18:00
 
 ### Pixel image editor

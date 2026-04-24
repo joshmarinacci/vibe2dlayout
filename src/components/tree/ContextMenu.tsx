@@ -27,6 +27,7 @@ function SubMenuItem({ item, onClose }: { item: ContextMenuItem; onClose: () => 
   const [open, setOpen] = useState(false)
   const rowRef = useRef<HTMLDivElement>(null)
   const [submenuPos, setSubmenuPos] = useState({ x: 0, y: 0 })
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   if (!item.submenu) {
     return (
@@ -41,10 +42,24 @@ function SubMenuItem({ item, onClose }: { item: ContextMenuItem; onClose: () => 
     )
   }
 
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+  }
+
+  const scheduleClose = () => {
+    cancelClose()
+    closeTimer.current = setTimeout(() => setOpen(false), 300)
+  }
+
   const handleMouseEnter = () => {
+    cancelClose()
     if (rowRef.current) {
       const rect = rowRef.current.getBoundingClientRect()
-      setSubmenuPos({ x: rect.right + 2, y: rect.top - 4 })
+      // Overlap by 4px so the cursor never crosses a gap between row and submenu
+      setSubmenuPos({ x: rect.right - 4, y: rect.top - 4 })
     }
     setOpen(true)
   }
@@ -54,7 +69,7 @@ function SubMenuItem({ item, onClose }: { item: ContextMenuItem; onClose: () => 
       ref={rowRef}
       className={`${styles.item} ${styles.hasSubmenu}`}
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={() => setOpen(false)}
+      onMouseLeave={scheduleClose}
     >
       {item.icon && <span className={styles.icon}>{item.icon}</span>}
       <span style={{ flex: 1 }}>{item.label}</span>
@@ -63,8 +78,8 @@ function SubMenuItem({ item, onClose }: { item: ContextMenuItem; onClose: () => 
         <div
           className={styles.submenu}
           style={{ left: submenuPos.x, top: submenuPos.y }}
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
         >
           {item.submenu!.map((sub, i) => (
             <button
