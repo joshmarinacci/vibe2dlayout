@@ -78,6 +78,7 @@ function SubMenuItem({ item, onClose }: { item: ContextMenuItem; onClose: () => 
         <div
           className={styles.submenu}
           style={{ left: submenuPos.x, top: submenuPos.y }}
+          data-submenu="true"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
         >
@@ -123,7 +124,10 @@ export function ContextMenu({ x, y, groups, onClose }: Props) {
   // Close on outside click or Escape
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      const path = e.composedPath()
+      const insideMenu = menuRef.current && path.includes(menuRef.current)
+      const insideSubmenu = path.some(el => el instanceof HTMLElement && el.dataset.submenu === 'true')
+      if (!insideMenu && !insideSubmenu) {
         onClose()
       }
     }

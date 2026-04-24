@@ -1,3 +1,9 @@
+## 2026-04-23 19:30
+
+### Fix context menu: shapes not added when selected from sub-menu
+
+The window `pointerdown` capture listener in `ContextMenu` was calling `onClose()` immediately when a click landed inside a portal-rendered sub-menu (because the portal node is outside `menuRef`), unmounting the component before the `click` event fired and the `onClick` dispatch ran. Fix: use `e.composedPath()` to also check whether the click landed inside any element with `data-submenu="true"`, and skip `onClose()` in that case.
+
 ## 2026-04-23 19:00
 
 ### Fix sub-menu dismissal on mouse-out
