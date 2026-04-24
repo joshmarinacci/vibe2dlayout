@@ -1,3 +1,11 @@
+## 2026-04-23 20:15
+
+### Fix "Export CSS" menu item doing nothing
+
+Root cause: `onClose()` was unmounting `CanvasContextMenu` before the local `setCssDialogShape` state update committed, so the dialog never rendered. Fixed by lifting dialog state to `CanvasView`:
+- `CanvasContextMenu` — removed local `cssDialogShape` state; now accepts `onShowCssDialog` prop and calls it before `onClose()`; `CssDialogState` interface exported for callers
+- `CanvasView` — holds `cssDialog` state, passes `onShowCssDialog={setCssDialog}` to `CanvasContextMenu`, renders `<TextCssDialog>` when `cssDialog !== null`
+
 ## 2026-04-23 20:00
 
 ### Export CSS for text shapes

@@ -1,5 +1,4 @@
 import { createPortal } from 'react-dom'
-import { useState } from 'react'
 import type { Dispatch } from 'react'
 import type { AppAction } from '@store/types'
 import type { Shape, ShapeType } from '@model/shapes'
@@ -20,7 +19,11 @@ import {
 import type { AlignType } from '@store/types'
 import { exportGroupAsPng } from '@utils/exportPng'
 import { textStyleToCss } from '@utils/textShapeCss'
-import { TextCssDialog } from './TextCssDialog'
+
+export interface CssDialogState {
+  css: string
+  name: string
+}
 
 interface Props {
   menuState: CanvasContextMenuState
@@ -29,6 +32,7 @@ interface Props {
   activePageId: string | null
   dispatch: Dispatch<AppAction>
   onClose: () => void
+  onShowCssDialog: (state: CssDialogState) => void
 }
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -69,12 +73,11 @@ const MOCKUP_SHAPES: { type: ShapeType; label: string }[] = [
   { type: 'pixelimage', label: 'Pixel Image' },
 ]
 
-export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose }: Props) {
+export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose, onShowCssDialog }: Props) {
   const { state } = useAppState()
   const { screenX, screenY, canvasX, canvasY, shapeId, selectedIds } = menuState
   const shape = shapeId ? shapes[shapeId] : null
   const isMultiSelect = selectedIds.length > 1
-  const [cssDialogShape, setCssDialogShape] = useState<{ css: string; name: string } | null>(null)
 
   const addShape = (type: ShapeType, parentId: string | null) => {
     let localX = canvasX
@@ -192,7 +195,7 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
               onClick: () => {
                 const selector = `.${shape.name.toLowerCase().replace(/\s+/g, '-') || 'text'}`
                 const css = textStyleToCss(shape.text, selector)
-                setCssDialogShape({ css, name: shape.name })
+                onShowCssDialog({ css, name: shape.name })
                 onClose()
               },
             },
@@ -268,19 +271,8 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
     groups = addShapeGroups
   }
 
-  return (
-    <>
-      {createPortal(
-        <ContextMenu x={screenX} y={screenY} groups={groups} onClose={onClose} />,
-        document.body,
-      )}
-      {cssDialogShape && (
-        <TextCssDialog
-          css={cssDialogShape.css}
-          shapeName={cssDialogShape.name}
-          onClose={() => setCssDialogShape(null)}
-        />
-      )}
-    </>
+  return createPortal(
+    <ContextMenu x={screenX} y={screenY} groups={groups} onClose={onClose} />,
+    document.body,
   )
 }

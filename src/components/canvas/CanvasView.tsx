@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import { getActiveTheme } from '@model/theme'
 import { usePanZoom } from '@hooks/usePanZoom'
@@ -6,7 +6,8 @@ import { useDocumentShortcuts } from '@hooks/useDocumentShortcuts'
 import { ShapeRenderer } from './ShapeRenderer'
 import { SelectionOverlay } from './SelectionOverlay'
 import { useCanvasPointer } from './useCanvasPointer'
-import { CanvasContextMenu } from './CanvasContextMenu'
+import { CanvasContextMenu, type CssDialogState } from './CanvasContextMenu'
+import { TextCssDialog } from './TextCssDialog'
 import { CanvasRuler, RULER_SIZE } from './CanvasRuler'
 import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { getEffectiveGridSettings } from '@utils/snapping'
@@ -33,6 +34,7 @@ export function CanvasView() {
   }, [handleWheel])
 
   const { onPointerDown, onPointerMove, onPointerUp, onDoubleClick, onContextMenu, ghostRect, marqueeRect, contextMenu, closeContextMenu, spaceHeld, snapGuides, guidePreview } = useCanvasPointer(containerRef)
+  const [cssDialog, setCssDialog] = useState<CssDialogState | null>(null)
 
   const { panX, panY, zoom } = state.viewTransform
 
@@ -222,6 +224,15 @@ export function CanvasView() {
           activePageId={state.activePageId}
           dispatch={dispatch}
           onClose={closeContextMenu}
+          onShowCssDialog={setCssDialog}
+        />
+      )}
+
+      {cssDialog && (
+        <TextCssDialog
+          css={cssDialog.css}
+          shapeName={cssDialog.name}
+          onClose={() => setCssDialog(null)}
         />
       )}
 
