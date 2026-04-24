@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import { useState } from 'react'
 import type { Dispatch } from 'react'
 import type { AppAction } from '@store/types'
 import type { Shape, ShapeType } from '@model/shapes'
@@ -14,10 +15,12 @@ import {
   Eye, EyeOff, Lock, Unlock, Trash2,
   AlignLeft, AlignCenter, AlignRight,
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
-  ArrowLeftRight, ArrowUpDown, Group, Ungroup, FileImage,
+  ArrowLeftRight, ArrowUpDown, Group, Ungroup, FileImage, Code2,
 } from 'lucide-react'
 import type { AlignType } from '@store/types'
 import { exportGroupAsPng } from '@utils/exportPng'
+import { textStyleToCss } from '@utils/textShapeCss'
+import { TextCssDialog } from './TextCssDialog'
 
 interface Props {
   menuState: CanvasContextMenuState
@@ -71,6 +74,7 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
   const { screenX, screenY, canvasX, canvasY, shapeId, selectedIds } = menuState
   const shape = shapeId ? shapes[shapeId] : null
   const isMultiSelect = selectedIds.length > 1
+  const [cssDialogShape, setCssDialogShape] = useState<{ css: string; name: string } | null>(null)
 
   const addShape = (type: ShapeType, parentId: string | null) => {
     let localX = canvasX
@@ -181,6 +185,18 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
             icon: <Copy size={14} />,
             onClick: () => dispatch({ type: 'DUPLICATE_SHAPES', ids: [shapeId!] }),
           },
+          ...(shape.type === 'text' ? [
+            {
+              label: 'Export CSS',
+              icon: <Code2 size={14} />,
+              onClick: () => {
+                const selector = `.${shape.name.toLowerCase().replace(/\s+/g, '-') || 'text'}`
+                const css = textStyleToCss(shape.text, selector)
+                setCssDialogShape({ css, name: shape.name })
+                onClose()
+              },
+            },
+          ] : []),
           ...(shape.type === 'group' ? [
             {
               label: 'Ungroup',
@@ -252,8 +268,19 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
     groups = addShapeGroups
   }
 
-  return createPortal(
-    <ContextMenu x={screenX} y={screenY} groups={groups} onClose={onClose} />,
-    document.body,
+  return (
+    <>
+      {createPortal(
+        <ContextMenu x={screenX} y={screenY} groups={groups} onClose={onClose} />,
+        document.body,
+      )}
+      {cssDialogShape && (
+        <TextCssDialog
+          css={cssDialogShape.css}
+          shapeName={cssDialogShape.name}
+          onClose={() => setCssDialogShape(null)}
+        />
+      )}
+    </>
   )
 }

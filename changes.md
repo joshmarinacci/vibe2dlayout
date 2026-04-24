@@ -1,3 +1,11 @@
+## 2026-04-23 20:00
+
+### Export CSS for text shapes
+
+- `src/utils/textShapeCss.ts` — `textStyleToCss(text, selector)` converts a `TextStyle` to a CSS rule block covering font-family, font-size, font-weight, font-style, text-align, line-height, letter-spacing, text-decoration, text-transform, font-variant-caps, color (or gradient via background-clip trick), and text-shadow
+- `src/components/canvas/TextCssDialog.tsx` — modal dialog with a read-only monospace textarea (click to select all), a "Copy to Clipboard" button, and a "Dismiss" button; rendered via portal so it sits above everything
+- Added "Export CSS" context menu item (Code2 icon) for `text` shapes in `CanvasContextMenu`; the selector is derived from the shape name
+
 ## 2026-04-23 19:30
 
 ### Fix context menu: shapes not added when selected from sub-menu
