@@ -1,3 +1,9 @@
+## 2026-04-25 09:00
+
+### Variable font axes: use sliders instead of number inputs
+
+`src/components/properties/sections/TextSection.tsx` — each variable axis now renders a `NumberInput` (for precise editing) paired with a `range` slider below it, matching the font-size control pattern.
+
 ## 2026-04-23 22:00
 
 ### Fix variable font axis sliders not appearing for Roboto Flex

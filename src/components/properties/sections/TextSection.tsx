@@ -545,22 +545,33 @@ export function TextSection({ text, rawText, textStyles, shapeId, onChange, disp
 {/* 9 — Variable font axes */}
 {activeFont?.isVariable === true && activeFont.axes.length > 0 && (
   <>
-    {activeFont.axes.map(axis => (
-      <NumberInput
-        key={axis.tag}
-        label={axis.tag}
-        value={text.fontVariationSettings?.[axis.tag] ?? axis.default}
-        min={axis.min}
-        max={axis.max}
-        step={1}
-        onChange={v => applyChange({
-          fontVariationSettings: {
-            ...(rawText.fontVariationSettings ?? {}),
-            [axis.tag]: v,
-          },
-        })}
-      />
-    ))}
+    {activeFont.axes.map(axis => {
+      const val = text.fontVariationSettings?.[axis.tag] ?? axis.default
+      const onChange = (v: number) => applyChange({
+        fontVariationSettings: { ...(rawText.fontVariationSettings ?? {}), [axis.tag]: v },
+      })
+      return (
+        <div key={axis.tag}>
+          <NumberInput
+            label={axis.tag}
+            value={val}
+            min={axis.min}
+            max={axis.max}
+            step={1}
+            onChange={onChange}
+          />
+          <input
+            type="range"
+            min={axis.min}
+            max={axis.max}
+            step={1}
+            value={val}
+            onChange={e => onChange(Number(e.target.value))}
+            style={{ width: '100%', marginTop: 2, accentColor: 'var(--color-accent)' }}
+          />
+        </div>
+      )
+    })}
   </>
 )}
 
