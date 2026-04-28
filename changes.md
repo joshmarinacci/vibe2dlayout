@@ -1,5 +1,9 @@
 ## 2026-04-28
 
+### Merge Containers, Form Controls, and Mockups into a single "Forms" submenu
+
+Combined the three context menu submenus into one "Forms" submenu to reduce clutter.
+
 ### Fix table header text color (black-on-black)
 
 Header text in TableShape was using `fill.color` against a `stroke.color` background — both could be dark, making text invisible. Fixed to always use white for header text in both normal and hand-drawn modes.

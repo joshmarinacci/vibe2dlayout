@@ -123,10 +123,8 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
   const addShapeGroups: ContextMenuGroup[] = [
     {
       items: [
-        { label: 'Shapes',        submenu: basicItems },
-        { label: 'Containers',    submenu: containerItems },
-        { label: 'Form Controls', submenu: formItems },
-        { label: 'Mockups',       submenu: mockupItems },
+        { label: 'Shapes', submenu: basicItems },
+        { label: 'Forms',  submenu: [...containerItems, ...formItems, ...mockupItems] },
       ],
     },
   ]
