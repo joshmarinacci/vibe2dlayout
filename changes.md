@@ -1,3 +1,18 @@
+## 2026-04-28
+
+### Add TabbedPanel container shape
+
+New shape type `tabbed-panel` that renders a tab bar at the top and a content area below. Users enter a comma-separated list of tab titles as the text content, and choose which tab is visually active (1-indexed in the UI, stored 0-indexed). All child shapes are always visible — tabs are wireframing decoration only.
+
+- `src/model/shapes.ts` — Added `TabbedPanelShape` interface and added to `Shape` union
+- `src/store/types.ts` — Added `'insert-tabbed-panel'` to `ToolMode`
+- `src/utils/shapeFactory.ts` — Factory case with 3 default tabs
+- `src/components/toolbar/Toolbar.tsx` — `NotebookTabs` icon added to Containers submenu
+- `src/components/canvas/shapes/TabbedPanelShape.tsx` — New rendering component; supports hand-drawn mode with rough SVG tab separators and divider
+- `src/components/canvas/ShapeRenderer.tsx` — Import and `case 'tabbed-panel'`; added to TEXT_EDITABLE and DRILLABLE sets
+- `src/store/reducer.ts` — `COMMIT_TEXT_EDIT` handler updates `tabs.content`
+- `src/components/properties/PropertiesPanel.tsx` — Properties case with Content, Tabs (active tab), Fill, Stroke, Text, Shadow, and Panel sections
+
 ## 2026-04-25 09:00
 
 ### Variable font axes: use sliders instead of number inputs

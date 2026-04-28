@@ -301,6 +301,12 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
           shapes: { ...doc.shapes, [action.id]: { ...shape, title: { ...shape.title, content: action.content } } },
         }
       }
+      if (shape.type === 'tabbed-panel') {
+        return {
+          ...doc,
+          shapes: { ...doc.shapes, [action.id]: { ...shape, tabs: { ...shape.tabs, content: action.content } } },
+        }
+      }
       if (
         shape.type === 'label' || shape.type === 'textfield' ||
         shape.type === 'checkbox' || shape.type === 'toggle' || shape.type === 'radio' ||

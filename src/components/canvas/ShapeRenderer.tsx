@@ -15,6 +15,7 @@ import { PageShapeComp } from './shapes/PageShape'
 import { ButtonShapeComp } from './shapes/ButtonShape'
 import { IconShapeComp } from './shapes/IconShape'
 import { PanelShapeComp } from './shapes/PanelShape'
+import { TabbedPanelShapeComp } from './shapes/TabbedPanelShape'
 import { SliderShapeComp } from './shapes/SliderShape'
 import { LabelShapeComp } from './shapes/LabelShape'
 import { TextFieldShapeComp } from './shapes/TextFieldShape'
@@ -104,7 +105,7 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
   }
 
   const TEXT_EDITABLE = new Set(['text', 'button', 'panel', 'label', 'textfield', 'checkbox', 'toggle', 'radio', 'select', 'stickynote', 'list', 'table'])
-  const DRILLABLE = new Set(['frame', 'panel', 'dialog', 'scrollpanel', 'group'])
+  const DRILLABLE = new Set(['frame', 'panel', 'tabbed-panel', 'dialog', 'scrollpanel', 'group'])
 
   const onDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -153,6 +154,8 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
       return <IconShapeComp shape={resolvedShape} {...commonProps} />
     case 'panel':
       return <PanelShapeComp shape={resolvedShape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps}>{children}</PanelShapeComp>
+    case 'tabbed-panel':
+      return <TabbedPanelShapeComp shape={resolvedShape} isEditing={isEditingText} dispatch={dispatch} handDrawn={effectiveHandDrawn} {...commonProps}>{children}</TabbedPanelShapeComp>
     case 'slider':
       return <SliderShapeComp shape={resolvedShape} handDrawn={effectiveHandDrawn} {...commonProps} />
     case 'label':

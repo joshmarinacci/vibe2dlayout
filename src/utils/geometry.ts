@@ -128,6 +128,8 @@ export function getContentOrigin(
   let contentOffsetY = 0
   if (parent.type === 'panel' && parent.title) {
     contentOffsetY = parent.title.fontSize + 12
+  } else if (parent.type === 'tabbed-panel') {
+    contentOffsetY = parent.tabs.fontSize + 16
   } else if (parent.type === 'dialog') {
     contentOffsetY = parent.titleFontSize + 12
   }
@@ -157,6 +159,8 @@ export function getParentContentOrigin(
   let contentOffsetY = 0
   if (parent?.type === 'panel' && parent.title) {
     contentOffsetY = parent.title.fontSize + 12
+  } else if (parent?.type === 'tabbed-panel') {
+    contentOffsetY = parent.tabs.fontSize + 16
   } else if (parent?.type === 'dialog') {
     contentOffsetY = parent.titleFontSize + 12
   }
@@ -190,6 +194,8 @@ export function getAbsoluteTransform(
   let contentOffsetY = 0
   if (parent?.type === 'panel' && parent.title) {
     contentOffsetY = parent.title.fontSize + 12
+  } else if (parent?.type === 'tabbed-panel') {
+    contentOffsetY = parent.tabs.fontSize + 16
   } else if (parent?.type === 'dialog') {
     contentOffsetY = parent.titleFontSize + 12
   }

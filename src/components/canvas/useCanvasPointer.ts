@@ -60,6 +60,7 @@ const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
   'insert-scrollpanel': 'scrollpanel',
   'insert-table': 'table',
   'insert-group': 'group',
+  'insert-tabbed-panel': 'tabbed-panel',
 }
 
 /**
@@ -83,7 +84,7 @@ function findDropTarget(
   function walk(nodes: typeof doc.rootNodes) {
     for (const n of nodes) {
       const shape = doc.shapes[n.id]
-      if (shape && (shape.type === 'frame' || shape.type === 'panel' || shape.type === 'dialog' || shape.type === 'scrollpanel' || shape.type === 'group')) {
+      if (shape && (shape.type === 'frame' || shape.type === 'panel' || shape.type === 'tabbed-panel' || shape.type === 'dialog' || shape.type === 'scrollpanel' || shape.type === 'group')) {
         candidates.push(n.id)
       }
       walk(n.children)

@@ -44,11 +44,12 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
 ]
 
 const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
-  { type: 'panel',       label: 'Titled Panel' },
-  { type: 'frame',       label: 'Panel' },
-  { type: 'dialog',      label: 'Dialog' },
-  { type: 'stickynote',  label: 'Sticky Note' },
-  { type: 'scrollpanel', label: 'Scroll Panel' },
+  { type: 'panel',        label: 'Titled Panel' },
+  { type: 'tabbed-panel', label: 'Tabbed Panel' },
+  { type: 'frame',        label: 'Panel' },
+  { type: 'dialog',       label: 'Dialog' },
+  { type: 'stickynote',   label: 'Sticky Note' },
+  { type: 'scrollpanel',  label: 'Scroll Panel' },
 ]
 
 const FORM_CONTROLS: { type: ShapeType; label: string }[] = [

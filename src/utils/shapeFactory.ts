@@ -107,6 +107,17 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         title: { ...themeText('Panel'), align: 'left', fontWeight: 'bold' },
         clipChildren: false,
       }
+    case 'tabbed-panel':
+      return {
+        ...base, name: 'Tabbed Panel', type: 'tabbed-panel',
+        transform: defaultTransform(x, y, 240, 180),
+        fill: themeFill(),
+        stroke: themeStroke(),
+        cornerRadius: bdrR,
+        tabs: { ...themeText('Tab 1, Tab 2, Tab 3'), align: 'center', fontWeight: 'normal' },
+        activeTab: 0,
+        clipChildren: false,
+      }
     case 'slider':
       return {
         ...base, type: 'slider',

@@ -7,6 +7,7 @@ import {
   AppWindow, CircleDot, List, GanttChart, Hash,
   HelpCircle, LayoutPanelLeft, FilePlus2, Upload, Download, File, Palette, Settings, FileImage, Paintbrush,
   StickyNote, ScrollText, ListOrdered, Table2, Grid, Sun, Moon, Star, Magnet, Grid2X2,
+  NotebookTabs,
 } from 'lucide-react'
 import { useTheme } from '@hooks/useTheme'
 import { useAppState, useAppDispatch } from '@store/context'
@@ -39,11 +40,12 @@ const SHAPE_TOOLS: ToolButton[] = [
 const SHAPE_MODES = new Set(SHAPE_TOOLS.map(t => t.mode))
 
 const CONTAINER_CONTROLS: ToolButton[] = [
-  { mode: 'insert-panel',       icon: <PanelLeft size={14} />,        title: 'Titled Panel' },
-  { mode: 'insert-frame',       icon: <LayoutPanelLeft size={14} />,  title: 'Panel' },
-  { mode: 'insert-dialog',      icon: <AppWindow size={14} />,        title: 'Dialog' },
-  { mode: 'insert-stickynote',  icon: <StickyNote size={14} />,       title: 'Sticky Note' },
-  { mode: 'insert-scrollpanel', icon: <ScrollText size={14} />,       title: 'Scroll Panel' },
+  { mode: 'insert-panel',        icon: <PanelLeft size={14} />,        title: 'Titled Panel' },
+  { mode: 'insert-tabbed-panel', icon: <NotebookTabs size={14} />,     title: 'Tabbed Panel' },
+  { mode: 'insert-frame',        icon: <LayoutPanelLeft size={14} />,  title: 'Panel' },
+  { mode: 'insert-dialog',       icon: <AppWindow size={14} />,        title: 'Dialog' },
+  { mode: 'insert-stickynote',   icon: <StickyNote size={14} />,       title: 'Sticky Note' },
+  { mode: 'insert-scrollpanel',  icon: <ScrollText size={14} />,       title: 'Scroll Panel' },
 ]
 
 const FORM_CONTROLS: ToolButton[] = [

@@ -656,6 +656,52 @@ function ShapeProperties({ shape, dispatch, state, variables }: {
         </>
       )
 
+    case 'tabbed-panel':
+      return (
+        <>
+          <TransformSection transform={shape.transform} onChange={patchTransform}
+            xVar={vp('transform.x', 'number')} yVar={vp('transform.y', 'number')}
+            wVar={vp('transform.width', 'number')} hVar={vp('transform.height', 'number')} />
+          <ContentSection id={shape.id} content={shape.tabs.content} dispatch={dispatch} />
+          <CollapsibleSection title="Tabs">
+            <NumberInput
+              label="Active Tab"
+              value={shape.activeTab + 1}
+              min={1}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { activeTab: Math.max(0, Math.round(v) - 1) } })}
+            />
+          </CollapsibleSection>
+          <FillSection fill={shape.fill} onChange={patchFill}
+            colorVar={vp('fill.color', 'color')} opacityVar={vp('fill.opacity', 'number')} />
+          <StrokeSection stroke={shape.stroke} onChange={patchStroke}
+            colorVar={vp('stroke.color', 'color')} widthVar={vp('stroke.width', 'number')} opacityVar={vp('stroke.opacity', 'number')} />
+          <TextSection
+            text={resolveTextStyle(shape.tabs, textStyles)}
+            rawText={shape.tabs}
+            textStyles={textStyles}
+            shapeId={shape.id}
+            onChange={t => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { tabs: t } })}
+            dispatch={dispatch}
+            customFonts={customFontNames}
+            activeFont={activeFont}
+          />
+          <ShadowSection shape={shape} dispatch={dispatch} />
+          <CollapsibleSection title="Panel">
+            <CornerRadiusControl
+              cornerRadius={shape.cornerRadius}
+              cornerRadii={shape.cornerRadii}
+              onChangeUniform={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadius: v } })}
+              onChangeRadii={r => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { cornerRadii: r } })}
+            />
+            <ToggleInput
+              label="Clip"
+              value={shape.clipChildren}
+              onChange={v => dispatch({ type: 'PATCH_SHAPE', id: shape.id, patch: { clipChildren: v } })}
+            />
+          </CollapsibleSection>
+        </>
+      )
+
     case 'slider':
       return (
         <>

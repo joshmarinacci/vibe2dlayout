@@ -49,6 +49,7 @@ export type ToolMode =
   | 'insert-table'
   | 'insert-group'
   | 'insert-pixelimage'
+  | 'insert-tabbed-panel'
 
 // ─── Settings ──────────────────────────────────────────────────────────────
 

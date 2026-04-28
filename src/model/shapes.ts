@@ -174,6 +174,18 @@ export interface PanelShape extends ShapeBase {
   clipChildren: boolean
 }
 
+export interface TabbedPanelShape extends ShapeBase {
+  type: 'tabbed-panel'
+  transform: BoundingBox
+  fill: FillStyle
+  stroke: StrokeStyle
+  cornerRadius: number
+  cornerRadii?: CornerRadii
+  tabs: TextStyle   // .content = comma-separated tab titles
+  activeTab: number // 0-indexed
+  clipChildren: boolean
+}
+
 export interface SliderShape extends ShapeBase {
   type: 'slider'
   transform: BoundingBox
@@ -351,7 +363,7 @@ export type Shape =
   | FrameShape | DialogShape | RadioShape | SelectShape | ProgressShape | StepperShape
   | StickyNoteShape | ListShape | ScrollPanelShape | TableShape
   | GroupShape | ImageMockShape | ChartMockShape
-  | PixelImageShape
+  | PixelImageShape | TabbedPanelShape
 
 export type ShapeType = Shape['type']
 
