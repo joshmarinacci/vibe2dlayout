@@ -1,5 +1,9 @@
 ## 2026-04-28
 
+### Fix table header text color (black-on-black)
+
+Header text in TableShape was using `fill.color` against a `stroke.color` background — both could be dark, making text invisible. Fixed to always use white for header text in both normal and hand-drawn modes.
+
 ### Add TabbedPanel container shape
 
 New shape type `tabbed-panel` that renders a tab bar at the top and a content area below. Users enter a comma-separated list of tab titles as the text content, and choose which tab is visually active (1-indexed in the UI, stored 0-indexed). All child shapes are always visible — tabs are wireframing decoration only.

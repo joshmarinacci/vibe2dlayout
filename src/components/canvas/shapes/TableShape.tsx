@@ -184,7 +184,7 @@ export function TableShapeComp({ shape, isSelected, isEditing, dispatch, onClick
                       fontSize: text.fontSize,
                       fontWeight: isHeader ? 'bold' : text.fontWeight,
                       fontStyle: text.fontStyle,
-                      color: isHeader && !handDrawn ? fill.color : text.color,
+                      color: isHeader ? 'white' : text.color,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
