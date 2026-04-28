@@ -5,6 +5,8 @@ import type { Shape, ShapeType } from '@model/shapes'
 import type { TreeNode } from '@model/document'
 import { createShape } from '@utils/shapeFactory'
 import { getActiveTheme } from '@model/theme'
+import { createEmptyPixelAsset } from '@model/pixelAsset'
+import { generateId } from '@utils/idgen'
 import { useAppState } from '@store/context'
 import { buildParentMap, getAbsoluteTransform } from '@utils/geometry'
 import { ContextMenu, type ContextMenuGroup } from '../tree/ContextMenu'
@@ -94,6 +96,14 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
       }
     }
     const newShape = createShape(type, localX, localY, getActiveTheme(state.document))
+    if (newShape.type === 'pixelimage') {
+      const asset = createEmptyPixelAsset(generateId(), 'Pixel Image')
+      const shapeWithAsset = { ...newShape, assetId: asset.id }
+      dispatch({ type: 'ADD_PIXEL_ASSET', asset })
+      dispatch({ type: 'ADD_SHAPE', parentId, shape: shapeWithAsset })
+      dispatch({ type: 'SELECT_SHAPES', ids: [shapeWithAsset.id], additive: false })
+      return
+    }
     dispatch({ type: 'ADD_SHAPE', parentId, shape: newShape })
     dispatch({ type: 'SELECT_SHAPES', ids: [newShape.id], additive: false })
   }

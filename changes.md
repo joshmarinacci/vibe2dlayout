@@ -1,5 +1,9 @@
 ## 2026-04-28
 
+### Fix Pixel Image inserted via context menu having no asset
+
+Context menu `addShape` was using the generic path which left `assetId: ''`, disabling the "Edit Pixels" button. Now creates and attaches an empty pixel asset when inserting a pixelimage from the context menu.
+
 ### Move Pixel Image to Shapes submenu; add dividers in Forms submenu
 
 Pixel Image moved from Forms to the Shapes submenu. Added dividers between Containers, Form Controls, and Mockups sections within the Forms submenu (required adding `divider` support to `ContextMenuItem`).
