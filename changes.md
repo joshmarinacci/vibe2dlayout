@@ -1,5 +1,9 @@
 ## 2026-04-28
 
+### Move Pixel Image to Shapes submenu; add dividers in Forms submenu
+
+Pixel Image moved from Forms to the Shapes submenu. Added dividers between Containers, Form Controls, and Mockups sections within the Forms submenu (required adding `divider` support to `ContextMenuItem`).
+
 ### Merge Containers, Form Controls, and Mockups into a single "Forms" submenu
 
 Combined the three context menu submenus into one "Forms" submenu to reduce clutter.

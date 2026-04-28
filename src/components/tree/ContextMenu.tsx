@@ -9,6 +9,7 @@ export interface ContextMenuItem {
   onClick?: () => void
   danger?: boolean
   disabled?: boolean
+  divider?: boolean
   submenu?: ContextMenuItem[]
 }
 
@@ -82,17 +83,21 @@ function SubMenuItem({ item, onClose }: { item: ContextMenuItem; onClose: () => 
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
         >
-          {item.submenu!.map((sub, i) => (
-            <button
-              key={i}
-              className={`${styles.item} ${sub.danger ? styles.danger : ''}`}
-              disabled={sub.disabled}
-              onClick={() => { sub.onClick?.(); onClose() }}
-            >
-              {sub.icon && <span className={styles.icon}>{sub.icon}</span>}
-              {sub.label}
-            </button>
-          ))}
+          {item.submenu!.map((sub, i) =>
+            sub.divider
+              ? <div key={i} className={styles.divider} />
+              : (
+                <button
+                  key={i}
+                  className={`${styles.item} ${sub.danger ? styles.danger : ''}`}
+                  disabled={sub.disabled}
+                  onClick={() => { sub.onClick?.(); onClose() }}
+                >
+                  {sub.icon && <span className={styles.icon}>{sub.icon}</span>}
+                  {sub.label}
+                </button>
+              )
+          )}
         </div>,
         document.body,
       )}

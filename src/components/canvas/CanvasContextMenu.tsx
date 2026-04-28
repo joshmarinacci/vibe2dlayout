@@ -36,11 +36,12 @@ interface Props {
 }
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
-  { type: 'rect',   label: 'Rectangle' },
-  { type: 'circle', label: 'Circle' },
-  { type: 'line',   label: 'Line' },
-  { type: 'text',   label: 'Text' },
-  { type: 'image',  label: 'Image' },
+  { type: 'rect',       label: 'Rectangle' },
+  { type: 'circle',     label: 'Circle' },
+  { type: 'line',       label: 'Line' },
+  { type: 'text',       label: 'Text' },
+  { type: 'image',      label: 'Image' },
+  { type: 'pixelimage', label: 'Pixel Image' },
 ]
 
 const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
@@ -69,9 +70,8 @@ const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
 ]
 
 const MOCKUP_SHAPES: { type: ShapeType; label: string }[] = [
-  { type: 'imagemock',  label: 'Image Mock' },
-  { type: 'chartmock',  label: 'Chart Mock' },
-  { type: 'pixelimage', label: 'Pixel Image' },
+  { type: 'imagemock', label: 'Image Mock' },
+  { type: 'chartmock', label: 'Chart Mock' },
 ]
 
 export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, dispatch, onClose, onShowCssDialog }: Props) {
@@ -124,7 +124,13 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
     {
       items: [
         { label: 'Shapes', submenu: basicItems },
-        { label: 'Forms',  submenu: [...containerItems, ...formItems, ...mockupItems] },
+        { label: 'Forms',  submenu: [
+          ...containerItems,
+          { label: '', divider: true },
+          ...formItems,
+          { label: '', divider: true },
+          ...mockupItems,
+        ] },
       ],
     },
   ]
