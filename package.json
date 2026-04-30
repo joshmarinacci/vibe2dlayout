@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "clean": "rm -rf dist",
+    "check": "tsc",
     "preview": "vite preview",
     "publish-build": "VITE_BASE_PATH=/draw/ vite build",
     "publish-upload": "scp -r -i ../../WebstormProjects/deployman_private.key dist/** deployman@apps.josh.earth:/sites/apps.josh.earth/draw/",

@@ -1,6 +1,6 @@
 import type { Dispatch } from 'react'
 import type { TreeNode } from '@model/document'
-import type { Shape } from '@model/shapes'
+import type {FormShape, Shape} from '@model/shapes'
 import type { AppAction } from '@store/types'
 import type { TextStyleDef } from '@model/textStyle'
 import { resolveShapeText } from '@model/textStyle'
@@ -95,7 +95,13 @@ function ShapeNode({ node, shape, shapes, selectedIds, editingTextId, dispatch, 
   const isSelected = selectedIds.includes(shape.id)
   const isEditingText = editingTextId === shape.id
   // Per-shape override takes precedence over theme-level setting
-  const effectiveHandDrawn = shape.handDrawn ?? handDrawn
+  let effectiveHandDrawn = false;
+  if('stroke' in shape) {
+    let formShape = shape as FormShape;
+    if(formShape.stroke.type === 'sketch') {
+      effectiveHandDrawn = true
+    }
+  }
   // Resolve text style references, then variable bindings, before rendering
   const resolvedShape = resolveVariableBindings(resolveShapeText(shape, textStyles), variables)
 

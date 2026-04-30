@@ -12,7 +12,7 @@ function makeRect(id: string, x: number, y: number, w: number, h: number): Shape
     visible: true,
     transform: { x, y, width: w, height: h, rotation: 0 },
     fill: { color: '#ff0000', opacity: 1 },
-    stroke: { color: '#000000', width: 1, opacity: 1, dash: [] },
+    stroke: { type:'solid', color: '#000000', width: 1, opacity: 1, dash: [] },
     cornerRadius: 0,
     clipChildren: false,
   }
@@ -112,7 +112,7 @@ describe('computeAlignedTransforms', () => {
       start: { kind: 'free', point: { x: 0, y: 0 } },
       end: { kind: 'free', point: { x: 100, y: 100 } },
       route: { mode: 'straight', waypoints: [] },
-      stroke: { color: '#000', width: 1, opacity: 1, dash: [] },
+      stroke: { type:'solid', color: '#000', width: 1, opacity: 1, dash: [] },
       startArrow: 'none',
       endArrow: 'arrow',
     }

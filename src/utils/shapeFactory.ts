@@ -1,4 +1,4 @@
-import type { Shape, ShapeType } from '@model/shapes'
+import type {Shape, ShapeType, StrokeStyle} from '@model/shapes'
 import {
   defaultStroke, defaultText, defaultTransform,
 } from '@model/shapes'
@@ -19,6 +19,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
   const size  = theme?.fontSize     ?? 16
 
   const themeStroke = () => ({ ...defaultStroke(), color: bdr, width: bdrW })
+  const formStroke = () => ({...defaultStroke(), type:'sketch', color:'#000000', width:1} as StrokeStyle)
   const themeFill   = () => ({ color: bg, opacity: 1 })
   const themeText   = (content: string) => ({
     ...defaultText(content),
@@ -84,7 +85,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, type: 'button',
         transform: defaultTransform(x, y, 100, 36),
         fill: { color: theme ? bg : '#3b82f6', opacity: 1 },
-        stroke: themeStroke(),
+        stroke: formStroke(),
         cornerRadius: bdrR,
         text: { ...themeText('Button'), color: theme ? fg : '#ffffff' },
         icon: null,
@@ -95,14 +96,14 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         transform: defaultTransform(x, y, 40, 40),
         icon: { name: 'Star' },
         fill: { color: theme ? fg : '#333333', opacity: 1 },
-        stroke: { color: theme ? fg : '#333333', width: 0, dash: [], opacity: 1 },
+        stroke: { type:'solid', color: theme ? fg : '#333333', width: 0, dash: [], opacity: 1 },
       }
     case 'panel':
       return {
         ...base, type: 'panel',
         transform: defaultTransform(x, y, 200, 150),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
         cornerRadius: bdrR,
         title: { ...themeText('Panel'), align: 'left', fontWeight: 'bold' },
         clipChildren: false,
@@ -112,7 +113,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'Tabbed Panel', type: 'tabbed-panel',
         transform: defaultTransform(x, y, 240, 180),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
         cornerRadius: bdrR,
         tabs: { ...themeText('Tab 1, Tab 2, Tab 3'), align: 'center', fontWeight: 'normal' },
         activeTab: 0,
@@ -124,9 +125,10 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         transform: defaultTransform(x, y, 160, 24),
         value: 0.5,
         ticks: 0,
+        fill: themeFill(),
         trackFill: { color: '#e5e7eb', opacity: 1 },
         thumbFill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'label':
       return {
@@ -141,7 +143,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         placeholder: 'Placeholder...',
         text: { ...themeText(''), align: 'left', color: theme ? fg : '#333333' },
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'checkbox':
       return {
@@ -150,7 +152,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         checked: false,
         text: { ...themeText('Checkbox'), align: 'left', color: theme ? fg : '#333333' },
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'toggle':
       return {
@@ -160,14 +162,15 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         text: { ...themeText('Toggle'), align: 'left', color: theme ? fg : '#333333' },
         trackFill: { color: '#e5e7eb', opacity: 1 },
         thumbFill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
-        stroke: themeStroke(),
+        fill: themeFill(),
+        stroke: formStroke(),
       }
     case 'frame':
       return {
         ...base, name: 'Frame', type: 'frame',
         transform: defaultTransform(x, y, 200, 150),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
         cornerRadius: bdrR,
         clipChildren: false,
       }
@@ -176,7 +179,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'Dialog', type: 'dialog',
         transform: defaultTransform(x, y, 320, 220),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
         title: 'Dialog',
         titleFontSize: size,
         titleFontFamily: font,
@@ -191,7 +194,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         checked: false,
         text: { ...themeText('Option'), align: 'left', color: theme ? fg : '#333333' },
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'select':
       return {
@@ -201,7 +204,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         placeholder: 'Select...',
         text: { ...themeText(''), align: 'left', color: theme ? fg : '#333333' },
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'progress':
       return {
@@ -211,7 +214,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ticks: 0,
         fill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
         trackFill: { color: '#e5e7eb', opacity: 1 },
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'stepper':
       return {
@@ -220,14 +223,14 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         value: 0,
         text: { ...themeText('0'), color: theme ? fg : '#333333', align: 'center', verticalAlign: 'middle' },
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'table':
       return {
         ...base, name: 'Table', type: 'table',
         transform: defaultTransform(x, y, 240, 120),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
         text: { ...themeText('Name,Age,City\nAlice,30,NYC\nBob,25,LA'), align: 'left', verticalAlign: 'top', color: theme ? fg : '#333333' },
       }
     case 'stickynote':
@@ -235,7 +238,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'Sticky Note', type: 'stickynote',
         transform: defaultTransform(x, y, 160, 140),
         fill: { color: theme ? bg : '#fef08a', opacity: 1 },
-        stroke: themeStroke(),
+        stroke: formStroke(),
         text: { ...themeText('Note...'), align: 'left', verticalAlign: 'top', color: theme ? fg : '#333333' },
       }
     case 'list':
@@ -243,7 +246,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'List', type: 'list',
         transform: defaultTransform(x, y, 180, 160),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
         text: { ...themeText('Item One\nItem Two\nItem Three'), align: 'left', verticalAlign: 'top', color: theme ? fg : '#333333' },
         selectedIndex: 0,
       }
@@ -252,7 +255,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'Scroll Panel', type: 'scrollpanel',
         transform: defaultTransform(x, y, 200, 180),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
         cornerRadius: bdrR,
         scrollPosition: 0.2,
         clipChildren: false,
@@ -267,14 +270,14 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, name: 'Image Mock', type: 'imagemock',
         transform: defaultTransform(x, y, 160, 120),
         fill: themeFill(),
-        stroke: themeStroke(),
+        stroke: formStroke(),
       }
     case 'chartmock':
       return {
         ...base, name: 'Chart Mock', type: 'chartmock',
         transform: defaultTransform(x, y, 200, 140),
         fill: { color: theme ? bdr : '#3b82f6', opacity: 1 },
-        stroke: themeStroke(),
+        stroke: formStroke(),
         chartType: 'bar',
       }
     case 'pixelimage':

@@ -34,7 +34,9 @@ export interface BoxShadow {
   inset?: boolean
 }
 
+export type StrokeType ='solid' | 'sketch' | 'dashed' | 'none'
 export interface StrokeStyle {
+  type: StrokeType
   color: string
   width: number
   dash: number[]   // [] = solid, [5,3] = dashed
@@ -78,7 +80,6 @@ interface ShapeBase {
   name: string
   locked: boolean
   visible: boolean
-  handDrawn?: boolean  // undefined = inherit from active theme
   // Variable bindings: propPath → variableId. Resolved at render time.
   variableBindings?: Record<string, string>
   boxShadow?: BoxShadow[]
@@ -144,41 +145,34 @@ export interface PageShape extends ShapeBase {
 
 // ─── Composite UI shapes ──────────────────────────────────────────────────
 
-export interface ButtonShape extends ShapeBase {
-  type: 'button'
+export interface FormShape extends ShapeBase {
   transform: BoundingBox
   fill: FillStyle
   stroke: StrokeStyle
+}
+export interface ButtonShape extends FormShape {
+  type: 'button'
   cornerRadius: number
   cornerRadii?: CornerRadii
   text: TextStyle
   icon: { name: string; side: 'left' | 'right' } | null
 }
 
-export interface IconShape extends ShapeBase {
+export interface IconShape extends FormShape {
   type: 'icon'
-  transform: BoundingBox
   icon: { name: string }
-  fill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface PanelShape extends ShapeBase {
+export interface PanelShape extends FormShape {
   type: 'panel'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   cornerRadius: number
   cornerRadii?: CornerRadii
   title: TextStyle | null
   clipChildren: boolean
 }
 
-export interface TabbedPanelShape extends ShapeBase {
+export interface TabbedPanelShape extends FormShape {
   type: 'tabbed-panel'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   cornerRadius: number
   cornerRadii?: CornerRadii
   tabs: TextStyle   // .content = comma-separated tab titles
@@ -186,14 +180,12 @@ export interface TabbedPanelShape extends ShapeBase {
   clipChildren: boolean
 }
 
-export interface SliderShape extends ShapeBase {
+export interface SliderShape extends FormShape {
   type: 'slider'
-  transform: BoundingBox
   value: number       // 0–1 normalized
   ticks: number       // 0 = none, n = number of tick marks
   trackFill: FillStyle
   thumbFill: FillStyle
-  stroke: StrokeStyle
 }
 
 export interface LabelShape extends ShapeBase {
@@ -202,49 +194,35 @@ export interface LabelShape extends ShapeBase {
   text: TextStyle
 }
 
-export interface TextFieldShape extends ShapeBase {
+export interface TextFieldShape extends FormShape {
   type: 'textfield'
-  transform: BoundingBox
   placeholder: string
   text: TextStyle     // content = displayed value; empty = show placeholder
-  fill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface CheckboxShape extends ShapeBase {
+export interface CheckboxShape extends FormShape {
   type: 'checkbox'
-  transform: BoundingBox
   checked: boolean
   text: TextStyle
-  fill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface ToggleShape extends ShapeBase {
+export interface ToggleShape extends FormShape {
   type: 'toggle'
-  transform: BoundingBox
   checked: boolean
   text: TextStyle
   trackFill: FillStyle
   thumbFill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface FrameShape extends ShapeBase {
+export interface FrameShape extends FormShape {
   type: 'frame'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   cornerRadius: number
   cornerRadii?: CornerRadii
   clipChildren: boolean
 }
 
-export interface DialogShape extends ShapeBase {
+export interface DialogShape extends FormShape {
   type: 'dialog'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   title: string
   titleFontSize: number
   titleFontFamily: string
@@ -370,7 +348,7 @@ export type ShapeType = Shape['type']
 // ─── Default style factories ──────────────────────────────────────────────
 
 export const defaultFill = (): FillStyle => ({ color: '#ffffff', opacity: 1 })
-export const defaultStroke = (): StrokeStyle => ({ color: '#333333', width: 1, dash: [], opacity: 1 })
+export const defaultStroke = (): StrokeStyle => ({ type:'solid', color: '#333333', width: 1, dash: [], opacity: 1 })
 export const defaultText = (content = ''): TextStyle => ({
   content,
   fontFamily: 'sans-serif',

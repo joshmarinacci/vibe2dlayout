@@ -1,4 +1,4 @@
-import type { StrokeStyle } from '@model/shapes'
+import type {StrokeStyle, StrokeType} from '@model/shapes'
 import type { Variable } from '@model/variable'
 import { ColorInput } from '../inputs/ColorInput'
 import { NumberInput } from '../inputs/NumberInput'
@@ -46,13 +46,14 @@ export function StrokeSection({ stroke, onChange, colorVar, widthVar, opacityVar
 />
 <SelectInput
   label="Style"
-  value={stroke.dash.length === 0 ? 'solid' : stroke.dash[0] <= 3 ? 'dotted' : 'dashed'}
+  value={stroke.type}
   options={[
-    { value: 'solid',  label: 'Solid' },
+      { value: 'solid',  label: 'Solid' },
+      { value: 'sketch',  label: 'Sketch' },
     { value: 'dashed', label: 'Dashed' },
-    { value: 'dotted', label: 'Dotted' },
+    { value: 'none', label: 'None' },
   ]}
-  onChange={v => onChange({ ...stroke, dash: v === 'solid' ? [] : v === 'dashed' ? [6, 4] : [2, 3] })}
+  onChange={v => onChange({ ...stroke, type:(v as StrokeType) })}
 />
     </CollapsibleSection>
   )
