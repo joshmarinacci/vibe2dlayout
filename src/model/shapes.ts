@@ -188,7 +188,7 @@ export interface SliderShape extends FormShape {
   thumbFill: FillStyle
 }
 
-export interface LabelShape extends ShapeBase {
+export interface LabelShape extends FormShape {
   type: 'label'
   transform: BoundingBox
   text: TextStyle
@@ -231,77 +231,53 @@ export interface DialogShape extends FormShape {
   cancelLabel: string
 }
 
-export interface RadioShape extends ShapeBase {
+export interface RadioShape extends FormShape {
   type: 'radio'
-  transform: BoundingBox
   checked: boolean
   text: TextStyle
-  fill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface SelectShape extends ShapeBase {
+export interface SelectShape extends FormShape {
   type: 'select'
-  transform: BoundingBox
   value: string
   placeholder: string
   text: TextStyle
-  fill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface ProgressShape extends ShapeBase {
+export interface ProgressShape extends FormShape {
   type: 'progress'
-  transform: BoundingBox
   value: number       // 0–100
   ticks: number       // 0 = none, n = number of tick marks
-  fill: FillStyle     // bar fill
   trackFill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface StepperShape extends ShapeBase {
+export interface StepperShape extends FormShape {
   type: 'stepper'
-  transform: BoundingBox
   value: number
   text: TextStyle
-  fill: FillStyle
-  stroke: StrokeStyle
 }
 
-export interface StickyNoteShape extends ShapeBase {
+export interface StickyNoteShape extends FormShape {
   type: 'stickynote'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   text: TextStyle
 }
 
-export interface ListShape extends ShapeBase {
+export interface ListShape extends FormShape {
   type: 'list'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   text: TextStyle        // newline-separated items
   selectedIndex: number  // -1 = none highlighted
 }
 
-export interface ScrollPanelShape extends ShapeBase {
+export interface ScrollPanelShape extends FormShape {
   type: 'scrollpanel'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   cornerRadius: number
   cornerRadii?: CornerRadii
   scrollPosition: number  // 0–1, controls thumb position
   clipChildren: boolean
 }
 
-export interface TableShape extends ShapeBase {
+export interface TableShape extends FormShape {
   type: 'table'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   text: TextStyle  // newline-separated rows; columns separated by commas; first row = header
 }
 
@@ -310,18 +286,12 @@ export interface GroupShape extends ShapeBase {
   transform: BoundingBox  // auto-computed as union of children's bounding boxes
 }
 
-export interface ImageMockShape extends ShapeBase {
+export interface ImageMockShape extends FormShape {
   type: 'imagemock'
-  transform: BoundingBox
-  fill: FillStyle    // background fill
-  stroke: StrokeStyle
 }
 
-export interface ChartMockShape extends ShapeBase {
+export interface ChartMockShape extends FormShape {
   type: 'chartmock'
-  transform: BoundingBox
-  fill: FillStyle    // bar/line color
-  stroke: StrokeStyle
   chartType: 'bar' | 'line'
 }
 

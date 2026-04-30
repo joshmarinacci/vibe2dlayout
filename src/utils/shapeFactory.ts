@@ -135,6 +135,8 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         ...base, type: 'label',
         transform: defaultTransform(x, y, 100, 20),
         text: { ...themeText('Label'), align: 'left', color: theme ? fg : '#555555' },
+        fill: themeFill(),
+        stroke: formStroke(),
       }
     case 'textfield':
       return {
