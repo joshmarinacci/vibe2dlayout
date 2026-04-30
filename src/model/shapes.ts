@@ -318,7 +318,7 @@ export type ShapeType = Shape['type']
 // ─── Default style factories ──────────────────────────────────────────────
 
 export const defaultFill = (): FillStyle => ({ color: '#ffffff', opacity: 1 })
-export const defaultStroke = (): StrokeStyle => ({ type:'solid', color: '#333333', width: 1, dash: [], opacity: 1 })
+export const defaultStroke = (): StrokeStyle => ({ type:'solid', color: '#333333', width: 1, dash: [5,3], opacity: 1 })
 export const defaultText = (content = ''): TextStyle => ({
   content,
   fontFamily: 'sans-serif',

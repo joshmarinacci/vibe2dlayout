@@ -1,3 +1,4 @@
+import {SelectionPanel} from "@components/canvas/SelectionPanel.tsx";
 import { useState, useCallback } from 'react'
 import styles from './AppShell.module.css'
 import { ResizeHandle } from './ResizeHandle'
@@ -51,7 +52,8 @@ export function AppShell() {
         <div className={styles.canvas}>
           <CanvasView />
         </div>
-        {!rightCollapsed && (
+          <SelectionPanel/>
+          {!rightCollapsed && (
           <>
             <ResizeHandle onResize={onResizeRight} side="right" />
             <div className={styles.properties} style={{ flex: `0 0 ${rightWidth}px` }}>

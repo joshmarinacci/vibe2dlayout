@@ -1,3 +1,4 @@
+import type {AppState} from "@store/types.ts";
 import { useRef, useCallback, type RefObject } from 'react'
 import { useAppState, useAppDispatch } from '@store/context'
 import { screenToCanvas } from '@store/reducer'
@@ -30,14 +31,9 @@ interface Props {
   containerRef: RefObject<HTMLDivElement | null>
 }
 
-export function SelectionOverlay({ containerRef }: Props) {
-  const { state } = useAppState()
-  const dispatch = useAppDispatch()
+export function computeBoundingBox(state: AppState):BoundingBox | null {
   const { ids } = state.selection
-  const { zoom } = state.viewTransform
-
   if (ids.length === 0) return null
-
   // Compute aggregate bounding box in canvas space (accounting for nesting)
   const parentMap = buildParentMap(state.document.rootNodes)
   let bbox: BoundingBox | null = null
@@ -54,6 +50,18 @@ export function SelectionOverlay({ containerRef }: Props) {
       bbox = { x, y, width: x2 - x, height: y2 - y, rotation: 0 }
     }
   }
+  return bbox
+}
+
+export function SelectionOverlay({ containerRef }: Props) {
+  const { state } = useAppState()
+  const dispatch = useAppDispatch()
+  const { ids } = state.selection
+  const { zoom } = state.viewTransform
+
+  if (ids.length === 0) return null
+
+  const bbox = computeBoundingBox(state)
   if (!bbox) return null
 
   // We are rendered inside the CSS-transformed canvas div, so positions are
