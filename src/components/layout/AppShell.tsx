@@ -52,7 +52,7 @@ export function AppShell() {
         <div className={styles.canvas}>
           <CanvasView />
         </div>
-          <SelectionPanel/>
+          {/*<SelectionPanel/>*/}
           {!rightCollapsed && (
           <>
             <ResizeHandle onResize={onResizeRight} side="right" />
