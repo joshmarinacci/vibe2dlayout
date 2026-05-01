@@ -1,6 +1,5 @@
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import { useRef, useEffect, type Dispatch } from 'react'
@@ -8,7 +7,6 @@ import type { TextFieldShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
-import styles from './Shape.module.css'
 
 interface Props {
   shape: TextFieldShape
@@ -22,7 +20,7 @@ interface Props {
 
 export function TextFieldShapeComp({ shape, isSelected, isEditing, handDrawn, dispatch, onClick, onDoubleClick }: Props) {
   const { transform, text, placeholder, fill, stroke } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const editValueRef = useRef(text.content)
   const cancelRef = useRef(false)
@@ -48,21 +46,7 @@ export function TextFieldShapeComp({ shape, isSelected, isEditing, handDrawn, di
   const showPlaceholder = !text.content
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -133,6 +117,6 @@ export function TextFieldShapeComp({ shape, isSelected, isEditing, handDrawn, di
           {showPlaceholder ? placeholder : (() => { const g = textGradientSpanCSS(text); return g ? <span style={g}>{text.content}</span> : text.content })()}
         </div>
       )}
-    </div>
+      </BoxShapeBase>
   )
 }

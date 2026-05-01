@@ -1,6 +1,5 @@
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
@@ -10,7 +9,6 @@ import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
 import { textExtraCSS } from '@utils/textStyleCSS'
-import styles from './Shape.module.css'
 
 interface Props {
   shape: TableShape
@@ -24,7 +22,7 @@ interface Props {
 
 export function TableShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, text } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -72,22 +70,7 @@ export function TableShapeComp({ shape, isSelected, isEditing, dispatch, onClick
   }).flat() : []
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-        overflow: 'hidden',
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -191,6 +174,6 @@ export function TableShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           })}
         </div>
       )}
-    </div>
+      </BoxShapeBase>
   )
 }

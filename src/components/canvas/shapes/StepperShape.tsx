@@ -1,5 +1,4 @@
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { StepperShape } from '@model/shapes'
@@ -7,7 +6,6 @@ import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { textExtraCSS } from '@utils/textStyleCSS'
-import styles from './Shape.module.css'
 
 interface Props {
   shape: StepperShape
@@ -22,7 +20,7 @@ const BTN_W = 30
 
 export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, value, text, fill, stroke } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
 
   const seed = seedFromId(shape.id)
   const pad = 2
@@ -61,21 +59,7 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, ha
   const btnBg = fill.color === 'transparent' ? undefined : fill.color
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -142,6 +126,6 @@ export function StepperShapeComp({ shape, isSelected, onClick, onDoubleClick, ha
         color: text.color,
         userSelect: 'none',
       }}>+</div>
-    </div>
+      </BoxShapeBase>
   )
 }

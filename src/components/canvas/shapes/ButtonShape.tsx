@@ -1,6 +1,4 @@
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import { type Dispatch, type CSSProperties } from 'react'
@@ -10,7 +8,7 @@ import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { getButtonIcon } from '@utils/buttonIcons'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
 import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
-import styles from './Shape.module.css'
+import { BoxShapeBase } from "./BoxShapeBase";
 
 interface Props {
   shape: ButtonShape
@@ -24,7 +22,7 @@ interface Props {
 
 export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, text, icon } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -32,22 +30,7 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
   const vJustify = vAlignToJustify(text.verticalAlign)
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-        opacity: fill.opacity,
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -103,7 +86,7 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
           <ButtonContent text={text} icon={icon} />
         </div>
       )}
-    </div>
+      </BoxShapeBase>
   )
 }
 

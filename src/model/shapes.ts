@@ -120,6 +120,11 @@ export interface LineShape extends ShapeBase, StrokedShape {
   endArrow: ArrowType
 }
 
+export interface BoxShape extends ShapeBase, StrokedShape, TransformedShape, FilledShape {
+
+}
+
+
 export interface TextShape extends ShapeBase, TransformedShape, FilledShape, ShapeWithText {
   type: 'text'
 }

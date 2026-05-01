@@ -1,3 +1,7 @@
+## 2026-04-30
+
+Manually refactoring the code that Claude generated. Removing tons of duplicate code.  -26 LOC.
+
 ## 2026-04-28
 
 ### Fix Pixel Image inserted via context menu having no asset

@@ -1,6 +1,5 @@
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
@@ -8,7 +7,6 @@ import type { DialogShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import styles from './Shape.module.css'
 
 interface Props {
   shape: DialogShape
@@ -23,7 +21,7 @@ interface Props {
 
 export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, children, handDrawn, themeFontFamily }: Props) {
   const { transform, fill, stroke, title, titleFontSize, titleColor, okLabel, cancelLabel } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
 
   const titleBarHeight = titleFontSize + 12
   const footerHeight = 44
@@ -71,22 +69,7 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
   const okTextColor = handDrawn ? '#ffffff' : fill.color
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-        opacity: fill.opacity,
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -205,6 +188,6 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
           userSelect: 'none',
         }}>{okLabel}</span>
       </div>
-    </div>
+      </BoxShapeBase>
   )
 }

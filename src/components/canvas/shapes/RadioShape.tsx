@@ -1,5 +1,4 @@
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import { type Dispatch } from 'react'
@@ -9,7 +8,6 @@ import { roughCircle, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
 import { textExtraCSS } from '@utils/textStyleCSS'
-import styles from './Shape.module.css'
 
 interface Props {
   shape: RadioShape
@@ -23,7 +21,7 @@ interface Props {
 
 export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, checked, text, fill, stroke } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -57,21 +55,7 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
   const labelLeft = boxSize + 8
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -151,6 +135,6 @@ export function RadioShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           {text.content}
         </div>
       )}
-    </div>
+      </BoxShapeBase>
   )
 }

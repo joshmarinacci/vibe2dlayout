@@ -1,9 +1,7 @@
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import type { ChartMockShape } from '@model/shapes'
 import { roughRect, roughCircle, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import styles from './Shape.module.css'
 
 interface Props {
   shape: ChartMockShape
@@ -17,7 +15,7 @@ const DATA = [0.4, 0.7, 0.55, 0.85, 0.6]
 
 export function ChartMockShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, chartType } = shape
-  const { x, y, width: w, height: h } = transform
+  const { width: w, height: h } = transform
 
   const seed = seedFromId(shape.id)
   const p = 8
@@ -84,21 +82,8 @@ export function ChartMockShapeComp({ shape, isSelected, onClick, onDoubleClick, 
   ] : []
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width: w,
-        height: h,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
+
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -137,6 +122,6 @@ export function ChartMockShapeComp({ shape, isSelected, onClick, onDoubleClick, 
           )}
         </svg>
       )}
-    </div>
+      </BoxShapeBase>
   )
 }

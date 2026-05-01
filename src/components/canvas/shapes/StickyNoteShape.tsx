@@ -1,6 +1,5 @@
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
@@ -10,7 +9,6 @@ import { roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
 import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
-import styles from './Shape.module.css'
 
 const FOLD = 20
 
@@ -26,7 +24,7 @@ interface Props {
 
 export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, fill, stroke, text } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
@@ -35,7 +33,7 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
   const pad = 2
 
   // Body (clip the top-right corner with clip-path)
-  const clipPath = `polygon(0 0, ${width - FOLD}px 0, ${width}px ${FOLD}px, ${width}px ${height}px, 0 ${height}px)`
+  // const clipPath = `polygon(0 0, ${width - FOLD}px 0, ${width}px ${FOLD}px, ${width}px ${height}px, 0 ${height}px)`
 
   // Hand-drawn paths: body rect + two fold lines
 
@@ -48,23 +46,7 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
   }) : []
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-        opacity: fill.opacity,
-        clipPath: handDrawn ? undefined : clipPath,
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -140,6 +122,6 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
           </div>
         )}
       </div>
-    </div>
+      </BoxShapeBase>
   )
 }

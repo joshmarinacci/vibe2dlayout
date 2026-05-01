@@ -1,5 +1,3 @@
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
@@ -7,7 +5,7 @@ import type { ProgressShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import styles from './Shape.module.css'
+import { BoxShapeBase } from "./BoxShapeBase"
 
 interface Props {
   shape: ProgressShape
@@ -20,7 +18,7 @@ interface Props {
 
 export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn }: Props) {
   const { transform, value, ticks, fill, trackFill, stroke } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
 
   const seed = seedFromId(shape.id)
   const pad = 2
@@ -68,21 +66,7 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
     : []
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -129,6 +113,6 @@ export function ProgressShapeComp({ shape, isSelected, onClick, onDoubleClick, h
           ))}
         </>
       )}
-    </div>
+      </BoxShapeBase>
   )
 }

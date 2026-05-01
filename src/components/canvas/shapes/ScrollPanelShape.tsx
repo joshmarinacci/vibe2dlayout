@@ -1,6 +1,5 @@
+import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
-import { buildCSSTransform } from '@model/transform'
-import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
 import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
@@ -8,7 +7,6 @@ import type { ScrollPanelShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
 import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
-import styles from './Shape.module.css'
 
 const SCROLLBAR_W = 12
 
@@ -25,7 +23,7 @@ interface Props {
 
 export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn, children }: Props) {
   const { transform, fill, stroke, cornerRadius, scrollPosition, clipChildren } = shape
-  const { x, y, width, height } = transform
+  const { width, height } = transform
   const seed = seedFromId(shape.id)
 
   // Scrollbar geometry
@@ -59,22 +57,7 @@ export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick
   }) : []
 
   return (
-    <div
-      className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
-      style={{
-        position: 'absolute',
-        ...boxShadowCSS(shape),
-        left: x,
-        top: y,
-        width,
-        height,
-        transform: buildCSSTransform(transform),
-        transformOrigin: 'center center',
-        opacity: fill.opacity,
-      }}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-    >
+      <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick} onDoubleClick={onDoubleClick}>
       {handDrawn ? (
         <svg
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
@@ -123,6 +106,6 @@ export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick
       <div style={{ position: 'absolute', inset: 0, right: SCROLLBAR_W + 6, overflow: clipChildren ? 'hidden' : 'visible' }}>
         {children}
       </div>
-    </div>
+      </BoxShapeBase>
   )
 }
