@@ -85,27 +85,34 @@ interface ShapeBase {
   boxShadow?: BoxShadow[]
 }
 
+export interface FilledShape {
+  fill: FillStyle
+}
+export interface StrokedShape {
+  stroke:StrokeStyle
+}
+export interface TransformedShape {
+  transform: BoundingBox
+}
+export interface ShapeWithText {
+  text:TextStyle
+}
+
 // ─── Concrete shape types ─────────────────────────────────────────────────
 
-export interface RectShape extends ShapeBase {
+export interface RectShape extends ShapeBase, FilledShape, StrokedShape, TransformedShape {
   type: 'rect'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   cornerRadius: number
   cornerRadii?: CornerRadii
   clipChildren: boolean
 }
 
-export interface CircleShape extends ShapeBase {
+export interface CircleShape extends ShapeBase, FilledShape, StrokedShape, TransformedShape {
   type: 'circle'
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
   clipChildren: boolean
 }
 
-export interface LineShape extends ShapeBase {
+export interface LineShape extends ShapeBase, StrokedShape {
   type: 'line'
   start: ConnectorEndpoint
   end: ConnectorEndpoint
@@ -115,16 +122,12 @@ export interface LineShape extends ShapeBase {
   endArrow: ArrowType
 }
 
-export interface TextShape extends ShapeBase {
+export interface TextShape extends ShapeBase, TransformedShape, FilledShape, ShapeWithText {
   type: 'text'
-  transform: BoundingBox
-  text: TextStyle
-  fill: FillStyle  // background fill (can be transparent)
 }
 
-export interface ImageShape extends ShapeBase {
+export interface ImageShape extends ShapeBase, TransformedShape {
   type: 'image'
-  transform: BoundingBox
   src: string      // base64 data URI or http(s) URL
   mimeType: MimeType
   preserveAspectRatio: boolean
@@ -132,9 +135,8 @@ export interface ImageShape extends ShapeBase {
   assetId?: string  // references ImageAsset.id in document.images
 }
 
-export interface PageShape extends ShapeBase {
+export interface PageShape extends ShapeBase, TransformedShape {
   type: 'page'
-  transform: BoundingBox
   fixedSize: { width: number; height: number } | null  // null = infinite
   background: string  // CSS color
   backgroundPaletteColorId?: string
@@ -145,16 +147,12 @@ export interface PageShape extends ShapeBase {
 
 // ─── Composite UI shapes ──────────────────────────────────────────────────
 
-export interface FormShape extends ShapeBase {
-  transform: BoundingBox
-  fill: FillStyle
-  stroke: StrokeStyle
+export interface FormShape extends ShapeBase, TransformedShape, FilledShape, StrokedShape {
 }
-export interface ButtonShape extends FormShape {
+export interface ButtonShape extends FormShape, ShapeWithText {
   type: 'button'
   cornerRadius: number
   cornerRadii?: CornerRadii
-  text: TextStyle
   icon: { name: string; side: 'left' | 'right' } | null
 }
 
@@ -163,19 +161,17 @@ export interface IconShape extends FormShape {
   icon: { name: string }
 }
 
-export interface PanelShape extends FormShape {
+export interface PanelShape extends FormShape, ShapeWithText {
   type: 'panel'
   cornerRadius: number
   cornerRadii?: CornerRadii
-  title: TextStyle | null
   clipChildren: boolean
 }
 
-export interface TabbedPanelShape extends FormShape {
+export interface TabbedPanelShape extends FormShape, ShapeWithText {
   type: 'tabbed-panel'
   cornerRadius: number
   cornerRadii?: CornerRadii
-  tabs: TextStyle   // .content = comma-separated tab titles
   activeTab: number // 0-indexed
   clipChildren: boolean
 }
@@ -332,3 +328,16 @@ export const defaultText = (content = ''): TextStyle => ({
 export const defaultTransform = (x = 0, y = 0, w = 100, h = 60): BoundingBox => ({
   x, y, width: w, height: h, rotation: 0,
 })
+
+export function hasFill(shape:Shape):boolean {
+  return 'fill' in shape;
+}
+export function hasStroke(shape:Shape):boolean {
+  return 'stroke' in shape;
+}
+export function hasTransform(shape:Shape):boolean {
+  return 'transform' in shape;
+}
+export function hasText(shape:Shape):boolean {
+  return 'text' in shape
+}

@@ -295,16 +295,16 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
           shapes: { ...doc.shapes, [action.id]: { ...shape, text: { ...shape.text, content: action.content } } },
         }
       }
-      if (shape.type === 'panel' && shape.title) {
+      if (shape.type === 'panel' && shape.text) {
         return {
           ...doc,
-          shapes: { ...doc.shapes, [action.id]: { ...shape, title: { ...shape.title, content: action.content } } },
+          shapes: { ...doc.shapes, [action.id]: { ...shape, text: { ...shape.text, content: action.content } } },
         }
       }
       if (shape.type === 'tabbed-panel') {
         return {
           ...doc,
-          shapes: { ...doc.shapes, [action.id]: { ...shape, tabs: { ...shape.tabs, content: action.content } } },
+          shapes: { ...doc.shapes, [action.id]: { ...shape, text: { ...shape.text, content: action.content } } },
         }
       }
       if (
@@ -953,9 +953,6 @@ function applyPaletteColorToShapes(
     }
     if ('text' in shape && shape.text.paletteColorId === colorId) {
       updated = { ...updated, text: { ...shape.text, color: newHex } } as Shape
-    }
-    if ('title' in shape && shape.title && typeof shape.title === 'object' && (shape.title as { paletteColorId?: string }).paletteColorId === colorId) {
-      updated = { ...updated, title: { ...(shape.title as object), color: newHex } } as Shape
     }
     if (shape.type === 'page' && shape.backgroundPaletteColorId === colorId) {
       updated = { ...updated, background: newHex } as Shape

@@ -105,7 +105,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         fill: themeFill(),
         stroke: formStroke(),
         cornerRadius: bdrR,
-        title: { ...themeText('Panel'), align: 'left', fontWeight: 'bold' },
+        text: { ...themeText('Panel'), align: 'left', fontWeight: 'bold' },
         clipChildren: false,
       }
     case 'tabbed-panel':
@@ -115,7 +115,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         fill: themeFill(),
         stroke: formStroke(),
         cornerRadius: bdrR,
-        tabs: { ...themeText('Tab 1, Tab 2, Tab 3'), align: 'center', fontWeight: 'normal' },
+        text: { ...themeText('Tab 1, Tab 2, Tab 3'), align: 'center', fontWeight: 'normal' },
         activeTab: 0,
         clipChildren: false,
       }

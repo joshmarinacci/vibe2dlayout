@@ -90,7 +90,7 @@ export function CanvasContextMenu({ menuState, shapes, rootNodes, activePageId, 
       const parentAbs = getAbsoluteTransform(parentId, shapes, parentMap)
       if (parentAbs) {
         const parent = shapes[parentId]
-        const contentOffsetY = parent?.type === 'panel' && parent.title ? parent.title.fontSize + 12 : 0
+        const contentOffsetY = parent?.type === 'panel' && parent.text ? parent.text.fontSize + 12 : 0
         localX = canvasX - parentAbs.x
         localY = canvasY - parentAbs.y - contentOffsetY
       }

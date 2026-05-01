@@ -21,17 +21,17 @@ interface Props {
 }
 
 export function TabbedPanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, children, handDrawn }: Props) {
-  const { transform, fill, stroke, tabs, activeTab, clipChildren } = shape
+  const { transform, fill, stroke, text, activeTab, clipChildren } = shape
   const { x, y, width, height } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const editValueRef = useRef(tabs.content)
+  const editValueRef = useRef(text.content)
   const cancelRef = useRef(false)
   const wasEditingRef = useRef(false)
 
   useEffect(() => {
     if (isEditing && !wasEditingRef.current) {
       wasEditingRef.current = true
-      editValueRef.current = tabs.content
+      editValueRef.current = text.content
       cancelRef.current = false
       textareaRef.current?.focus()
       textareaRef.current?.select()
@@ -44,9 +44,9 @@ export function TabbedPanelShapeComp({ shape, isSelected, isEditing, dispatch, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing])
 
-  const tabLabels = tabs.content.split(',').map(t => t.trim()).filter(Boolean)
+  const tabLabels = text.content.split(',').map(t => t.trim()).filter(Boolean)
   const safeActiveTab = Math.max(0, Math.min(activeTab, tabLabels.length - 1))
-  const tabBarHeight = tabs.fontSize + 16
+  const tabBarHeight = text.fontSize + 16
   const pad = 2
 
   const seed = seedFromId(shape.id)
@@ -143,17 +143,17 @@ export function TabbedPanelShapeComp({ shape, isSelected, isEditing, dispatch, o
         {isEditing ? (
           <textarea
             ref={textareaRef}
-            defaultValue={tabs.content}
+            defaultValue={text.content}
             style={{
               position: 'absolute',
               inset: 0,
               border: 'none',
               background: 'transparent',
               resize: 'none',
-              fontFamily: tabs.fontFamily,
-              fontSize: tabs.fontSize,
-              fontWeight: tabs.fontWeight,
-              color: tabs.color,
+              fontFamily: text.fontFamily,
+              fontSize: text.fontSize,
+              fontWeight: text.fontWeight,
+              color: text.color,
               outline: 'none',
               padding: '4px 8px',
             }}
@@ -183,10 +183,10 @@ export function TabbedPanelShapeComp({ shape, isSelected, isEditing, dispatch, o
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontFamily: tabs.fontFamily,
-                  fontSize: tabs.fontSize,
-                  fontWeight: isActive ? 'bold' : tabs.fontWeight,
-                  color: tabs.color,
+                  fontFamily: text.fontFamily,
+                  fontSize: text.fontSize,
+                  fontWeight: isActive ? 'bold' : text.fontWeight,
+                  color: text.color,
                   opacity: isActive ? 1 : 0.45,
                   borderRight: i < tabLabels.length - 1
                     ? `${Math.max(stroke.width * 0.5, 0.5)}px solid ${stroke.color}`

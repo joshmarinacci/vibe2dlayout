@@ -126,10 +126,10 @@ export function getContentOrigin(
   const abs = getAbsoluteTransform(parentId, shapes, parentMap)
   if (!abs) return { x: 0, y: 0 }
   let contentOffsetY = 0
-  if (parent.type === 'panel' && parent.title) {
-    contentOffsetY = parent.title.fontSize + 12
+  if (parent.type === 'panel' && parent.text) {
+    contentOffsetY = parent.text.fontSize + 12
   } else if (parent.type === 'tabbed-panel') {
-    contentOffsetY = parent.tabs.fontSize + 16
+    contentOffsetY = parent.text.fontSize + 16
   } else if (parent.type === 'dialog') {
     contentOffsetY = parent.titleFontSize + 12
   }
@@ -157,10 +157,10 @@ export function getParentContentOrigin(
   if (!parentAbs) return { x: 0, y: 0 }
 
   let contentOffsetY = 0
-  if (parent?.type === 'panel' && parent.title) {
-    contentOffsetY = parent.title.fontSize + 12
+  if (parent?.type === 'panel' && parent.text) {
+    contentOffsetY = parent.text.fontSize + 12
   } else if (parent?.type === 'tabbed-panel') {
-    contentOffsetY = parent.tabs.fontSize + 16
+    contentOffsetY = parent.text.fontSize + 16
   } else if (parent?.type === 'dialog') {
     contentOffsetY = parent.titleFontSize + 12
   }
@@ -192,10 +192,10 @@ export function getAbsoluteTransform(
   if (!parentAbs) return { ...shape.transform }
 
   let contentOffsetY = 0
-  if (parent?.type === 'panel' && parent.title) {
-    contentOffsetY = parent.title.fontSize + 12
+  if (parent?.type === 'panel' && parent.text) {
+    contentOffsetY = parent.text.fontSize + 12
   } else if (parent?.type === 'tabbed-panel') {
-    contentOffsetY = parent.tabs.fontSize + 16
+    contentOffsetY = parent.text.fontSize + 16
   } else if (parent?.type === 'dialog') {
     contentOffsetY = parent.titleFontSize + 12
   }

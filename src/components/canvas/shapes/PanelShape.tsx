@@ -22,30 +22,30 @@ interface Props {
 }
 
 export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick, onDoubleClick, children, handDrawn }: Props) {
-  const { transform, fill, stroke, title, clipChildren } = shape
+  const { transform, fill, stroke, text, clipChildren } = shape
   const { x, y, width, height } = transform
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const editValueRef = useRef(title?.content ?? '')
+  const editValueRef = useRef(text?.content ?? '')
   const cancelRef = useRef(false)
   const wasEditingRef = useRef(false)
 
   useEffect(() => {
     if (isEditing && !wasEditingRef.current) {
       wasEditingRef.current = true
-      editValueRef.current = title?.content ?? ''
+      editValueRef.current = text?.content ?? ''
       cancelRef.current = false
       textareaRef.current?.focus()
       textareaRef.current?.select()
     } else if (!isEditing && wasEditingRef.current) {
       wasEditingRef.current = false
-      if (!cancelRef.current && title) {
+      if (!cancelRef.current && text) {
         dispatch({ type: 'COMMIT_TEXT_EDIT', id: shape.id, content: editValueRef.current })
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing])
 
-  const titleBarHeight = title ? (title.fontSize + 12) : 0
+  const titleBarHeight = text ? (text.fontSize + 12) : 0
   const pad = 2
 
   const seed = seedFromId(shape.id)
@@ -60,7 +60,7 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
     strokeWidth: stroke.width,
   }) : []
 
-  const dividerPaths = handDrawn && title ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
+  const dividerPaths = handDrawn && text ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
     seed: seed + 1,
     roughness: 1,
     stroke: stroke.color,
@@ -103,7 +103,7 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
             ...strokeBorderCSS(stroke),
             borderRadius: cornerRadiiCSS(shape.cornerRadius ?? 0, shape.cornerRadii),
           }} />
-          {title && (
+          {text && (
             <div style={{
               position: 'absolute',
               top: stroke.width,
@@ -117,7 +117,7 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
       )}
 
       {/* Title bar */}
-      {title && (
+      {text && (
         <div style={{
           position: 'absolute',
           top: 0,
@@ -130,18 +130,18 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           {isEditing ? (
             <textarea
               ref={textareaRef}
-              defaultValue={title.content}
+              defaultValue={text.content}
               style={{
                 position: 'absolute',
                 inset: 0,
                 border: 'none',
                 background: 'transparent',
                 resize: 'none',
-                fontFamily: title.fontFamily,
-                fontSize: title.fontSize,
-                fontWeight: title.fontWeight,
-                color: title.color,
-                textAlign: title.align,
+                fontFamily: text.fontFamily,
+                fontSize: text.fontSize,
+                fontWeight: text.fontWeight,
+                color: text.color,
+                textAlign: text.align,
                 outline: 'none',
                 padding: '4px 8px',
               }}
@@ -171,19 +171,19 @@ export function PanelShapeComp({ shape, isSelected, isEditing, dispatch, onClick
               overflow: 'hidden',
             }}>
               <div style={{
-                fontFamily: title.fontFamily,
-                fontSize: title.fontSize,
-                fontWeight: title.fontWeight,
-                fontStyle: title.fontStyle,
-                color: title.color,
-                textAlign: title.align,
+                fontFamily: text.fontFamily,
+                fontSize: text.fontSize,
+                fontWeight: text.fontWeight,
+                fontStyle: text.fontStyle,
+                color: text.color,
+                textAlign: text.align,
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
                 width: '100%',
                 userSelect: 'none',
-                ...textExtraCSS(title),
+                ...textExtraCSS(text),
               }}>
-                {(() => { const g = textGradientSpanCSS(title); return g ? <span style={g}>{title.content}</span> : title.content })()}
+                {(() => { const g = textGradientSpanCSS(text); return g ? <span style={g}>{text.content}</span> : text.content })()}
               </div>
             </div>
           )}

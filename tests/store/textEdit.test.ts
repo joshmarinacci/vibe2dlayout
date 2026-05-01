@@ -44,7 +44,7 @@ describe('COMMIT_TEXT_EDIT updates content', () => {
     const { state, shape } = addShape('panel')
     const s2 = appReducer(state, { type: 'COMMIT_TEXT_EDIT', id: shape.id, content: 'My Panel' })
     const updated = s2.document.shapes[shape.id]
-    expect(updated?.type === 'panel' && updated.title?.content).toBe('My Panel')
+    expect(updated?.type === 'panel' && updated.text?.content).toBe('My Panel')
   })
 
   it('does not affect shape type or other text properties', () => {

@@ -55,11 +55,11 @@ describe('text edit commit-on-deselect sequence', () => {
 
   it('cancel path: STOP_TEXT_EDIT without COMMIT leaves content unchanged (panel)', () => {
     const { state, shape } = setup('panel')
-    const original = shape.type === 'panel' ? shape.title?.content : ''
+    const original = shape.type === 'panel' ? shape.text?.content : ''
     const s2 = appReducer(state, { type: 'START_TEXT_EDIT', id: shape.id })
     const s3 = appReducer(s2, { type: 'STOP_TEXT_EDIT' })
     const updated = s3.document.shapes[shape.id]
-    expect(updated?.type === 'panel' && updated.title?.content).toBe(original)
+    expect(updated?.type === 'panel' && updated.text?.content).toBe(original)
   })
 
   it('full commit sequence: start → edit → deselect → commit saves content', () => {
@@ -81,6 +81,6 @@ describe('text edit commit-on-deselect sequence', () => {
     const s3 = appReducer(s2, { type: 'DESELECT_ALL' })
     const s4 = appReducer(s3, { type: 'COMMIT_TEXT_EDIT', id: shape.id, content: 'Settings' })
     const updated = s4.document.shapes[shape.id]
-    expect(updated?.type === 'panel' && updated.title?.content).toBe('Settings')
+    expect(updated?.type === 'panel' && updated.text?.content).toBe('Settings')
   })
 })
