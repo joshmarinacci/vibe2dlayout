@@ -195,16 +195,16 @@ export function TextSection({
         <CollapsibleSection title="Text">
 
             {/* 1 — Named style */}
-            <SelectInput
-                label="Style"
-                value={activeStyleId}
-                options={styleOptions}
-                onChange={v => dispatch({
-                    type: 'APPLY_TEXT_STYLE',
-                    shapeId,
-                    textStyleId: v || null
-                })}
-            />
+            {/*<SelectInput*/}
+            {/*    label="Style"*/}
+            {/*    value={activeStyleId}*/}
+            {/*    options={styleOptions}*/}
+            {/*    onChange={v => dispatch({*/}
+            {/*        type: 'APPLY_TEXT_STYLE',*/}
+            {/*        shapeId,*/}
+            {/*        textStyleId: v || null*/}
+            {/*    })}*/}
+            {/*/>*/}
 
             {/* 2 — Font identity: family → size */}
             <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
@@ -224,8 +224,9 @@ export function TextSection({
                 )}
             </div>
 
+            {/* size */}
             <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}}>
+                <div style={{flex: 1, display:'flex'}}>
                     <NumberInput
                         label="Size"
                         value={text.fontSize}
@@ -298,98 +299,6 @@ export function TextSection({
                 )}
             </div>
 
-            {/* 4 — Alignment: H and V on one row */}
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}} className={inputStyles.field}>
-                    <span className={inputStyles.label}>Align</span>
-                    <div className={inputStyles.iconBtnGroup}>
-                        {([
-                            {value: 'left', Icon: AlignLeft, title: 'Left'},
-                            {value: 'center', Icon: AlignCenter, title: 'Center'},
-                            {value: 'right', Icon: AlignRight, title: 'Right'},
-                        ] as const).map(({value, Icon, title}) => (
-                            <button
-                                key={value}
-                                className={`${inputStyles.iconBtn} ${text.align === value ? inputStyles.iconBtnActive : ''}`}
-                                title={title}
-                                onClick={() => applyChange({align: value})}
-                            >
-                                <Icon size={13}/>
-                            </button>
-                        ))}
-                        <span style={{
-                            width: 1,
-                            background: 'var(--color-border)',
-                            alignSelf: 'stretch',
-                            margin: '2px 2px'
-                        }}/>
-                        {([
-                            {value: 'top', Icon: AlignVerticalJustifyStart, title: 'Top'},
-                            {value: 'middle', Icon: AlignVerticalJustifyCenter, title: 'Middle'},
-                            {value: 'bottom', Icon: AlignVerticalJustifyEnd, title: 'Bottom'},
-                        ] as const).map(({value, Icon, title}) => (
-                            <button
-                                key={value}
-                                className={`${inputStyles.iconBtn} ${text.verticalAlign === value ? inputStyles.iconBtnActive : ''}`}
-                                title={title}
-                                onClick={() => applyChange({verticalAlign: value})}
-                            >
-                                <Icon size={13}/>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                {hasStyle && overrides.has('align') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('align')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-                {hasStyle && overrides.has('verticalAlign') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('verticalAlign')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-            </div>
-
-            {/* 5 — Spacing: line height + letter spacing on one row */}
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}}>
-                    <NumberInput
-                        label="Line H"
-                        value={text.lineHeight ?? 1.2}
-                        min={0.5}
-                        max={4}
-                        step={0.1}
-                        onChange={v => applyChange({lineHeight: v})}
-                    />
-                </div>
-                {hasStyle && overrides.has('lineHeight') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('lineHeight')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-                <div style={{flex: 1}}>
-                    <NumberInput
-                        label="Spacing"
-                        value={text.letterSpacing ?? 0}
-                        min={-10}
-                        max={50}
-                        step={0.5}
-                        unit="px"
-                        onChange={v => applyChange({letterSpacing: v})}
-                    />
-                </div>
-                {hasStyle && overrides.has('letterSpacing') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('letterSpacing')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-            </div>
-
             {/* 6 — Decoration: underline/strikethrough + text transform */}
             <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
                 <div style={{flex: 1}} className={inputStyles.field}>
@@ -436,194 +345,347 @@ export function TextSection({
                 )}
             </div>
 
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}}>
-                    <SelectInput
-                        label="Transform"
-                        value={text.textTransform ?? 'none'}
-                        options={[
-                            {value: 'none', label: 'None'},
-                            {value: 'uppercase', label: 'Uppercase'},
-                            {value: 'lowercase', label: 'Lowercase'},
-                            {value: 'capitalize', label: 'Capitalize'},
-                        ]}
-                        onChange={v => applyChange({textTransform: v as TextStyle['textTransform']})}
-                    />
-                </div>
-                {hasStyle && overrides.has('textTransform') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('textTransform')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-            </div>
-
-            {/* 7 — Color / gradient */}
-            {(() => {
-                const isGradient = !!text.textGradient
-                const gradient = text.textGradient ?? DEFAULT_TEXT_GRADIENT
-                const patchGradient = (g: LinearGradient) => applyChange({textGradient: g})
-                const addStop = () => {
-                    const sorted = [...gradient.stops].sort((a, b) => a.position - b.position)
-                    let bestIdx = 0, bestGap = 0
-                    for (let i = 0; i < sorted.length - 1; i++) {
-                        const gap = sorted[i + 1].position - sorted[i].position
-                        if (gap > bestGap) {
-                            bestGap = gap;
-                            bestIdx = i
-                        }
-                    }
-                    const mid = (sorted[bestIdx].position + sorted[bestIdx + 1].position) / 2
-                    sorted.splice(bestIdx + 1, 0, {
-                        color: sorted[bestIdx].color,
-                        position: Math.round(mid * 100) / 100
-                    })
-                    patchGradient({...gradient, stops: sorted})
-                }
-                return (
+            <CollapsibleSection title={"Font Axes"}>
+                {/* 9 — Variable font axes */}
+                {activeFont?.isVariable === true && activeFont.axes.length > 0 && (
                     <>
-                        <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                            <div style={{flex: 1}} className={inputStyles.field}>
-                                <span className={inputStyles.label}>Color</span>
-                                <div className={inputStyles.iconBtnGroup}>
-                                    <button
-                                        className={`${inputStyles.iconBtn} ${!isGradient ? inputStyles.iconBtnActive : ''}`}
-                                        onClick={() => applyChange({textGradient: null})}
-                                        style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
-                                    >Solid
-                                    </button>
-                                    <button
-                                        className={`${inputStyles.iconBtn} ${isGradient ? inputStyles.iconBtnActive : ''}`}
-                                        onClick={() => applyChange({
-                                            textGradient: {
-                                                ...DEFAULT_TEXT_GRADIENT,
-                                                stops: [{
-                                                    color: text.color,
-                                                    position: 0
-                                                }, {color: '#ffffff', position: 1}]
-                                            }
-                                        })}
-                                        style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
-                                    >Gradient
-                                    </button>
-                                </div>
-                            </div>
-                            {hasStyle && (overrides.has('color') || overrides.has('textGradient')) && (
-                                <button className={styles.resetOverrideBtn} onClick={() => {
-                                    resetOverride('color');
-                                    resetOverride('textGradient')
-                                }} title="Reset to style">
-                                    <RotateCcw size={10}/>
-                                </button>
-                            )}
-                        </div>
-                        {!isGradient ? (
-                            <ColorInput
-                                label=""
-                                value={{color: text.color, paletteColorId: text.paletteColorId}}
-                                onChange={ref => applyChange({
-                                    color: ref.color,
-                                    paletteColorId: ref.paletteColorId
-                                })}
-                            />
-                        ) : (
-                            <div style={{
-                                background: 'var(--color-bg-panel)',
-                                border: '1px solid var(--color-border-subtle)',
-                                borderRadius: 4,
-                                padding: '6px 6px 4px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 4,
-                                marginTop: 2,
-                            }}>
-                                {/* Preview bar */}
-                                <div style={{
-                                    height: 12,
-                                    borderRadius: 3,
-                                    background: linearGradientCSS(gradient),
-                                    marginBottom: 2,
-                                }}/>
-                                {/* Angle */}
-                                <NumberInput label="Angle" value={gradient.angle} min={0} max={360}
-                                             step={1} unit="°"
-                                             onChange={v => patchGradient({
-                                                 ...gradient,
-                                                 angle: v
-                                             })}/>
-                                {/* Stop rows */}
-                                {gradient.stops.map((stop, idx) => (
-                                    <div key={idx}
-                                         style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                                        <div style={{flex: 1}}>
-                                            <ColorInput label="" value={{color: stop.color}}
-                                                        onChange={ref => {
-                                                            const stops = gradient.stops.map((s, i) => i === idx ? {
-                                                                ...s,
-                                                                color: ref.color
-                                                            } : s)
-                                                            patchGradient({...gradient, stops})
-                                                        }}/>
-                                        </div>
-                                        <div style={{width: 60, flexShrink: 0}}>
-                                            <NumberInput label="%"
-                                                         value={Math.round(stop.position * 100)}
-                                                         min={0} max={100} step={1}
-                                                         onChange={v => {
-                                                             const stops = gradient.stops.map((s, i) => i === idx ? {
-                                                                 ...s,
-                                                                 position: v / 100
-                                                             } : s)
-                                                             patchGradient({...gradient, stops})
-                                                         }}/>
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                if (gradient.stops.length <= 2) return
-                                                patchGradient({
-                                                    ...gradient,
-                                                    stops: gradient.stops.filter((_, i) => i !== idx)
-                                                })
-                                            }}
-                                            disabled={gradient.stops.length <= 2}
-                                            style={{
-                                                width: 16,
-                                                height: 16,
-                                                flexShrink: 0,
-                                                border: 'none',
-                                                background: 'transparent',
-                                                color: 'var(--color-text-disabled)',
-                                                cursor: gradient.stops.length <= 2 ? 'default' : 'pointer',
-                                                fontSize: 14,
-                                                lineHeight: 1,
-                                                padding: 0,
-                                                opacity: gradient.stops.length <= 2 ? 0.3 : 1
-                                            }}
-                                        >×
-                                        </button>
-                                    </div>
-                                ))}
-                                {/* Add stop */}
-                                <button onClick={addStop}
+                        {activeFont.axes.filter(axis => axis.tag !== 'ital').map(axis => {
+                            const val = axisValueForText(text, axis)
+                            const step = axisStep(axis)
+                            const onChange = (v: number) => applyChange({
+                                fontVariationSettings: {
+                                    ...(rawText.fontVariationSettings ?? {}),
+                                    [axis.tag]: v
+                                },
+                            })
+                            return (
+                                <div key={axis.tag}>
+                                    <NumberInput
+                                        label={axis.name ? `${axis.name} (${axis.tag})` : axis.tag}
+                                        value={val}
+                                        min={axis.min}
+                                        max={axis.max}
+                                        step={step}
+                                        onChange={onChange}
+                                    />
+                                    <input
+                                        type="range"
+                                        min={axis.min}
+                                        max={axis.max}
+                                        step={step}
+                                        value={val}
+                                        onChange={e => onChange(Number(e.target.value))}
                                         style={{
                                             width: '100%',
                                             marginTop: 2,
-                                            fontSize: 11,
-                                            border: '1px dashed var(--color-border)',
-                                            borderRadius: 3,
-                                            background: 'transparent',
-                                            color: 'var(--color-text-muted)',
-                                            cursor: 'pointer',
-                                            padding: '2px 0'
-                                        }}>
-                                    + Add stop
-                                </button>
-                            </div>
+                                            accentColor: 'var(--color-accent)'
+                                        }}
+                                    />
+                                </div>
+                            )
+                        })}
+                        {hasStyle && overrides.has('fontVariationSettings') && (
+                            <button className={styles.resetOverrideBtn}
+                                    onClick={() => resetOverride('fontVariationSettings')}
+                                    title="Reset to style">
+                                <RotateCcw size={10}/>
+                            </button>
                         )}
                     </>
-                )
-            })()}
+                )}
 
+            </CollapsibleSection>
+
+            <CollapsibleSection title={"Color"}>
+                {/* 7 — Color / gradient */}
+                {(() => {
+                    const isGradient = !!text.textGradient
+                    const gradient = text.textGradient ?? DEFAULT_TEXT_GRADIENT
+                    const patchGradient = (g: LinearGradient) => applyChange({textGradient: g})
+                    const addStop = () => {
+                        const sorted = [...gradient.stops].sort((a, b) => a.position - b.position)
+                        let bestIdx = 0, bestGap = 0
+                        for (let i = 0; i < sorted.length - 1; i++) {
+                            const gap = sorted[i + 1].position - sorted[i].position
+                            if (gap > bestGap) {
+                                bestGap = gap;
+                                bestIdx = i
+                            }
+                        }
+                        const mid = (sorted[bestIdx].position + sorted[bestIdx + 1].position) / 2
+                        sorted.splice(bestIdx + 1, 0, {
+                            color: sorted[bestIdx].color,
+                            position: Math.round(mid * 100) / 100
+                        })
+                        patchGradient({...gradient, stops: sorted})
+                    }
+                    return (
+                        <>
+                            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                                <div style={{flex: 1}} className={inputStyles.field}>
+                                    <span className={inputStyles.label}>Color</span>
+                                    <div className={inputStyles.iconBtnGroup}>
+                                        <button
+                                            className={`${inputStyles.iconBtn} ${!isGradient ? inputStyles.iconBtnActive : ''}`}
+                                            onClick={() => applyChange({textGradient: null})}
+                                            style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
+                                        >Solid
+                                        </button>
+                                        <button
+                                            className={`${inputStyles.iconBtn} ${isGradient ? inputStyles.iconBtnActive : ''}`}
+                                            onClick={() => applyChange({
+                                                textGradient: {
+                                                    ...DEFAULT_TEXT_GRADIENT,
+                                                    stops: [{
+                                                        color: text.color,
+                                                        position: 0
+                                                    }, {color: '#ffffff', position: 1}]
+                                                }
+                                            })}
+                                            style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
+                                        >Gradient
+                                        </button>
+                                    </div>
+                                </div>
+                                {hasStyle && (overrides.has('color') || overrides.has('textGradient')) && (
+                                    <button className={styles.resetOverrideBtn} onClick={() => {
+                                        resetOverride('color');
+                                        resetOverride('textGradient')
+                                    }} title="Reset to style">
+                                        <RotateCcw size={10}/>
+                                    </button>
+                                )}
+                            </div>
+                            {!isGradient ? (
+                                <ColorInput
+                                    label=""
+                                    value={{color: text.color, paletteColorId: text.paletteColorId}}
+                                    onChange={ref => applyChange({
+                                        color: ref.color,
+                                        paletteColorId: ref.paletteColorId
+                                    })}
+                                />
+                            ) : (
+                                <div style={{
+                                    background: 'var(--color-bg-panel)',
+                                    border: '1px solid var(--color-border-subtle)',
+                                    borderRadius: 4,
+                                    padding: '6px 6px 4px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 4,
+                                    marginTop: 2,
+                                }}>
+                                    {/* Preview bar */}
+                                    <div style={{
+                                        height: 12,
+                                        borderRadius: 3,
+                                        background: linearGradientCSS(gradient),
+                                        marginBottom: 2,
+                                    }}/>
+                                    {/* Angle */}
+                                    <NumberInput label="Angle" value={gradient.angle} min={0} max={360}
+                                                 step={1} unit="°"
+                                                 onChange={v => patchGradient({
+                                                     ...gradient,
+                                                     angle: v
+                                                 })}/>
+                                    {/* Stop rows */}
+                                    {gradient.stops.map((stop, idx) => (
+                                        <div key={idx}
+                                             style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                                            <div style={{flex: 1}}>
+                                                <ColorInput label="" value={{color: stop.color}}
+                                                            onChange={ref => {
+                                                                const stops = gradient.stops.map((s, i) => i === idx ? {
+                                                                    ...s,
+                                                                    color: ref.color
+                                                                } : s)
+                                                                patchGradient({...gradient, stops})
+                                                            }}/>
+                                            </div>
+                                            <div style={{width: 60, flexShrink: 0}}>
+                                                <NumberInput label="%"
+                                                             value={Math.round(stop.position * 100)}
+                                                             min={0} max={100} step={1}
+                                                             onChange={v => {
+                                                                 const stops = gradient.stops.map((s, i) => i === idx ? {
+                                                                     ...s,
+                                                                     position: v / 100
+                                                                 } : s)
+                                                                 patchGradient({...gradient, stops})
+                                                             }}/>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    if (gradient.stops.length <= 2) return
+                                                    patchGradient({
+                                                        ...gradient,
+                                                        stops: gradient.stops.filter((_, i) => i !== idx)
+                                                    })
+                                                }}
+                                                disabled={gradient.stops.length <= 2}
+                                                style={{
+                                                    width: 16,
+                                                    height: 16,
+                                                    flexShrink: 0,
+                                                    border: 'none',
+                                                    background: 'transparent',
+                                                    color: 'var(--color-text-disabled)',
+                                                    cursor: gradient.stops.length <= 2 ? 'default' : 'pointer',
+                                                    fontSize: 14,
+                                                    lineHeight: 1,
+                                                    padding: 0,
+                                                    opacity: gradient.stops.length <= 2 ? 0.3 : 1
+                                                }}
+                                            >×
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {/* Add stop */}
+                                    <button onClick={addStop}
+                                            style={{
+                                                width: '100%',
+                                                marginTop: 2,
+                                                fontSize: 11,
+                                                border: '1px dashed var(--color-border)',
+                                                borderRadius: 3,
+                                                background: 'transparent',
+                                                color: 'var(--color-text-muted)',
+                                                cursor: 'pointer',
+                                                padding: '2px 0'
+                                            }}>
+                                        + Add stop
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )
+                })()}
+            </CollapsibleSection>
+
+            <CollapsibleSection title={"Advanced"}>
+                {/* 4 — Alignment: H and V on one row */}
+                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                    <div style={{flex: 1}} className={inputStyles.field}>
+                        <span className={inputStyles.label}>Align</span>
+                        <div className={inputStyles.iconBtnGroup}>
+                            {([
+                                {value: 'left', Icon: AlignLeft, title: 'Left'},
+                                {value: 'center', Icon: AlignCenter, title: 'Center'},
+                                {value: 'right', Icon: AlignRight, title: 'Right'},
+                            ] as const).map(({value, Icon, title}) => (
+                                <button
+                                    key={value}
+                                    className={`${inputStyles.iconBtn} ${text.align === value ? inputStyles.iconBtnActive : ''}`}
+                                    title={title}
+                                    onClick={() => applyChange({align: value})}
+                                >
+                                    <Icon size={13}/>
+                                </button>
+                            ))}
+                            <span style={{
+                                width: 1,
+                                background: 'var(--color-border)',
+                                alignSelf: 'stretch',
+                                margin: '2px 2px'
+                            }}/>
+                            {([
+                                {value: 'top', Icon: AlignVerticalJustifyStart, title: 'Top'},
+                                {value: 'middle', Icon: AlignVerticalJustifyCenter, title: 'Middle'},
+                                {value: 'bottom', Icon: AlignVerticalJustifyEnd, title: 'Bottom'},
+                            ] as const).map(({value, Icon, title}) => (
+                                <button
+                                    key={value}
+                                    className={`${inputStyles.iconBtn} ${text.verticalAlign === value ? inputStyles.iconBtnActive : ''}`}
+                                    title={title}
+                                    onClick={() => applyChange({verticalAlign: value})}
+                                >
+                                    <Icon size={13}/>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {hasStyle && overrides.has('align') && (
+                        <button className={styles.resetOverrideBtn}
+                                onClick={() => resetOverride('align')} title="Reset to style">
+                            <RotateCcw size={10}/>
+                        </button>
+                    )}
+                    {hasStyle && overrides.has('verticalAlign') && (
+                        <button className={styles.resetOverrideBtn}
+                                onClick={() => resetOverride('verticalAlign')} title="Reset to style">
+                            <RotateCcw size={10}/>
+                        </button>
+                    )}
+                </div>
+
+                {/* 5 — Spacing: line height + letter spacing on one row */}
+                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                    <div style={{flex: 1}}>
+                        <NumberInput
+                            label="Line H"
+                            value={text.lineHeight ?? 1.2}
+                            min={0.5}
+                            max={4}
+                            step={0.1}
+                            onChange={v => applyChange({lineHeight: v})}
+                            unit={'%'}
+                        />
+                    </div>
+                    {hasStyle && overrides.has('lineHeight') && (
+                        <button className={styles.resetOverrideBtn}
+                                onClick={() => resetOverride('lineHeight')} title="Reset to style">
+                            <RotateCcw size={10}/>
+                        </button>
+                    )}
+                </div>
+                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                    <div style={{flex: 1}}>
+                        <NumberInput
+                            label="Spacing"
+                            value={text.letterSpacing ?? 0}
+                            min={-10}
+                            max={50}
+                            step={0.5}
+                            unit="px"
+                            onChange={v => applyChange({letterSpacing: v})}
+                        />
+                    </div>
+                    {hasStyle && overrides.has('letterSpacing') && (
+                        <button className={styles.resetOverrideBtn}
+                                onClick={() => resetOverride('letterSpacing')} title="Reset to style">
+                            <RotateCcw size={10}/>
+                        </button>
+                    )}
+                </div>
+
+
+                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                    <div style={{flex: 1}}>
+                        <SelectInput
+                            label="Transform"
+                            value={text.textTransform ?? 'none'}
+                            options={[
+                                {value: 'none', label: 'None'},
+                                {value: 'uppercase', label: 'Uppercase'},
+                                {value: 'lowercase', label: 'Lowercase'},
+                                {value: 'capitalize', label: 'Capitalize'},
+                            ]}
+                            onChange={v => applyChange({textTransform: v as TextStyle['textTransform']})}
+                        />
+                    </div>
+                    {hasStyle && overrides.has('textTransform') && (
+                        <button className={styles.resetOverrideBtn}
+                                onClick={() => resetOverride('textTransform')} title="Reset to style">
+                            <RotateCcw size={10}/>
+                        </button>
+                    )}
+                </div>
+
+            </CollapsibleSection>
+
+            <CollapsibleSection title={"Shadow"}>
             {/* 8 — Effects: shadow */}
             <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
                 <div style={{flex: 1}} className={inputStyles.field}>
@@ -685,54 +747,7 @@ export function TextSection({
                 </div>
             )}
 
-            {/* 9 — Variable font axes */}
-            {activeFont?.isVariable === true && activeFont.axes.length > 0 && (
-                <>
-                    {activeFont.axes.filter(axis => axis.tag !== 'ital').map(axis => {
-                        const val = axisValueForText(text, axis)
-                        const step = axisStep(axis)
-                        const onChange = (v: number) => applyChange({
-                            fontVariationSettings: {
-                                ...(rawText.fontVariationSettings ?? {}),
-                                [axis.tag]: v
-                            },
-                        })
-                        return (
-                            <div key={axis.tag}>
-                                <NumberInput
-                                    label={axis.name ? `${axis.name} (${axis.tag})` : axis.tag}
-                                    value={val}
-                                    min={axis.min}
-                                    max={axis.max}
-                                    step={step}
-                                    onChange={onChange}
-                                />
-                                <input
-                                    type="range"
-                                    min={axis.min}
-                                    max={axis.max}
-                                    step={step}
-                                    value={val}
-                                    onChange={e => onChange(Number(e.target.value))}
-                                    style={{
-                                        width: '100%',
-                                        marginTop: 2,
-                                        accentColor: 'var(--color-accent)'
-                                    }}
-                                />
-                            </div>
-                        )
-                    })}
-                    {hasStyle && overrides.has('fontVariationSettings') && (
-                        <button className={styles.resetOverrideBtn}
-                                onClick={() => resetOverride('fontVariationSettings')}
-                                title="Reset to style">
-                            <RotateCcw size={10}/>
-                        </button>
-                    )}
-                </>
-            )}
-
+            </CollapsibleSection>
         </CollapsibleSection>
     )
 }
