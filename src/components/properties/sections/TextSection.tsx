@@ -24,6 +24,7 @@ import inputStyles from '../inputs/inputs.module.css'
 import {NumberInput} from '../inputs/NumberInput'
 import {SelectInput} from '../inputs/SelectInput'
 import styles from '../PropertiesPanel.module.css'
+import "../propsheet.css"
 
 // Logarithmic slider: maps slider 0–100 to font size 5–500
 // Midpoint (50) ≈ 50px, which feels natural for font size picking
@@ -192,8 +193,9 @@ export function TextSection({
     }, [text.fontFamily])
 
     return (
-        <CollapsibleSection title="Text">
-
+        <details className={"collapsible-section"}>
+            <summary>Text</summary>
+            <article>
             {/* 1 — Named style */}
             {/*<SelectInput*/}
             {/*    label="Style"*/}
@@ -207,26 +209,23 @@ export function TextSection({
             {/*/>*/}
 
             {/* 2 — Font identity: family → size */}
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}}>
-                    <SelectInput
-                        label="Font"
-                        value={text.fontFamily}
-                        options={fontOptions}
-                        onChange={v => applyChange({fontFamily: v})}
-                    />
-                </div>
+            <section>
+                <SelectInput
+                    label="Font"
+                    value={text.fontFamily}
+                    options={fontOptions}
+                    onChange={v => applyChange({fontFamily: v})}
+                />
                 {hasStyle && overrides.has('fontFamily') && (
                     <button className={styles.resetOverrideBtn}
                             onClick={() => resetOverride('fontFamily')} title="Reset to style">
                         <RotateCcw size={10}/>
                     </button>
                 )}
-            </div>
+            </section>
 
             {/* size */}
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1, display:'flex'}}>
+            <section>
                     <NumberInput
                         label="Size"
                         value={text.fontSize}
@@ -245,25 +244,22 @@ export function TextSection({
                         onChange={e => applyChange({fontSize: sliderToFontSize(Number(e.target.value))})}
                         style={{width: '100%', marginTop: 2, accentColor: 'var(--color-accent)'}}
                     />
-                </div>
                 {hasStyle && overrides.has('fontSize') && (
                     <button className={styles.resetOverrideBtn}
                             onClick={() => resetOverride('fontSize')} title="Reset to style">
                         <RotateCcw size={10}/>
                     </button>
                 )}
-            </div>
+            </section>
 
             {/* 3 — Font style: weight + italic + small caps */}
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}}>
-                    <SelectInput
+            <section>
+                <SelectInput
                         label="Weight"
                         value={text.fontWeight}
                         options={weightOptions}
                         onChange={v => applyChange({fontWeight: v as TextStyle['fontWeight']})}
                     />
-                </div>
                 <button
                     className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
                     title="Italic"
@@ -297,12 +293,10 @@ export function TextSection({
                         <RotateCcw size={10}/>
                     </button>
                 )}
-            </div>
+
 
             {/* 6 — Decoration: underline/strikethrough + text transform */}
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}} className={inputStyles.field}>
-                    <span className={inputStyles.label}>Decoration</span>
+
                     <div className={inputStyles.iconBtnGroup}>
                         {([
                             {value: 'underline', Icon: Underline, title: 'Underline'},
@@ -335,7 +329,6 @@ export function TextSection({
                                 </button>
                             )
                         })}
-                    </div>
                 </div>
                 {hasStyle && overrides.has('textDecoration') && (
                     <button className={styles.resetOverrideBtn}
@@ -343,9 +336,11 @@ export function TextSection({
                         <RotateCcw size={10}/>
                     </button>
                 )}
-            </div>
+            </section>
 
-            <CollapsibleSection title={"Font Axes"}>
+
+            <details>
+                <summary>Font Axes</summary>
                 {/* 9 — Variable font axes */}
                 {activeFont?.isVariable === true && activeFont.axes.length > 0 && (
                     <>
@@ -394,10 +389,12 @@ export function TextSection({
                     </>
                 )}
 
-            </CollapsibleSection>
+            </details>
 
-            <CollapsibleSection title={"Color"}>
+            <details>
+                <summary>Color</summary>
                 {/* 7 — Color / gradient */}
+                <article>
                 {(() => {
                     const isGradient = !!text.textGradient
                     const gradient = text.textGradient ?? DEFAULT_TEXT_GRADIENT
@@ -561,10 +558,11 @@ export function TextSection({
                             )}
                         </>
                     )
-                })()}
-            </CollapsibleSection>
+                })()}</article>
+            </details>
 
-            <CollapsibleSection title={"Advanced"}>
+            <details>
+                <summary>Advanced</summary>
                 {/* 4 — Alignment: H and V on one row */}
                 <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
                     <div style={{flex: 1}} className={inputStyles.field}>
@@ -620,7 +618,7 @@ export function TextSection({
                     )}
                 </div>
 
-                {/* 5 — Spacing: line height + letter spacing on one row */}
+            {/*    /!* 5 — Spacing: line height + letter spacing on one row *!/*/}
                 <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
                     <div style={{flex: 1}}>
                         <NumberInput
@@ -683,9 +681,10 @@ export function TextSection({
                     )}
                 </div>
 
-            </CollapsibleSection>
+            </details>
 
-            <CollapsibleSection title={"Shadow"}>
+            <details>
+                <summary>Shadow</summary>
             {/* 8 — Effects: shadow */}
             <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
                 <div style={{flex: 1}} className={inputStyles.field}>
@@ -747,7 +746,8 @@ export function TextSection({
                 </div>
             )}
 
-            </CollapsibleSection>
-        </CollapsibleSection>
+            </details>
+            </article>
+        </details>
     )
 }
