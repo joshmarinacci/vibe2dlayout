@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function CircleShapeComp({ shape, isSelected, onClick, onDoubleClick, children }: Props) {
-  const { transform, fill, stroke, clipChildren } = shape
+  const { transform, fill, stroke } = shape
   const { x, y, width, height } = transform
 
   return (
@@ -33,7 +33,6 @@ export function CircleShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
         opacity: fill.opacity,
         borderRadius: '50%',
         ...strokeBorderCSS(stroke),
-        overflow: clipChildren ? 'hidden' : 'visible',
         boxSizing: 'border-box',
       }}
       onClick={onClick}

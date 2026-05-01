@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function RectShape({ shape, isSelected, onClick, onDoubleClick, children }: Props) {
-  const { transform, fill, stroke, clipChildren } = shape
+  const { transform, fill, stroke } = shape
   const { x, y, width, height } = transform
 
   return (
@@ -34,7 +34,6 @@ export function RectShape({ shape, isSelected, onClick, onDoubleClick, children 
         opacity: fill.opacity,
         borderRadius: cornerRadiiCSS(shape.cornerRadius, shape.cornerRadii),
         ...strokeBorderCSS(stroke),
-        overflow: clipChildren ? 'hidden' : 'visible',
         boxSizing: 'border-box',
       }}
       onClick={onClick}

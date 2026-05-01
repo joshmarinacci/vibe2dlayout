@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -5,7 +6,6 @@ import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import { type Dispatch, type CSSProperties } from 'react'
 import type { ButtonShape, TextStyle } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { getButtonIcon } from '@utils/buttonIcons'
 import { useTextEdit, vAlignToJustify } from './useTextEdit'
@@ -28,18 +28,6 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
   const { textareaRef, onChange, onKeyDown, onClickTextarea } = useTextEdit({
     content: text.content, isEditing, shapeId: shape.id, dispatch,
   })
-
-  const pad = 2
-  const roughPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed: seedFromId(shape.id),
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : null
 
   const vJustify = vAlignToJustify(text.verticalAlign)
 
@@ -66,7 +54,7 @@ export function ButtonShapeComp({ shape, isSelected, isEditing, dispatch, onClic
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={roughPaths!} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
         </svg>
       ) : (
         <div style={{

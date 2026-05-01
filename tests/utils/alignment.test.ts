@@ -14,7 +14,6 @@ function makeRect(id: string, x: number, y: number, w: number, h: number): Shape
     fill: { color: '#ff0000', opacity: 1 },
     stroke: { type:'solid', color: '#000000', width: 1, opacity: 1, dash: [] },
     cornerRadius: 0,
-    clipChildren: false,
   }
 }
 

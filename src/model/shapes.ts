@@ -104,12 +104,10 @@ export interface RectShape extends ShapeBase, FilledShape, StrokedShape, Transfo
   type: 'rect'
   cornerRadius: number
   cornerRadii?: CornerRadii
-  clipChildren: boolean
 }
 
 export interface CircleShape extends ShapeBase, FilledShape, StrokedShape, TransformedShape {
   type: 'circle'
-  clipChildren: boolean
 }
 
 export interface LineShape extends ShapeBase, StrokedShape {

@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -35,17 +36,6 @@ export function TableShapeComp({ shape, isSelected, isEditing, dispatch, onClick
   const pad = 2
   const seed = seedFromId(shape.id)
 
-  // Hand-drawn paths
-  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   // Header row background (hand-drawn)
   const headerBgPaths = handDrawn && rows.length > 0 ? roughRect(pad, pad, width - pad * 2, Math.min(rowHeight, height - pad * 2), {
@@ -104,7 +94,7 @@ export function TableShapeComp({ shape, isSelected, isEditing, dispatch, onClick
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
           <RoughSvgPaths paths={headerBgPaths} />
           <RoughSvgPaths paths={hLinePaths} />
           <RoughSvgPaths paths={vLinePaths} />

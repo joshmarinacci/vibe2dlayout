@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -32,17 +33,6 @@ export function ListShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
   const rowHeight = text.fontSize + 10
   const pad = 2
   const seed = seedFromId(shape.id)
-
-  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   // Row separator lines
   const separatorPaths = handDrawn ? items.slice(0, -1).flatMap((_, i) => {
@@ -92,7 +82,7 @@ export function ListShapeComp({ shape, isSelected, isEditing, dispatch, onClick,
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
           <RoughSvgPaths paths={selectedRowPaths} />
           <RoughSvgPaths paths={separatorPaths} />
         </svg>

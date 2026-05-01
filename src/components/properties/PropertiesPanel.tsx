@@ -560,15 +560,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 patch: {cornerRadii: r}
                             })}
                         />
-                        <ToggleInput
-                            label="Clip"
-                            value={shape.clipChildren}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {clipChildren: v}
-                            })}
-                        />
                     </CollapsibleSection>
                     {common}
                 </>

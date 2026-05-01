@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -5,7 +6,7 @@ import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { StickyNoteShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
+import { roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { useTextEdit } from './useTextEdit'
 import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
@@ -37,16 +38,6 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
   const clipPath = `polygon(0 0, ${width - FOLD}px 0, ${width}px ${FOLD}px, ${width}px ${height}px, 0 ${height}px)`
 
   // Hand-drawn paths: body rect + two fold lines
-  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   // The fold shadow line (horizontal, then vertical)
   const foldH = handDrawn ? roughLine(width - FOLD - pad, pad, width - pad, FOLD + pad, {
@@ -80,7 +71,7 @@ export function StickyNoteShapeComp({ shape, isSelected, isEditing, dispatch, on
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
           <RoughSvgPaths paths={foldH} />
         </svg>
       ) : (

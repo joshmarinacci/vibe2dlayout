@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -25,7 +26,6 @@ interface Props {
 export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick, handDrawn, children }: Props) {
   const { transform, fill, stroke, cornerRadius, scrollPosition, clipChildren } = shape
   const { x, y, width, height } = transform
-  const pad = 2
   const seed = seedFromId(shape.id)
 
   // Scrollbar geometry
@@ -37,16 +37,6 @@ export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick
   const thumbTop = trackTop + scrollPosition * thumbMaxTop
   const sbX = width - SCROLLBAR_W - 2
 
-  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   const sbTrackPaths = handDrawn ? roughRect(sbX, trackTop, SCROLLBAR_W, trackH, {
     seed: seed + 2,
@@ -91,7 +81,7 @@ export function ScrollPanelShapeComp({ shape, isSelected, onClick, onDoubleClick
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
           <RoughSvgPaths paths={sbTrackPaths} />
           <RoughSvgPaths paths={sbThumbPaths} />
         </svg>

@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -5,7 +6,6 @@ import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import type { Dispatch } from 'react'
 import type { FrameShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import styles from './Shape.module.css'
 
@@ -22,19 +22,6 @@ interface Props {
 export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, children, handDrawn }: Props) {
   const { transform, fill, stroke, clipChildren } = shape
   const { x, y, width, height } = transform
-
-  const seed = seedFromId(shape.id)
-  const pad = 2
-  const paths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   return (
     <div
@@ -60,7 +47,7 @@ export function FrameShapeComp({ shape, isSelected, onClick, onDoubleClick, chil
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={paths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
         </svg>
       ) : (
         <div style={{

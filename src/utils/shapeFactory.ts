@@ -36,7 +36,6 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         fill: themeFill(),
         stroke: themeStroke(),
         cornerRadius: bdrR,
-        clipChildren: false,
       }
     case 'circle':
       return {
@@ -44,7 +43,6 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         transform: defaultTransform(x, y, 80, 80),
         fill: themeFill(),
         stroke: themeStroke(),
-        clipChildren: false,
       }
     case 'line':
       return {

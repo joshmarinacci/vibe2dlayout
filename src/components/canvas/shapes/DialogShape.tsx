@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -29,17 +30,6 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
   const pad = 2
 
   const seed = seedFromId(shape.id)
-
-  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   const titleDivider = handDrawn ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
     seed: seed + 1,
@@ -103,7 +93,7 @@ export function DialogShapeComp({ shape, isSelected, onClick, onDoubleClick, chi
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
           <RoughSvgPaths paths={titleDivider} />
           <RoughSvgPaths paths={footerDivider} />
           <RoughSvgPaths paths={cancelBtnPaths} />

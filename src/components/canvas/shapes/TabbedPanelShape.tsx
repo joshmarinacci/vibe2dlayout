@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -5,7 +6,7 @@ import { strokeBorderCSS, cornerRadiiCSS } from '@utils/strokeStyleCSS'
 import { useRef, useEffect, type Dispatch } from 'react'
 import type { TabbedPanelShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, roughLine, seedFromId } from '@utils/roughPaths'
+import { roughLine, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import styles from './Shape.module.css'
 
@@ -50,16 +51,6 @@ export function TabbedPanelShapeComp({ shape, isSelected, isEditing, dispatch, o
   const pad = 2
 
   const seed = seedFromId(shape.id)
-  const bodyPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.4,
-    bowing: 1,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   const dividerPaths = handDrawn ? roughLine(pad, tabBarHeight, width - pad, tabBarHeight, {
     seed: seed + 1,
@@ -105,7 +96,7 @@ export function TabbedPanelShapeComp({ shape, isSelected, isEditing, dispatch, o
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={bodyPaths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
           <RoughSvgPaths paths={dividerPaths} />
           <RoughSvgPaths paths={tabSeparatorPaths} />
         </svg>

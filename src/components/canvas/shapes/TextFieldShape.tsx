@@ -1,3 +1,4 @@
+import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import { buildCSSTransform } from '@model/transform'
 import { boxShadowCSS } from '@utils/shadowCSS'
 import { fillBackground } from '@utils/fillCSS'
@@ -5,7 +6,6 @@ import { strokeBorderCSS } from '@utils/strokeStyleCSS'
 import { useRef, useEffect, type Dispatch } from 'react'
 import type { TextFieldShape } from '@model/shapes'
 import type { AppAction } from '@store/types'
-import { roughRect, seedFromId } from '@utils/roughPaths'
 import { RoughSvgPaths } from '@utils/RoughSvgPaths'
 import { textExtraCSS, textGradientSpanCSS } from '@utils/textStyleCSS'
 import styles from './Shape.module.css'
@@ -44,18 +44,6 @@ export function TextFieldShapeComp({ shape, isSelected, isEditing, handDrawn, di
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing])
 
-  const pad = 2
-  const seed = seedFromId(shape.id)
-  const roughPaths = handDrawn ? roughRect(pad, pad, width - pad * 2, height - pad * 2, {
-    seed,
-    roughness: 1.2,
-    bowing: 0.5,
-    fill: fill.color === 'transparent' ? undefined : fill.color,
-    fillStyle: 'solid',
-    fillWeight: 1,
-    stroke: stroke.color,
-    strokeWidth: stroke.width,
-  }) : []
 
   const showPlaceholder = !text.content
 
@@ -81,7 +69,7 @@ export function TextFieldShapeComp({ shape, isSelected, isEditing, handDrawn, di
           width={width}
           height={height}
         >
-          <RoughSvgPaths paths={roughPaths} />
+          <RoughSvgPaths paths={makeRoughRect(shape)} />
         </svg>
       ) : (
         <div style={{
