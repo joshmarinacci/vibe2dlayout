@@ -29,30 +29,30 @@ npm run build      # production build
 
 ## Tools (Toolbar)
 
-| Icon | Mode | Description |
-|------|------|-------------|
-| ↖ | Select | Select, move, resize shapes |
-| ✋ | Pan | Pan the canvas |
-| ▭ | Rectangle | Draw a rectangle |
-| ○ | Circle | Draw a circle |
-| / | Line | Draw a connector line |
-| T | Text | Add a text shape |
-| 🖼 | Image | Add an image (upload after placing) |
-| ⬜ | Button | Add a button UI component |
-| ⊡ | Panel | Add a panel UI component |
-| ⊟ | Slider | Add a slider UI component |
-| 📄 | Page | Add a nested page |
+| Icon | Mode      | Description                         |
+|------|-----------|-------------------------------------|
+| ↖    | Select    | Select, move, resize shapes         |
+| ✋    | Pan       | Pan the canvas                      |
+| ▭    | Rectangle | Draw a rectangle                    |
+| ○    | Circle    | Draw a circle                       |
+| /    | Line      | Draw a connector line               |
+| T    | Text      | Add a text shape                    |
+| 🖼   | Image     | Add an image (upload after placing) |
+| ⬜    | Button    | Add a button UI component           |
+| ⊡    | Panel     | Add a panel UI component            |
+| ⊟    | Slider    | Add a slider UI component           |
+| 📄   | Page      | Add a nested page                   |
 
 ## Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| Cmd/Ctrl+Z | Undo |
-| Cmd/Ctrl+Shift+Z | Redo |
-| Cmd/Ctrl+A | Select all |
-| Delete / Backspace | Delete selected shapes |
-| Escape | Deselect / stop text edit |
-| Arrow keys | Nudge 1px (Shift: 10px) |
+| Key                | Action                    |
+|--------------------|---------------------------|
+| Cmd/Ctrl+Z         | Undo                      |
+| Cmd/Ctrl+Shift+Z   | Redo                      |
+| Cmd/Ctrl+A         | Select all                |
+| Delete / Backspace | Delete selected shapes    |
+| Escape             | Deselect / stop text edit |
+| Arrow keys         | Nudge 1px (Shift: 10px)   |
 
 ## File Format
 

@@ -1,73 +1,73 @@
 .row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  height: 26px;
-  cursor: pointer;
-  user-select: none;
-  border-left: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    height: 26px;
+    cursor: pointer;
+    user-select: none;
+    border-left: 2px solid transparent;
 }
 
 .row:hover {
-  background: var(--color-bg-panel);
+    background: var(--color-bg-panel);
 }
 
 .selected {
-  background: var(--color-accent-subtle);
-  border-left-color: var(--color-accent);
+    background: var(--color-accent-subtle);
+    border-left-color: var(--color-accent);
 }
 
 .selected:hover {
-  background: var(--color-selected-hover);
+    background: var(--color-selected-hover);
 }
 
 .icon {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
 }
 
 .name {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
 }
 
 .nameInput {
-  flex: 1;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-accent);
-  border-radius: 2px;
-  padding: 1px 4px;
-  outline: none;
-  background: var(--color-bg-surface);
-  min-width: 0;
+    flex: 1;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-accent);
+    border-radius: 2px;
+    padding: 1px 4px;
+    outline: none;
+    background: var(--color-bg-surface);
+    min-width: 0;
 }
 
 .addPageBtn {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
 }
 
 .addPageBtn:hover {
-  background: var(--color-bg-hover);
-  color: var(--color-text-primary);
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
 }
 
 .row:hover .addPageBtn {
-  display: flex;
+    display: flex;
 }

@@ -1,9 +1,9 @@
 .shape {
-  cursor: move;
-  pointer-events: all;
+    cursor: move;
+    pointer-events: all;
 }
 
 .selected {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
 }

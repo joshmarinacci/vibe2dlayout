@@ -1,37 +1,37 @@
-import type { BoundingBox } from '@model/transform'
+import type {BoundingBox} from '@model/transform'
 
 export interface GuideLines {
-  x: number | null  // canvas-space X of a vertical guide line
-  y: number | null  // canvas-space Y of a horizontal guide line
+    x: number | null  // canvas-space X of a vertical guide line
+    y: number | null  // canvas-space Y of a horizontal guide line
 }
 
 export interface AlignSnapResult {
-  snappedDx: number
-  snappedDy: number
-  guides: GuideLines
+    snappedDx: number
+    snappedDy: number
+    guides: GuideLines
 }
 
 function snapEdges(b: BoundingBox) {
-  return {
-    left: b.x,
-    centerX: b.x + b.width / 2,
-    right: b.x + b.width,
-    top: b.y,
-    centerY: b.y + b.height / 2,
-    bottom: b.y + b.height,
-  }
+    return {
+        left: b.x,
+        centerX: b.x + b.width / 2,
+        right: b.x + b.width,
+        top: b.y,
+        centerY: b.y + b.height / 2,
+        bottom: b.y + b.height,
+    }
 }
 
 /**
  * Compute the union bounding box of an array of boxes.
  */
 export function unionOfBoxes(boxes: BoundingBox[]): BoundingBox {
-  if (boxes.length === 0) return { x: 0, y: 0, width: 0, height: 0, rotation: 0 }
-  const left   = Math.min(...boxes.map(b => b.x))
-  const top    = Math.min(...boxes.map(b => b.y))
-  const right  = Math.max(...boxes.map(b => b.x + b.width))
-  const bottom = Math.max(...boxes.map(b => b.y + b.height))
-  return { x: left, y: top, width: right - left, height: bottom - top, rotation: 0 }
+    if (boxes.length === 0) return {x: 0, y: 0, width: 0, height: 0, rotation: 0}
+    const left = Math.min(...boxes.map(b => b.x))
+    const top = Math.min(...boxes.map(b => b.y))
+    const right = Math.max(...boxes.map(b => b.x + b.width))
+    const bottom = Math.max(...boxes.map(b => b.y + b.height))
+    return {x: left, y: top, width: right - left, height: bottom - top, rotation: 0}
 }
 
 /**
@@ -50,87 +50,87 @@ export function unionOfBoxes(boxes: BoundingBox[]): BoundingBox {
  * @param yGuides  Extra horizontal snap lines (user guides / page bounds) — canvas-space y positions
  */
 export function computeAlignmentSnap(
-  candidateBox: BoundingBox,
-  referenceBoxes: BoundingBox[],
-  rawDx: number,
-  rawDy: number,
-  threshold: number,
-  xGuides: number[] = [],
-  yGuides: number[] = [],
+    candidateBox: BoundingBox,
+    referenceBoxes: BoundingBox[],
+    rawDx: number,
+    rawDy: number,
+    threshold: number,
+    xGuides: number[] = [],
+    yGuides: number[] = [],
 ): AlignSnapResult {
-  const ce = snapEdges(candidateBox)
-  const candidateXs = [ce.left, ce.centerX, ce.right]
-  const candidateYs = [ce.top, ce.centerY, ce.bottom]
+    const ce = snapEdges(candidateBox)
+    const candidateXs = [ce.left, ce.centerX, ce.right]
+    const candidateYs = [ce.top, ce.centerY, ce.bottom]
 
-  let bestXDelta = 0
-  let bestXGuide: number | null = null
-  let bestXDist = threshold
+    let bestXDelta = 0
+    let bestXGuide: number | null = null
+    let bestXDist = threshold
 
-  let bestYDelta = 0
-  let bestYGuide: number | null = null
-  let bestYDist = threshold
+    let bestYDelta = 0
+    let bestYGuide: number | null = null
+    let bestYDist = threshold
 
-  for (const ref of referenceBoxes) {
-    const re = snapEdges(ref)
-    const refXs = [re.left, re.centerX, re.right]
-    const refYs = [re.top, re.centerY, re.bottom]
+    for (const ref of referenceBoxes) {
+        const re = snapEdges(ref)
+        const refXs = [re.left, re.centerX, re.right]
+        const refYs = [re.top, re.centerY, re.bottom]
 
-    for (const cx of candidateXs) {
-      for (const rx of refXs) {
-        const diff = rx - cx
-        const dist = Math.abs(diff)
-        if (dist <= bestXDist) {
-          bestXDist = dist
-          bestXDelta = diff
-          bestXGuide = rx
+        for (const cx of candidateXs) {
+            for (const rx of refXs) {
+                const diff = rx - cx
+                const dist = Math.abs(diff)
+                if (dist <= bestXDist) {
+                    bestXDist = dist
+                    bestXDelta = diff
+                    bestXGuide = rx
+                }
+            }
         }
-      }
-    }
 
-    for (const cy of candidateYs) {
-      for (const ry of refYs) {
-        const diff = ry - cy
-        const dist = Math.abs(diff)
-        if (dist <= bestYDist) {
-          bestYDist = dist
-          bestYDelta = diff
-          bestYGuide = ry
+        for (const cy of candidateYs) {
+            for (const ry of refYs) {
+                const diff = ry - cy
+                const dist = Math.abs(diff)
+                if (dist <= bestYDist) {
+                    bestYDist = dist
+                    bestYDelta = diff
+                    bestYGuide = ry
+                }
+            }
         }
-      }
     }
-  }
 
-  // Also snap against user guide lines and page boundaries
-  for (const gx of xGuides) {
-    for (const cx of candidateXs) {
-      const diff = gx - cx
-      const dist = Math.abs(diff)
-      if (dist <= bestXDist) {
-        bestXDist = dist
-        bestXDelta = diff
-        bestXGuide = gx
-      }
+    // Also snap against user guide lines and page boundaries
+    for (const gx of xGuides) {
+        for (const cx of candidateXs) {
+            const diff = gx - cx
+            const dist = Math.abs(diff)
+            if (dist <= bestXDist) {
+                bestXDist = dist
+                bestXDelta = diff
+                bestXGuide = gx
+            }
+        }
     }
-  }
 
-  for (const gy of yGuides) {
-    for (const cy of candidateYs) {
-      const diff = gy - cy
-      const dist = Math.abs(diff)
-      if (dist <= bestYDist) {
-        bestYDist = dist
-        bestYDelta = diff
-        bestYGuide = gy
-      }
+    for (const gy of yGuides) {
+        for (const cy of candidateYs) {
+            const diff = gy - cy
+            const dist = Math.abs(diff)
+            if (dist <= bestYDist) {
+                bestYDist = dist
+                bestYDelta = diff
+                bestYGuide = gy
+            }
+        }
     }
-  }
 
-  return {
-    snappedDx: rawDx + bestXDelta,
-    snappedDy: rawDy + bestYDelta,
-    guides: {
-      x: bestXGuide,
-      y: bestYGuide,
-    },
-  }
+    return {
+        snappedDx: rawDx + bestXDelta,
+        snappedDy: rawDy + bestYDelta,
+        guides: {
+            x: bestXGuide,
+            y: bestYGuide,
+        },
+    }
 }

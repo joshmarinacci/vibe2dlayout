@@ -1,56 +1,56 @@
 .paletteTabs {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
 }
 
 .paletteTab {
-  padding: 2px 7px;
-  font-size: 11px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  line-height: 16px;
+    padding: 2px 7px;
+    font-size: 11px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    line-height: 16px;
 }
 
 .paletteTab:hover {
-  border-color: var(--color-text-disabled);
-  color: var(--color-text-secondary);
+    border-color: var(--color-text-disabled);
+    color: var(--color-text-secondary);
 }
 
 .paletteTabActive {
-  background: var(--color-accent-bg);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+    background: var(--color-accent-bg);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
 }
 
 .swatchRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  padding: 2px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 2px 0;
 }
 
 .paletteSwatch {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  transition: transform 0.1s;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: transform 0.1s;
 }
 
 .paletteSwatch:hover {
-  transform: scale(1.2);
-  border-color: rgba(0, 0, 0, 0.4);
+    transform: scale(1.2);
+    border-color: rgba(0, 0, 0, 0.4);
 }
 
 .paletteSwatchActive {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
-  border-color: transparent;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+    border-color: transparent;
 }

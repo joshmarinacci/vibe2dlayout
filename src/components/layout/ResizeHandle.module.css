@@ -1,13 +1,13 @@
 .handle {
-  flex: 0 0 4px;
-  background: transparent;
-  cursor: col-resize;
-  position: relative;
-  z-index: 10;
-  transition: background 0.15s;
+    flex: 0 0 4px;
+    background: transparent;
+    cursor: col-resize;
+    position: relative;
+    z-index: 10;
+    transition: background 0.15s;
 }
 
 .handle:hover,
 .handle:active {
-  background: var(--color-accent);
+    background: var(--color-accent);
 }

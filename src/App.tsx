@@ -1,10 +1,10 @@
-import { AppProvider } from '@store/context'
-import { AppShell } from '@components/layout/AppShell'
+import {AppShell} from '@components/layout/AppShell'
+import {AppProvider} from '@store/context'
 
 export default function App() {
-  return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
-  )
+    return (
+        <AppProvider>
+            <AppShell/>
+        </AppProvider>
+    )
 }

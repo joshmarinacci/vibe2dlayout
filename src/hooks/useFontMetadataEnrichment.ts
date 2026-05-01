@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react'
-import type { Dispatch } from 'react'
-import type { AppAction } from '@store/types'
-import type { CustomFont } from '@model/document'
-import { detectVariableAxes } from '@utils/fontFeatures'
+import type {CustomFont} from '@model/document'
+import type {AppAction} from '@store/types'
+import {detectVariableAxes} from '@utils/fontFeatures'
+import type {Dispatch} from 'react'
+import {useEffect, useRef} from 'react'
 
 /**
  * Watches customFonts for entries where isVariable === null (not yet detected).
@@ -11,32 +11,32 @@ import { detectVariableAxes } from '@utils/fontFeatures'
  * Uses a ref to avoid duplicate in-flight requests across re-renders.
  */
 export function useFontMetadataEnrichment(
-  customFonts: CustomFont[],
-  dispatch: Dispatch<AppAction>,
+    customFonts: CustomFont[],
+    dispatch: Dispatch<AppAction>,
 ): void {
-  const inFlight = useRef(new Set<string>())
+    const inFlight = useRef(new Set<string>())
 
-  useEffect(() => {
-    for (const font of customFonts) {
-      if (font.isVariable !== null) continue
-      if (inFlight.current.has(font.name)) continue
-      inFlight.current.add(font.name)
+    useEffect(() => {
+        for (const font of customFonts) {
+            if (font.isVariable !== null) continue
+            if (inFlight.current.has(font.name)) continue
+            inFlight.current.add(font.name)
 
-      detectVariableAxes(font.name).then(axes => {
-        inFlight.current.delete(font.name)
-        if (axes === null) {
-          // Detection failed (WOFF2-only or network) — leave isVariable as null
-          return
+            detectVariableAxes(font.name).then(axes => {
+                inFlight.current.delete(font.name)
+                if (axes === null) {
+                    // Detection failed (WOFF2-only or network) — leave isVariable as null
+                    return
+                }
+                dispatch({
+                    type: 'UPDATE_CUSTOM_FONT_META',
+                    fontName: font.name,
+                    patch: {
+                        isVariable: axes.length > 0,
+                        axes,
+                    },
+                })
+            })
         }
-        dispatch({
-          type: 'UPDATE_CUSTOM_FONT_META',
-          fontName: font.name,
-          patch: {
-            isVariable: axes.length > 0,
-            axes,
-          },
-        })
-      })
-    }
-  }, [customFonts, dispatch])
+    }, [customFonts, dispatch])
 }
