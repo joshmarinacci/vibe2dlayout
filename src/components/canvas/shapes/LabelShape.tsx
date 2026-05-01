@@ -115,6 +115,7 @@ export function LabelShapeComp({
                         textAlign: text.align,
                         outline: 'none',
                         padding: '0 2px',
+                        ...textExtraCSS(text),
                     }}
                     onChange={onChange}
                     onKeyDown={onKeyDown}

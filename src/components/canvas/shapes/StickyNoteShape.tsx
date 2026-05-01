@@ -124,6 +124,7 @@ export function StickyNoteShapeComp({
                             color: text.color,
                             outline: 'none',
                             padding: 0,
+                            ...textExtraCSS(text),
                         }}
                         onChange={onChange}
                         onKeyDown={onKeyDown}

@@ -97,6 +97,7 @@ export function TextFieldShapeComp({
                         color: text.color,
                         outline: 'none',
                         padding: '4px 8px',
+                        ...textExtraCSS(text),
                     }}
                     onChange={e => {
                         editValueRef.current = e.target.value

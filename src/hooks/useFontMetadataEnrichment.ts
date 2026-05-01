@@ -4,10 +4,12 @@ import {detectVariableAxes} from '@utils/fontFeatures'
 import type {Dispatch} from 'react'
 import {useEffect, useRef} from 'react'
 
+const CURRENT_FONT_METADATA_VERSION = 6
+
 /**
- * Watches customFonts for entries where isVariable === null (not yet detected).
- * For each, fetches the font file via opentype.js and dispatches UPDATE_CUSTOM_FONT_META
- * with the detected variable status and axes.
+ * Watches customFonts for entries whose metadata is missing or outdated.
+ * For each, uses Google Fonts CSS probing plus font parsing to discover the
+ * available variable axes, with CSS inspection as a fallback.
  * Uses a ref to avoid duplicate in-flight requests across re-renders.
  */
 export function useFontMetadataEnrichment(
@@ -18,7 +20,7 @@ export function useFontMetadataEnrichment(
 
     useEffect(() => {
         for (const font of customFonts) {
-            if (font.isVariable !== null) continue
+            if (font.metadataVersion === CURRENT_FONT_METADATA_VERSION && font.isVariable !== null) continue
             if (inFlight.current.has(font.name)) continue
             inFlight.current.add(font.name)
 
@@ -32,6 +34,7 @@ export function useFontMetadataEnrichment(
                     type: 'UPDATE_CUSTOM_FONT_META',
                     fontName: font.name,
                     patch: {
+                        metadataVersion: CURRENT_FONT_METADATA_VERSION,
                         isVariable: axes.length > 0,
                         axes,
                     },

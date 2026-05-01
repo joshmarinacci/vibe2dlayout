@@ -122,6 +122,7 @@ export function TableShapeComp({
                         color: text.color,
                         outline: 'none',
                         padding: '2px 4px',
+                        ...textExtraCSS(text),
                         zIndex: 2,
                     }}
                     onChange={onChange}

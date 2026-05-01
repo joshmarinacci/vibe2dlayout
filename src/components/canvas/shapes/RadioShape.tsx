@@ -124,6 +124,7 @@ export function RadioShapeComp({
                         color: text.color,
                         outline: 'none',
                         padding: '0 2px',
+                        ...textExtraCSS(text),
                     }}
                     onChange={onChange}
                     onKeyDown={onKeyDown}

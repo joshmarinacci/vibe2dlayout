@@ -49,7 +49,10 @@ export function fromJSON(json: string): VibeDocument {
         docObj.customFonts = []
     } else {
         docObj.customFonts = (docObj.customFonts as unknown[]).map(f =>
-            typeof f === 'string' ? {name: f, isVariable: null, axes: []} : f
+            typeof f === 'string' ? {name: f, metadataVersion: 0, isVariable: null, axes: []} : {
+                metadataVersion: 0,
+                ...(f as Record<string, unknown>),
+            }
         )
     }
     // Migrate older docs missing snapAlignment in gridSettings

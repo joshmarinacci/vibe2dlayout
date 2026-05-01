@@ -62,6 +62,9 @@ export function textStyleToCss(text: TextStyle, selector: string): string {
             .map(([tag, v]) => `'${tag}' ${v}`)
             .join(', ')
         rules.push(`font-variation-settings: ${val};`)
+        if ('opsz' in text.fontVariationSettings) {
+            rules.push('font-optical-sizing: none;')
+        }
     }
 
     const indent = '  '

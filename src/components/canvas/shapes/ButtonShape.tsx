@@ -81,6 +81,7 @@ export function ButtonShapeComp({
                         textAlign: text.align,
                         outline: 'none',
                         padding: '4px 8px',
+                        ...textExtraCSS(text),
                         pointerEvents: 'all',
                     }}
                     onChange={onChange}

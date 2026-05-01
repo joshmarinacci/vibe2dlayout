@@ -56,6 +56,21 @@ const WEIGHT_VALUE_TO_NUM: Record<string, number> = {
     '600': 600, '700': 700, '800': 800, '900': 900,
 }
 
+function fontWeightToNumber(weight: TextStyle['fontWeight']): number {
+    return WEIGHT_VALUE_TO_NUM[weight] ?? 400
+}
+
+function axisStep(axis: { min: number; max: number; default: number }): number {
+    return [axis.min, axis.max, axis.default].every(Number.isInteger) ? 1 : 0.1
+}
+
+function axisValueForText(text: TextStyle, axis: { tag: string; default: number }): number {
+    const explicit = text.fontVariationSettings?.[axis.tag]
+    if (explicit !== undefined) return explicit
+    if (axis.tag === 'wght') return fontWeightToNumber(text.fontWeight)
+    return axis.default
+}
+
 // Returns the subset of ALL_WEIGHT_OPTIONS that the given font family supports,
 // based on loaded FontFace descriptors. Falls back to all weights for system fonts.
 function detectAvailableWeights(fontFamily: string): typeof ALL_WEIGHT_OPTIONS {
@@ -673,8 +688,9 @@ export function TextSection({
             {/* 9 — Variable font axes */}
             {activeFont?.isVariable === true && activeFont.axes.length > 0 && (
                 <>
-                    {activeFont.axes.map(axis => {
-                        const val = text.fontVariationSettings?.[axis.tag] ?? axis.default
+                    {activeFont.axes.filter(axis => axis.tag !== 'ital').map(axis => {
+                        const val = axisValueForText(text, axis)
+                        const step = axisStep(axis)
                         const onChange = (v: number) => applyChange({
                             fontVariationSettings: {
                                 ...(rawText.fontVariationSettings ?? {}),
@@ -684,18 +700,18 @@ export function TextSection({
                         return (
                             <div key={axis.tag}>
                                 <NumberInput
-                                    label={axis.tag}
+                                    label={axis.name ? `${axis.name} (${axis.tag})` : axis.tag}
                                     value={val}
                                     min={axis.min}
                                     max={axis.max}
-                                    step={1}
+                                    step={step}
                                     onChange={onChange}
                                 />
                                 <input
                                     type="range"
                                     min={axis.min}
                                     max={axis.max}
-                                    step={1}
+                                    step={step}
                                     value={val}
                                     onChange={e => onChange(Number(e.target.value))}
                                     style={{
@@ -707,6 +723,13 @@ export function TextSection({
                             </div>
                         )
                     })}
+                    {hasStyle && overrides.has('fontVariationSettings') && (
+                        <button className={styles.resetOverrideBtn}
+                                onClick={() => resetOverride('fontVariationSettings')}
+                                title="Reset to style">
+                            <RotateCcw size={10}/>
+                        </button>
+                    )}
                 </>
             )}
 

@@ -82,6 +82,7 @@ export function TextShapeComp({
                         textAlign: text.align,
                         outline: 'none',
                         padding: '4px 8px',
+                        ...textExtraCSS(text),
                     }}
                     onChange={onChange}
                     onKeyDown={onKeyDown}

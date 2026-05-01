@@ -24,6 +24,9 @@ export function textExtraCSS(
         result.fontVariationSettings = Object.entries(text.fontVariationSettings)
             .map(([tag, v]) => `'${tag}' ${v}`)
             .join(', ')
+        if ('opsz' in text.fontVariationSettings) {
+            result.fontOpticalSizing = 'none'
+        }
     }
     return result
 }

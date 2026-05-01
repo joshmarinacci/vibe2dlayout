@@ -109,6 +109,7 @@ export function ListShapeComp({
                         color: text.color,
                         outline: 'none',
                         padding: 0,
+                        ...textExtraCSS(text),
                         zIndex: 1,
                     }}
                     onChange={onChange}

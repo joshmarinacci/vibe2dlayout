@@ -470,6 +470,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 customFonts: (d.customFonts ?? []).map((f: unknown) =>
                     typeof f === 'string' ? {
                         name: f,
+                        metadataVersion: 0,
                         isVariable: null as null,
                         axes: []
                     } : f as CustomFont

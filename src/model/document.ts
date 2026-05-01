@@ -31,6 +31,7 @@ export interface PageFolder {
 
 export interface FontAxis {
     tag: string        // e.g. "wght" | "wdth" | "ital" | "opsz" | custom
+    name?: string
     min: number
     max: number
     default: number
@@ -38,6 +39,7 @@ export interface FontAxis {
 
 export interface CustomFont {
     name: string
+    metadataVersion?: number
     isVariable: boolean | null  // null = detection not yet run or failed (e.g. WOFF2-only)
     axes: FontAxis[]
 }

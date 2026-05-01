@@ -18,7 +18,7 @@ const MAX_SIDEBAR = 500
 export function AppShell() {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
-    useDynamicFonts(state.document.customFonts.map(f => f.name))
+    useDynamicFonts(state.document.customFonts)
     useFontMetadataEnrichment(state.document.customFonts, dispatch)
 
     const [leftWidth, setLeftWidth] = useState(220)

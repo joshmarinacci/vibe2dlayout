@@ -6,6 +6,7 @@ import {fillBackground} from '@utils/fillCSS'
 import {roughLine, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
 import {cornerRadiiCSS, strokeBorderCSS} from '@utils/strokeStyleCSS'
+import {textExtraCSS} from '@utils/textStyleCSS'
 import {type Dispatch, useEffect, useRef} from 'react'
 
 interface Props {
@@ -145,6 +146,7 @@ export function TabbedPanelShapeComp({
                             color: text.color,
                             outline: 'none',
                             padding: '4px 8px',
+                            ...textExtraCSS(text),
                         }}
                         onChange={e => {
                             editValueRef.current = e.target.value

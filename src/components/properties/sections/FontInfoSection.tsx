@@ -36,7 +36,7 @@ export function FontInfoSection({font, dispatch}: Props) {
                     {font.axes.map(axis => (
                         <div key={axis.tag} className={styles.row}>
               <span className={styles.label} style={{fontFamily: 'ui-monospace, monospace'}}>
-                {axis.tag}
+                {axis.name ? `${axis.name} (${axis.tag})` : axis.tag}
               </span>
                             <span className={styles.value}>
                 {axis.min} – {axis.default} – {axis.max}

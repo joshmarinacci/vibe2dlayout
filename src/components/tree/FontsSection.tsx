@@ -51,7 +51,7 @@ export function FontsSection({customFonts, selectedFontName, dispatch}: Props) {
             setValidationError(`"${name}" was not found in Google Fonts.`)
             return
         }
-        dispatch({type: 'ADD_CUSTOM_FONT', font: {name, isVariable: null, axes: []}})
+        dispatch({type: 'ADD_CUSTOM_FONT', font: {name, metadataVersion: 0, isVariable: null, axes: []}})
         cancel()
     }
 
