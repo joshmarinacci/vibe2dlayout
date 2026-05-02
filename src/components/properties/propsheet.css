@@ -68,3 +68,61 @@ details.collapsible-section {
     flex-direction: row;
     align-items: center;
 }
+
+
+.tabbed-panel-panel {
+    border: 1px solid var(--color-border);
+    grid-column: 1 / span 4;
+    .tabbed-panel-tabs {
+        display: flex;
+        flex-direction: row;
+        .tabbed-panel-tab {
+            border: 1px solid var(--color-border);
+            padding: 0.25rem 0.5rem;
+            color: var(--color-text-muted);
+            border-width: 0 1px 1px 0px;
+            &.selected {
+                color: var(--color-accent);
+                background-color: var(--color-accent-bg);
+            }
+        }
+    }
+
+    .tabbed-panel-content {
+        padding: 0.5rem;
+        &.hidden {
+            display: none;
+        }
+
+    }
+
+}
+
+section {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+
+    .col1 {
+        grid-column: 1;
+    }
+    .col2 {
+        grid-column: 2;
+    }
+    .col3 {
+        grid-column: 3;
+    }
+    .col4 {
+        grid-column: 4;
+    }
+    .span2 {
+        grid-column: 3 / span 2;
+        border: 1px solid red;
+    }
+    .col1span2 {
+        grid-column: 1/span 2;
+    }
+    .col3span2 {
+        grid-column: 3/span 2;
+    }
+}
+

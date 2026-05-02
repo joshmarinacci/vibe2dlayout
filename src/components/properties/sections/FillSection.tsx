@@ -1,9 +1,10 @@
 import type {FillStyle, LinearGradient} from '@model/shapes'
 import type {Variable} from '@model/variable'
+import React, {useState} from "react";
 import {CollapsibleSection} from '../CollapsibleSection'
 import {ColorInput} from '../inputs/ColorInput'
-import inputStyles from '../inputs/inputs.module.css'
 import {NumberInput} from '../inputs/NumberInput'
+import "../propsheet.css"
 
 interface VarProps {
     variableId?: string | null
@@ -14,8 +15,6 @@ interface VarProps {
 interface Props {
     fill: FillStyle
     onChange: (f: FillStyle) => void
-    colorVar?: VarProps
-    opacityVar?: VarProps
 }
 
 const DEFAULT_GRADIENT: LinearGradient = {
@@ -27,8 +26,51 @@ const DEFAULT_GRADIENT: LinearGradient = {
     ],
 }
 
-export function FillSection({fill, onChange, colorVar, opacityVar}: Props) {
-    const isGradient = !!fill.gradient
+type FillType = 'color' | 'gradient' | 'sketch'
+
+function TabbedPanelTab<T>(props: {
+    title: string,
+    tab: T,
+    selectedTab: T,
+    setSelectedTab: (value: (((prevState: T) => T) | T)) => void,
+    onChange?: () => void
+}) {
+    return <div
+        className={'tabbed-panel-tab ' + ((props.tab === props.selectedTab) ? 'selected' : 'hidden')}
+        onClick={() => {
+            props.setSelectedTab(props.tab)
+            if (props.onChange) {
+                props.onChange()
+            }
+        }}
+    >
+        {props.title}
+    </div>
+}
+
+function TabbedPanelContent<T>(props: {
+    children: React.ReactNode,
+    tab: T,
+    selectedTab: T,
+    setSelectedTab: (value: (((prevState: T) => T) | T)) => void
+}) {
+    return <div
+        className={'tabbed-panel-content ' + ((props.tab === props.selectedTab) ? 'selected' : 'hidden')}>
+        {props.children}
+    </div>
+}
+
+function TabbedPanel(props: { children: React.ReactNode }) {
+    return <div className={'tabbed-panel-panel'}>
+        {props.children}
+    </div>
+}
+
+function TabbedPanelTabs(props: { children: React.ReactNode }) {
+    return <div className={'tabbed-panel-tabs'}>{props.children}</div>
+}
+
+export function FillSection({fill, onChange}: Props) {
     const gradient = fill.gradient ?? DEFAULT_GRADIENT
 
     const switchToGradient = () => {
@@ -74,55 +116,56 @@ export function FillSection({fill, onChange, colorVar, opacityVar}: Props) {
         patchGradient({...gradient, stops})
     }
 
+    const [selectedTab, setSelectedTab] = useState<FillType>("color")
+
+    const tabProps = {
+        selectedTab: selectedTab,
+        setSelectedTab: setSelectedTab
+    }
     return (
         <CollapsibleSection title="Fill">
-
-            {/* Solid / Gradient mode toggle */}
-            <div className={inputStyles.field}>
-                <span className={inputStyles.label}>Mode</span>
-                <div className={inputStyles.iconBtnGroup}>
-                    <button
-                        className={`${inputStyles.iconBtn} ${!isGradient ? inputStyles.iconBtnActive : ''}`}
-                        onClick={switchToSolid}
-                        title="Solid color"
-                        style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
-                    >
-                        Solid
-                    </button>
-                    <button
-                        className={`${inputStyles.iconBtn} ${isGradient ? inputStyles.iconBtnActive : ''}`}
-                        onClick={switchToGradient}
-                        title="Linear gradient"
-                        style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
-                    >
-                        Gradient
-                    </button>
-                </div>
-            </div>
-
-            {!isGradient ? (
-                <>
-                    <ColorInput
-                        label="Color"
-                        value={{color: fill.color, paletteColorId: fill.paletteColorId}}
-                        onChange={ref => onChange({
-                            ...fill,
-                            color: ref.color,
-                            paletteColorId: ref.paletteColorId
-                        })}
-                        {...colorVar}
-                    />
-                    <NumberInput
-                        label="Opacity"
-                        value={Math.round(fill.opacity * 100)}
-                        min={0} max={100}
-                        onChange={v => onChange({...fill, opacity: v / 100})}
-                        unit="%"
-                        {...opacityVar}
-                    />
-                </>
-            ) : (
-                <>
+            <TabbedPanel>
+                <TabbedPanelTabs>
+                    <TabbedPanelTab tab={'color'} title={'Color'}
+                                    onChange={() => switchToSolid()} {...tabProps} />
+                    <TabbedPanelTab tab={'gradient'} title={'Gradient'} {...tabProps}
+                                    onChange={() => switchToGradient()}/>
+                    <TabbedPanelTab tab={'sketch'} title={'Sketch'} {...tabProps} onChange={() => {
+                        console.log("switch to sketch  mode");
+                    }}/>
+                </TabbedPanelTabs>
+                <TabbedPanelContent tab={'color'} {...tabProps}>
+                    <section>
+                        <ColorInput
+                            value={{color: fill.color, paletteColorId: fill.paletteColorId}}
+                            onChange={ref => onChange({
+                                ...fill,
+                                color: ref.color,
+                                paletteColorId: ref.paletteColorId
+                            })}
+                        />
+                        <div style={{gridColumn:'1/span 4', display:'grid', gridTemplateColumns:'subgrid'}}>
+                            <label>Opacity</label>
+                            <input type={'range'}
+                                   value={Math.round(fill.opacity * 100)}
+                                   min={0} max={100}
+                                   onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
+                                   style={{
+                                       minWidth:'20px',
+                                   }}
+                               />
+                            <input type={'number'}
+                                   value={Math.round(fill.opacity * 100)}
+                                   min={0} max={100}
+                                   onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
+                            />
+                            <label style={{gridColumn:'4'}}>%</label>
+                        </div>
+                        <button style={{gridColumn:'1/span 1',justifySelf:'center'}}>RGB/HSV</button>
+                        <button style={{gridColumn:'3/span 1',justifySelf:'center'}}>Palettes</button>
+                    </section>
+                </TabbedPanelContent>
+                <TabbedPanelContent tab={'gradient'} {...tabProps}>
                     <NumberInput
                         label="Angle"
                         value={gradient.angle}
@@ -176,16 +219,20 @@ export function FillSection({fill, onChange, colorVar, opacityVar}: Props) {
                         + Add stop
                     </button>
 
-                    <NumberInput
-                        label="Opacity"
-                        value={Math.round(fill.opacity * 100)}
-                        min={0} max={100}
-                        onChange={v => onChange({...fill, opacity: v / 100})}
-                        unit="%"
-                        {...opacityVar}
-                    />
-                </>
-            )}
+                    <section>
+                        <NumberInput
+                            label="Opacity"
+                            value={Math.round(fill.opacity * 100)}
+                            min={0} max={100}
+                            onChange={v => onChange({...fill, opacity: v / 100})}
+                            unit="%"
+                        />
+                    </section>
+                </TabbedPanelContent>
+                <TabbedPanelContent tab={'sketch'} {...tabProps}>
+                    <div>some content 3</div>
+                </TabbedPanelContent>
+            </TabbedPanel>
         </CollapsibleSection>
     )
 }
