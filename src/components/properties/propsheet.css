@@ -32,6 +32,9 @@ details.collapsible-section {
             grid-template-columns: subgrid;
             align-items: center;
         }
+        .span-full-grid {
+            grid-column: 1 / span 4;
+        }
         label {
             grid-column-start: 1;
         }
