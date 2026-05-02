@@ -76,10 +76,6 @@ export interface TextStyle {
     textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
     fontVariantCaps?: 'normal' | 'small-caps'
     fontVariationSettings?: Record<string, number>  // e.g. { wght: 600, wdth: 75 }
-    // Named style reference — see src/model/textStyle.ts
-    textStyleId?: string
-    // Fields explicitly overridden from the style (not inherited)
-    textStyleOverrides?: string[]
 }
 
 export type ArrowType = 'none' | 'arrow' | 'circle' | 'diamond'

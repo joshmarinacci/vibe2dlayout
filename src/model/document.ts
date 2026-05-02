@@ -3,7 +3,6 @@ import type {ImageAsset} from './imageAsset'
 import type {ColorPalette} from './palette'
 import type {PixelAsset} from './pixelAsset'
 import type {Shape} from './shapes'
-import type {TextStyleDef} from './textStyle'
 import type {Theme} from './theme'
 import type {Variable} from './variable'
 
@@ -53,7 +52,6 @@ export interface VibeDocument {
     activeThemeId: string       // which theme applies to new shapes
     gridSettings: GridSettings  // document-level grid / snap settings
     pageFolders: PageFolder[]   // organizational folders for pages (UI-only, no canvas presence)
-    textStyles: TextStyleDef[]  // named text style definitions
     variables: Variable[]       // named document-level variables
     images: ImageAsset[]        // document-level image asset registry
     pixelAssets: PixelAsset[]   // pixel image asset registry

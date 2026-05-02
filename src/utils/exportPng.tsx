@@ -70,7 +70,6 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
                     },
                     handDrawn: theme.handDrawn,
                     themeFontFamily: theme.fontFamily,
-                    textStyles: state.document.textStyles,
                     variables: state.document.variables,
                 })
             )

@@ -11,7 +11,6 @@ import {FontsSection} from './FontsSection'
 import {PageFolderRow} from './PageFolderRow'
 import {PixelAssetsSection} from './PixelAssetsSection'
 import {SectionHeader} from './SectionHeader'
-import {StylesSection} from './StylesSection'
 import {TreeNodeComp} from './TreeNode'
 import styles from './TreePanel.module.css'
 import {VariablesSection} from './VariablesSection'
@@ -234,11 +233,6 @@ export function TreePanel() {
                 <VariablesSection
                     variables={state.document.variables}
                     selectedVariableId={state.selectedVariableId}
-                    dispatch={dispatch}
-                />
-                <StylesSection
-                    textStyles={state.document.textStyles}
-                    selectedStyleId={state.selectedStyleId}
                     dispatch={dispatch}
                 />
                 <FontsSection

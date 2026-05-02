@@ -1,6 +1,5 @@
 import type {VibeDocument} from '@model/document'
 import {DEFAULT_PALETTE} from '@model/palette'
-import {BUILT_IN_TEXT_STYLES} from '@model/textStyle'
 
 const CURRENT_VERSION = 2
 
@@ -27,10 +26,6 @@ export function fromJSON(json: string): VibeDocument {
     // Migrate older docs missing pageFolders
     if (!Array.isArray(docObj.pageFolders)) {
         docObj.pageFolders = []
-    }
-    // Migrate older docs missing textStyles
-    if (!Array.isArray(docObj.textStyles)) {
-        docObj.textStyles = [...BUILT_IN_TEXT_STYLES]
     }
     // Migrate older docs missing variables
     if (!Array.isArray(docObj.variables)) {

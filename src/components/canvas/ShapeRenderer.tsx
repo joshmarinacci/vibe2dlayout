@@ -1,8 +1,6 @@
 import type {TreeNode} from '@model/document'
 import type {PixelAsset} from '@model/pixelAsset'
 import type {FormShape, Shape} from '@model/shapes'
-import type {TextStyleDef} from '@model/textStyle'
-import {resolveShapeText} from '@model/textStyle'
 import type {Variable} from '@model/variable'
 import {resolveVariableBindings} from '@model/variable'
 import type {AppAction} from '@store/types'
@@ -45,7 +43,6 @@ interface Props {
     dispatch: Dispatch<AppAction>
     handDrawn: boolean
     themeFontFamily: string
-    textStyles?: TextStyleDef[]
     variables?: Variable[]
     pixelAssets?: Record<string, PixelAsset>
 }
@@ -58,7 +55,6 @@ export function ShapeRenderer({
                                   dispatch,
                                   handDrawn,
                                   themeFontFamily,
-                                  textStyles = [],
                                   variables = [],
                                   pixelAssets = {}
                               }: Props) {
@@ -78,7 +74,6 @@ export function ShapeRenderer({
                         dispatch={dispatch}
                         handDrawn={handDrawn}
                         themeFontFamily={themeFontFamily}
-                        textStyles={textStyles}
                         variables={variables}
                         pixelAssets={pixelAssets}
                     />
@@ -97,7 +92,6 @@ interface ShapeNodeProps {
     dispatch: Dispatch<AppAction>
     handDrawn: boolean
     themeFontFamily: string
-    textStyles: TextStyleDef[]
     variables: Variable[]
     pixelAssets: Record<string, PixelAsset>
 }
@@ -111,7 +105,6 @@ function ShapeNode({
                        dispatch,
                        handDrawn,
                        themeFontFamily,
-                       textStyles,
                        variables,
                        pixelAssets
                    }: ShapeNodeProps) {
@@ -125,8 +118,7 @@ function ShapeNode({
             effectiveHandDrawn = true
         }
     }
-    // Resolve text style references, then variable bindings, before rendering
-    const resolvedShape = resolveVariableBindings(resolveShapeText(shape, textStyles), variables)
+    const resolvedShape = resolveVariableBindings(shape, variables)
 
     const onClick = (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -156,7 +148,6 @@ function ShapeNode({
             dispatch={dispatch}
             handDrawn={handDrawn}
             themeFontFamily={themeFontFamily}
-            textStyles={textStyles}
             variables={variables}
             pixelAssets={pixelAssets}
         />

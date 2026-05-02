@@ -1,7 +1,5 @@
 import type {CustomFont} from '@model/document'
 import type {LinearGradient, TextStyle} from '@model/shapes'
-import type {TextStyleDef} from '@model/textStyle'
-import type {AppAction} from '@store/types'
 import {linearGradientCSS} from '@utils/fillCSS'
 import {detectSmallCaps} from '@utils/fontFeatures'
 import {
@@ -13,16 +11,12 @@ import {
     AlignVerticalJustifyEnd,
     AlignVerticalJustifyStart,
     Italic,
-    RotateCcw,
-    Strikethrough,
-    Underline
 } from 'lucide-react'
-import {type Dispatch, useEffect, useState} from 'react'
+import {useEffect, useState} from 'react'
 import {ColorInput} from '../inputs/ColorInput'
 import inputStyles from '../inputs/inputs.module.css'
 import {NumberInput} from '../inputs/NumberInput'
 import {SelectInput} from '../inputs/SelectInput'
-import styles from '../PropertiesPanel.module.css'
 import "../propsheet.css"
 
 // Logarithmic slider: maps slider 0–100 to font size 5–500
@@ -108,73 +102,33 @@ const COMMON_FONTS = [
     {value: 'Helvetica, sans-serif', label: 'Helvetica'},
 ]
 
-// Style-able fields — any change to these is tracked as an override when a style is applied
-const STYLE_FIELDS = new Set([
-    'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
-    'color', 'paletteColorId', 'align', 'verticalAlign', 'textShadow',
-    'lineHeight', 'letterSpacing', 'textDecoration', 'textTransform', 'textGradient', 'fontVariantCaps',
-    'fontVariationSettings',
-])
-
 const DEFAULT_TEXT_GRADIENT: LinearGradient = {
     type: 'linear', angle: 90,
     stops: [{color: '#4f46e5', position: 0}, {color: '#e879f9', position: 1}],
 }
 
 interface Props {
-    text: TextStyle           // resolved text (effective values for display)
-    rawText: TextStyle        // original shape text (for textStyleId and textStyleOverrides)
-    textStyles: TextStyleDef[]
-    shapeId: string
+    text: TextStyle
     onChange: (t: TextStyle) => void
-    dispatch: Dispatch<AppAction>
     customFonts?: string[]    // document-level custom Google Font names
     activeFont?: CustomFont | null  // CustomFont object for the current fontFamily (if any)
 }
 
 export function TextSection({
                                 text,
-                                rawText,
-                                textStyles,
-                                shapeId,
                                 onChange,
-                                dispatch,
                                 customFonts,
-                                activeFont
+                                activeFont,
                             }: Props) {
-    // Apply a partial change to the text, preserving style connection and tracking overrides.
-    // Always uses rawText as the base so textStyleId is never lost.
-    // Explicitly adds changed style-able fields to textStyleOverrides so that a field whose
-    // raw value happens to equal the new value (but differs from the style) is still overridden.
     const applyChange = (changes: Partial<TextStyle>) => {
-        if (rawText.textStyleId) {
-            const overrides = new Set(rawText.textStyleOverrides ?? [])
-            for (const k of Object.keys(changes)) {
-                if (STYLE_FIELDS.has(k)) overrides.add(k)
-            }
-            onChange({...rawText, ...changes, textStyleOverrides: [...overrides]})
-        } else {
-            onChange({...rawText, ...changes})
-        }
+        onChange({...text, ...changes})
     }
-
-    const activeStyleId = rawText.textStyleId ?? ''
-    const overrides = new Set(rawText.textStyleOverrides ?? [])
-    const hasStyle = !!rawText.textStyleId
-
-    const styleOptions = [
-        {value: '', label: 'None'},
-        ...textStyles.map(s => ({value: s.id, label: s.name})),
-    ]
 
     const customFontEntries = (customFonts ?? []).map(name => ({value: name, label: name}))
     const fontOptions = [...COMMON_FONTS, ...customFontEntries]
     if (text.fontFamily && !fontOptions.some(f => f.value === text.fontFamily)) {
         fontOptions.push({value: text.fontFamily, label: text.fontFamily.split(',')[0].trim()})
     }
-
-    const resetOverride = (field: string) =>
-        dispatch({type: 'CLEAR_TEXT_OVERRIDE', shapeId, field})
 
     // Detect which weights the current font actually supports
     const [weightOptions, setWeightOptions] = useState(() => detectAvailableWeights(text.fontFamily))
@@ -192,441 +146,451 @@ export function TextSection({
     }, [text.fontFamily])
 
     return (
-        <details className={"collapsible-section"}>
+        <details className={"collapsible-section"} open={true}>
             <summary>Text</summary>
             <article>
-            {/* 1 — Named style */}
-            {/*<SelectInput*/}
-            {/*    label="Style"*/}
-            {/*    value={activeStyleId}*/}
-            {/*    options={styleOptions}*/}
-            {/*    onChange={v => dispatch({*/}
-            {/*        type: 'APPLY_TEXT_STYLE',*/}
-            {/*        shapeId,*/}
-            {/*        textStyleId: v || null*/}
-            {/*    })}*/}
-            {/*/>*/}
-
-            {/* 2 — Font identity: family → size */}
-            <SelectInput
-                label="Font"
-                value={text.fontFamily}
-                options={fontOptions}
-                onChange={v => applyChange({fontFamily: v})}
-            />
-
-            {/* size */}
-            <section className={'subgrid'}>
-                <label>Size</label>
-                <NumberInput
-                    value={text.fontSize}
-                    min={FONT_SIZE_MIN}
-                    max={FONT_SIZE_MAX}
-                    step={1}
-                    unit="px"
-                    onChange={v => applyChange({fontSize: v})}
+                {/* 1 — Font identity: family → size */}
+                <SelectInput
+                    label="Font"
+                    value={text.fontFamily}
+                    options={fontOptions}
+                    onChange={v => applyChange({fontFamily: v})}
                 />
-                <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={1}
-                    value={fontSizeToSlider(Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, text.fontSize)))}
-                    className={'span2'}
-                    onChange={e => applyChange({fontSize: sliderToFontSize(Number(e.target.value))})}
-                />
-            </section>
 
-            {/* 3 — Font style: weight + italic + small caps */}
-            <SelectInput
+                {/* size */}
+                <section className={'subgrid'}>
+                    <label>Size</label>
+                    <NumberInput
+                        value={text.fontSize}
+                        min={FONT_SIZE_MIN}
+                        max={FONT_SIZE_MAX}
+                        step={1}
+                        unit="px"
+                        onChange={v => applyChange({fontSize: v})}
+                    />
+                    <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={fontSizeToSlider(Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, text.fontSize)))}
+                        className={'span2'}
+                        onChange={e => applyChange({fontSize: sliderToFontSize(Number(e.target.value))})}
+                    />
+                </section>
+
+                {/* 2 — Font style: weight + italic + small caps */}
+                <SelectInput
                     label="Weight"
                     value={text.fontWeight}
                     options={weightOptions}
                     onChange={v => applyChange({fontWeight: v as TextStyle['fontWeight']})}
                 />
-            <section className={'subgrid'}>
-                <button
-                    className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
-                    title="Italic"
-                    onClick={() => applyChange({fontStyle: text.fontStyle === 'italic' ? 'normal' : 'italic'})}
-                >
-                    <Italic size={13}/>
-                </button>
-                <button
-                    className={`${inputStyles.iconBtn}${text.fontVariantCaps === 'small-caps' ? ` ${inputStyles.iconBtnActive}` : ''}`}
-                    title={hasSmallCaps === false ? 'Small Caps (synthesized — font has no native smcp)' : 'Small Caps'}
-                    style={{opacity: hasSmallCaps === false ? 0.45 : 1}}
-                    onClick={() => applyChange({fontVariantCaps: text.fontVariantCaps === 'small-caps' ? 'normal' : 'small-caps'})}
-                >
-                    <ALargeSmall size={13}/>
-                </button>
-            </section>
+                <section className={'subgrid'}>
+                    <button
+                        className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
+                        title="Italic"
+                        onClick={() => applyChange({fontStyle: text.fontStyle === 'italic' ? 'normal' : 'italic'})}
+                    >
+                        <Italic size={13}/>
+                    </button>
+                    <button
+                        className={`${inputStyles.iconBtn}${text.fontVariantCaps === 'small-caps' ? ` ${inputStyles.iconBtnActive}` : ''}`}
+                        title={hasSmallCaps === false ? 'Small Caps (synthesized — font has no native smcp)' : 'Small Caps'}
+                        style={{opacity: hasSmallCaps === false ? 0.45 : 1}}
+                        onClick={() => applyChange({fontVariantCaps: text.fontVariantCaps === 'small-caps' ? 'normal' : 'small-caps'})}
+                    >
+                        <ALargeSmall size={13}/>
+                    </button>
+                </section>
 
 
-            <details>
-                <summary>Font Axes</summary>
-                {/* 9 — Variable font axes */}
-                {activeFont?.isVariable === true && activeFont.axes.length > 0 && (
-                    <>
-                        {activeFont.axes.filter(axis => axis.tag !== 'ital').map(axis => {
-                            const val = axisValueForText(text, axis)
-                            const step = axisStep(axis)
-                            const onChange = (v: number) => applyChange({
-                                fontVariationSettings: {
-                                    ...(rawText.fontVariationSettings ?? {}),
-                                    [axis.tag]: v
-                                },
-                            })
-                            return (
-                                <div key={axis.tag}>
-                                    <NumberInput
-                                        label={axis.name ? `${axis.name} (${axis.tag})` : axis.tag}
-                                        value={val}
-                                        min={axis.min}
-                                        max={axis.max}
-                                        step={step}
-                                        onChange={onChange}
-                                    />
-                                    <input
-                                        type="range"
-                                        min={axis.min}
-                                        max={axis.max}
-                                        step={step}
-                                        value={val}
-                                        onChange={e => onChange(Number(e.target.value))}
-                                        style={{
-                                            width: '100%',
-                                            marginTop: 2,
-                                            accentColor: 'var(--color-accent)'
-                                        }}
-                                    />
-                                </div>
-                            )
-                        })}
-                        {hasStyle && overrides.has('fontVariationSettings') && (
-                            <button className={styles.resetOverrideBtn}
-                                    onClick={() => resetOverride('fontVariationSettings')}
-                                    title="Reset to style">
-                                <RotateCcw size={10}/>
-                            </button>
-                        )}
-                    </>
-                )}
-
-            </details>
-
-            <details>
-                <summary>Color</summary>
-                {/* 7 — Color / gradient */}
-                <article>
-                {(() => {
-                    const isGradient = !!text.textGradient
-                    const gradient = text.textGradient ?? DEFAULT_TEXT_GRADIENT
-                    const patchGradient = (g: LinearGradient) => applyChange({textGradient: g})
-                    const addStop = () => {
-                        const sorted = [...gradient.stops].sort((a, b) => a.position - b.position)
-                        let bestIdx = 0, bestGap = 0
-                        for (let i = 0; i < sorted.length - 1; i++) {
-                            const gap = sorted[i + 1].position - sorted[i].position
-                            if (gap > bestGap) {
-                                bestGap = gap;
-                                bestIdx = i
-                            }
-                        }
-                        const mid = (sorted[bestIdx].position + sorted[bestIdx + 1].position) / 2
-                        sorted.splice(bestIdx + 1, 0, {
-                            color: sorted[bestIdx].color,
-                            position: Math.round(mid * 100) / 100
-                        })
-                        patchGradient({...gradient, stops: sorted})
-                    }
-                    return (
+                <details>
+                    <summary>Font Axes</summary>
+                    {/* 8 — Variable font axes */}
+                    {activeFont?.isVariable === true && activeFont.axes.length > 0 && (
                         <>
-                            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                                <div style={{flex: 1}} className={inputStyles.field}>
-                                    <span className={inputStyles.label}>Color</span>
-                                    <div className={inputStyles.iconBtnGroup}>
-                                        <button
-                                            className={`${inputStyles.iconBtn} ${!isGradient ? inputStyles.iconBtnActive : ''}`}
-                                            onClick={() => applyChange({textGradient: null})}
-                                            style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
-                                        >Solid
-                                        </button>
-                                        <button
-                                            className={`${inputStyles.iconBtn} ${isGradient ? inputStyles.iconBtnActive : ''}`}
-                                            onClick={() => applyChange({
-                                                textGradient: {
-                                                    ...DEFAULT_TEXT_GRADIENT,
-                                                    stops: [{
-                                                        color: text.color,
-                                                        position: 0
-                                                    }, {color: '#ffffff', position: 1}]
-                                                }
-                                            })}
-                                            style={{fontSize: 10, padding: '2px 6px', width: 'auto'}}
-                                        >Gradient
-                                        </button>
-                                    </div>
-                                </div>
-                                {hasStyle && (overrides.has('color') || overrides.has('textGradient')) && (
-                                    <button className={styles.resetOverrideBtn} onClick={() => {
-                                        resetOverride('color');
-                                        resetOverride('textGradient')
-                                    }} title="Reset to style">
-                                        <RotateCcw size={10}/>
-                                    </button>
-                                )}
-                            </div>
-                            {!isGradient ? (
-                                <ColorInput
-                                    label=""
-                                    value={{color: text.color, paletteColorId: text.paletteColorId}}
-                                    onChange={ref => applyChange({
-                                        color: ref.color,
-                                        paletteColorId: ref.paletteColorId
-                                    })}
-                                />
-                            ) : (
-                                <div style={{
-                                    background: 'var(--color-bg-panel)',
-                                    border: '1px solid var(--color-border-subtle)',
-                                    borderRadius: 4,
-                                    padding: '6px 6px 4px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 4,
-                                    marginTop: 2,
-                                }}>
-                                    {/* Preview bar */}
-                                    <div style={{
-                                        height: 12,
-                                        borderRadius: 3,
-                                        background: linearGradientCSS(gradient),
-                                        marginBottom: 2,
-                                    }}/>
-                                    {/* Angle */}
-                                    <NumberInput label="Angle" value={gradient.angle} min={0} max={360}
-                                                 step={1} unit="°"
-                                                 onChange={v => patchGradient({
-                                                     ...gradient,
-                                                     angle: v
-                                                 })}/>
-                                    {/* Stop rows */}
-                                    {gradient.stops.map((stop, idx) => (
-                                        <div key={idx}
-                                             style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                                            <div style={{flex: 1}}>
-                                                <ColorInput label="" value={{color: stop.color}}
-                                                            onChange={ref => {
-                                                                const stops = gradient.stops.map((s, i) => i === idx ? {
-                                                                    ...s,
-                                                                    color: ref.color
-                                                                } : s)
-                                                                patchGradient({...gradient, stops})
-                                                            }}/>
-                                            </div>
-                                            <div style={{width: 60, flexShrink: 0}}>
-                                                <NumberInput label="%"
-                                                             value={Math.round(stop.position * 100)}
-                                                             min={0} max={100} step={1}
-                                                             onChange={v => {
-                                                                 const stops = gradient.stops.map((s, i) => i === idx ? {
-                                                                     ...s,
-                                                                     position: v / 100
-                                                                 } : s)
-                                                                 patchGradient({...gradient, stops})
-                                                             }}/>
-                                            </div>
-                                            <button
-                                                onClick={() => {
-                                                    if (gradient.stops.length <= 2) return
-                                                    patchGradient({
-                                                        ...gradient,
-                                                        stops: gradient.stops.filter((_, i) => i !== idx)
-                                                    })
-                                                }}
-                                                disabled={gradient.stops.length <= 2}
-                                                style={{
-                                                    width: 16,
-                                                    height: 16,
-                                                    flexShrink: 0,
-                                                    border: 'none',
-                                                    background: 'transparent',
-                                                    color: 'var(--color-text-disabled)',
-                                                    cursor: gradient.stops.length <= 2 ? 'default' : 'pointer',
-                                                    fontSize: 14,
-                                                    lineHeight: 1,
-                                                    padding: 0,
-                                                    opacity: gradient.stops.length <= 2 ? 0.3 : 1
-                                                }}
-                                            >×
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {/* Add stop */}
-                                    <button onClick={addStop}
+                            {activeFont.axes.filter(axis => axis.tag !== 'ital').map(axis => {
+                                const val = axisValueForText(text, axis)
+                                const step = axisStep(axis)
+                                const onChange = (v: number) => applyChange({
+                                    fontVariationSettings: {
+                                        ...(text.fontVariationSettings ?? {}),
+                                        [axis.tag]: v
+                                    },
+                                })
+                                return (
+                                    <div key={axis.tag}>
+                                        <NumberInput
+                                            label={axis.name ? `${axis.name} (${axis.tag})` : axis.tag}
+                                            value={val}
+                                            min={axis.min}
+                                            max={axis.max}
+                                            step={step}
+                                            onChange={onChange}
+                                        />
+                                        <input
+                                            type="range"
+                                            min={axis.min}
+                                            max={axis.max}
+                                            step={step}
+                                            value={val}
+                                            onChange={e => onChange(Number(e.target.value))}
                                             style={{
                                                 width: '100%',
                                                 marginTop: 2,
-                                                fontSize: 11,
-                                                border: '1px dashed var(--color-border)',
-                                                borderRadius: 3,
-                                                background: 'transparent',
-                                                color: 'var(--color-text-muted)',
-                                                cursor: 'pointer',
-                                                padding: '2px 0'
-                                            }}>
-                                        + Add stop
-                                    </button>
-                                </div>
-                            )}
+                                                accentColor: 'var(--color-accent)'
+                                            }}
+                                        />
+                                    </div>
+                                )
+                            })}
                         </>
-                    )
-                })()}</article>
-            </details>
+                    )}
 
-            <details>
-                <summary>Advanced</summary>
-                <article>
-                    <section className={'subgrid'}>
-                        <label>Align</label>
-                        <div className={'group col2span3'}>
-                            {([
-                                {value: 'left', Icon: AlignLeft, title: 'Left'},
-                                {value: 'center', Icon: AlignCenter, title: 'Center'},
-                                {value: 'right', Icon: AlignRight, title: 'Right'},
-                            ] as const).map(({value, Icon, title}) => (
-                                <button
-                                    key={value}
-                                    className={`${inputStyles.iconBtn} ${text.align === value ? inputStyles.iconBtnActive : ''}`}
-                                    title={title}
-                                    onClick={() => applyChange({align: value})}
-                                >
-                                    <Icon size={13}/>
-                                </button>
-                            ))}
-                            <span style={{
-                                width: 1,
-                                background: 'var(--color-border)',
-                                alignSelf: 'stretch',
-                                margin: '2px 2px'
-                            }}/>
-                            {([
-                                {value: 'top', Icon: AlignVerticalJustifyStart, title: 'Top'},
-                                {value: 'middle', Icon: AlignVerticalJustifyCenter, title: 'Middle'},
-                                {value: 'bottom', Icon: AlignVerticalJustifyEnd, title: 'Bottom'},
-                            ] as const).map(({value, Icon, title}) => (
-                                <button
-                                    key={value}
-                                    className={`${inputStyles.iconBtn} ${text.verticalAlign === value ? inputStyles.iconBtnActive : ''}`}
-                                    title={title}
-                                    onClick={() => applyChange({verticalAlign: value})}
-                                >
-                                    <Icon size={13}/>
-                                </button>
-                            ))}
-                        </div>
-                    </section>
-                    <section className={'subgrid'}>
-                        <label>Line H</label>
-                        <NumberInput
-                            value={text.lineHeight ?? 1.2}
-                            min={0.5}
-                            max={4}
-                            step={0.1}
-                            onChange={v => applyChange({lineHeight: v})}
-                            unit={'%'}
-                        />
-                    </section>
-                    <section className={'subgrid'}>
-                        <label>Spacing</label>
-                        <NumberInput
-                            value={text.letterSpacing ?? 0}
-                            min={-10}
-                            max={50}
-                            step={0.5}
-                            unit="px"
-                            onChange={v => applyChange({letterSpacing: v})}
-                        />
-                    </section>
-                    <SelectInput
-                        label="Transform"
-                        value={text.textTransform ?? 'none'}
-                        options={[
-                            {value: 'none', label: 'None'},
-                            {value: 'uppercase', label: 'Uppercase'},
-                            {value: 'lowercase', label: 'Lowercase'},
-                            {value: 'capitalize', label: 'Capitalize'},
-                        ]}
-                        onChange={v => applyChange({textTransform: v as TextStyle['textTransform']})}
-                    />
-                </article>
-            </details>
+                </details>
 
-            <details>
-                <summary>Shadow</summary>
-            {/* 8 — Effects: shadow */}
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}} className={inputStyles.field}>
-                    <span className={inputStyles.label}>Shadow</span>
-                    <input
-                        type="checkbox"
-                        className={inputStyles.checkbox}
-                        checked={!!text.textShadow}
-                        onChange={e => applyChange({
-                            textShadow: e.target.checked
-                                ? {offsetX: 2, offsetY: 2, blur: 4, color: 'rgba(0,0,0,0.5)'}
-                                : null
-                        })}
-                    />
-                </div>
-                {hasStyle && overrides.has('textShadow') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('textShadow')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-            </div>
-            {text.textShadow && (
-                <div style={{paddingLeft: 8, display: 'flex', flexDirection: 'column', gap: 2}}>
-                    <ColorInput
-                        label="Color"
-                        value={{color: text.textShadow.color}}
-                        onChange={ref => applyChange({
-                            textShadow: {
-                                ...text.textShadow!,
-                                color: ref.color
+                <details>
+                    <summary>Color</summary>
+                    {/* 6 — Color / gradient */}
+                    <article>
+                        {(() => {
+                            const isGradient = !!text.textGradient
+                            const gradient = text.textGradient ?? DEFAULT_TEXT_GRADIENT
+                            const patchGradient = (g: LinearGradient) => applyChange({textGradient: g})
+                            const addStop = () => {
+                                const sorted = [...gradient.stops].sort((a, b) => a.position - b.position)
+                                let bestIdx = 0, bestGap = 0
+                                for (let i = 0; i < sorted.length - 1; i++) {
+                                    const gap = sorted[i + 1].position - sorted[i].position
+                                    if (gap > bestGap) {
+                                        bestGap = gap;
+                                        bestIdx = i
+                                    }
+                                }
+                                const mid = (sorted[bestIdx].position + sorted[bestIdx + 1].position) / 2
+                                sorted.splice(bestIdx + 1, 0, {
+                                    color: sorted[bestIdx].color,
+                                    position: Math.round(mid * 100) / 100
+                                })
+                                patchGradient({...gradient, stops: sorted})
                             }
-                        })}
-                    />
-                    <NumberInput label="X" value={text.textShadow.offsetX} min={-100} max={100}
-                                 step={1} unit="px"
-                                 onChange={v => applyChange({
-                                     textShadow: {
-                                         ...text.textShadow!,
-                                         offsetX: v
-                                     }
-                                 })}/>
-                    <NumberInput label="Y" value={text.textShadow.offsetY} min={-100} max={100}
-                                 step={1} unit="px"
-                                 onChange={v => applyChange({
-                                     textShadow: {
-                                         ...text.textShadow!,
-                                         offsetY: v
-                                     }
-                                 })}/>
-                    <NumberInput label="Blur" value={text.textShadow.blur} min={0} max={100}
-                                 step={1} unit="px"
-                                 onChange={v => applyChange({
-                                     textShadow: {
-                                         ...text.textShadow!,
-                                         blur: v
-                                     }
-                                 })}/>
-                </div>
-            )}
+                            return (
+                                <>
+                                    <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                                        <div style={{flex: 1}} className={inputStyles.field}>
+                                            <span className={inputStyles.label}>Color</span>
+                                            <div className={inputStyles.iconBtnGroup}>
+                                                <button
+                                                    className={`${inputStyles.iconBtn} ${!isGradient ? inputStyles.iconBtnActive : ''}`}
+                                                    onClick={() => applyChange({textGradient: null})}
+                                                    style={{
+                                                        fontSize: 10,
+                                                        padding: '2px 6px',
+                                                        width: 'auto'
+                                                    }}
+                                                >Solid
+                                                </button>
+                                                <button
+                                                    className={`${inputStyles.iconBtn} ${isGradient ? inputStyles.iconBtnActive : ''}`}
+                                                    onClick={() => applyChange({
+                                                        textGradient: {
+                                                            ...DEFAULT_TEXT_GRADIENT,
+                                                            stops: [{
+                                                                color: text.color,
+                                                                position: 0
+                                                            }, {color: '#ffffff', position: 1}]
+                                                        }
+                                                    })}
+                                                    style={{
+                                                        fontSize: 10,
+                                                        padding: '2px 6px',
+                                                        width: 'auto'
+                                                    }}
+                                                >Gradient
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {!isGradient ? (
+                                        <ColorInput
+                                            label=""
+                                            value={{
+                                                color: text.color,
+                                                paletteColorId: text.paletteColorId
+                                            }}
+                                            onChange={ref => applyChange({
+                                                color: ref.color,
+                                                paletteColorId: ref.paletteColorId
+                                            })}
+                                        />
+                                    ) : (
+                                        <div style={{
+                                            background: 'var(--color-bg-panel)',
+                                            border: '1px solid var(--color-border-subtle)',
+                                            borderRadius: 4,
+                                            padding: '6px 6px 4px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: 4,
+                                            marginTop: 2,
+                                        }}>
+                                            {/* Preview bar */}
+                                            <div style={{
+                                                height: 12,
+                                                borderRadius: 3,
+                                                background: linearGradientCSS(gradient),
+                                                marginBottom: 2,
+                                            }}/>
+                                            {/* Angle */}
+                                            <NumberInput label="Angle" value={gradient.angle}
+                                                         min={0} max={360}
+                                                         step={1} unit="°"
+                                                         onChange={v => patchGradient({
+                                                             ...gradient,
+                                                             angle: v
+                                                         })}/>
+                                            {/* Stop rows */}
+                                            {gradient.stops.map((stop, idx) => (
+                                                <div key={idx}
+                                                     style={{
+                                                         display: 'flex',
+                                                         alignItems: 'center',
+                                                         gap: 4
+                                                     }}>
+                                                    <div style={{flex: 1}}>
+                                                        <ColorInput label=""
+                                                                    value={{color: stop.color}}
+                                                                    onChange={ref => {
+                                                                        const stops = gradient.stops.map((s, i) => i === idx ? {
+                                                                            ...s,
+                                                                            color: ref.color
+                                                                        } : s)
+                                                                        patchGradient({
+                                                                            ...gradient,
+                                                                            stops
+                                                                        })
+                                                                    }}/>
+                                                    </div>
+                                                    <div style={{width: 60, flexShrink: 0}}>
+                                                        <NumberInput label="%"
+                                                                     value={Math.round(stop.position * 100)}
+                                                                     min={0} max={100} step={1}
+                                                                     onChange={v => {
+                                                                         const stops = gradient.stops.map((s, i) => i === idx ? {
+                                                                             ...s,
+                                                                             position: v / 100
+                                                                         } : s)
+                                                                         patchGradient({
+                                                                             ...gradient,
+                                                                             stops
+                                                                         })
+                                                                     }}/>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (gradient.stops.length <= 2) return
+                                                            patchGradient({
+                                                                ...gradient,
+                                                                stops: gradient.stops.filter((_, i) => i !== idx)
+                                                            })
+                                                        }}
+                                                        disabled={gradient.stops.length <= 2}
+                                                        style={{
+                                                            width: 16,
+                                                            height: 16,
+                                                            flexShrink: 0,
+                                                            border: 'none',
+                                                            background: 'transparent',
+                                                            color: 'var(--color-text-disabled)',
+                                                            cursor: gradient.stops.length <= 2 ? 'default' : 'pointer',
+                                                            fontSize: 14,
+                                                            lineHeight: 1,
+                                                            padding: 0,
+                                                            opacity: gradient.stops.length <= 2 ? 0.3 : 1
+                                                        }}
+                                                    >×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {/* Add stop */}
+                                            <button onClick={addStop}
+                                                    style={{
+                                                        width: '100%',
+                                                        marginTop: 2,
+                                                        fontSize: 11,
+                                                        border: '1px dashed var(--color-border)',
+                                                        borderRadius: 3,
+                                                        background: 'transparent',
+                                                        color: 'var(--color-text-muted)',
+                                                        cursor: 'pointer',
+                                                        padding: '2px 0'
+                                                    }}>
+                                                + Add stop
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )
+                        })()}</article>
+                </details>
 
-            </details>
+                <details>
+                    <summary>Advanced</summary>
+                    <article>
+                        <section className={'subgrid'}>
+                            <label>Align</label>
+                            <div className={'group col2span3'}>
+                                {([
+                                    {value: 'left', Icon: AlignLeft, title: 'Left'},
+                                    {value: 'center', Icon: AlignCenter, title: 'Center'},
+                                    {value: 'right', Icon: AlignRight, title: 'Right'},
+                                ] as const).map(({value, Icon, title}) => (
+                                    <button
+                                        key={value}
+                                        className={`${inputStyles.iconBtn} ${text.align === value ? inputStyles.iconBtnActive : ''}`}
+                                        title={title}
+                                        onClick={() => applyChange({align: value})}
+                                    >
+                                        <Icon size={13}/>
+                                    </button>
+                                ))}
+                                <span style={{
+                                    width: 1,
+                                    background: 'var(--color-border)',
+                                    alignSelf: 'stretch',
+                                    margin: '2px 2px'
+                                }}/>
+                                {([
+                                    {value: 'top', Icon: AlignVerticalJustifyStart, title: 'Top'},
+                                    {
+                                        value: 'middle',
+                                        Icon: AlignVerticalJustifyCenter,
+                                        title: 'Middle'
+                                    },
+                                    {
+                                        value: 'bottom',
+                                        Icon: AlignVerticalJustifyEnd,
+                                        title: 'Bottom'
+                                    },
+                                ] as const).map(({value, Icon, title}) => (
+                                    <button
+                                        key={value}
+                                        className={`${inputStyles.iconBtn} ${text.verticalAlign === value ? inputStyles.iconBtnActive : ''}`}
+                                        title={title}
+                                        onClick={() => applyChange({verticalAlign: value})}
+                                    >
+                                        <Icon size={13}/>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+                        <section className={'subgrid'}>
+                            <label>Line H</label>
+                            <NumberInput
+                                value={text.lineHeight ?? 1.2}
+                                min={0.5}
+                                max={4}
+                                step={0.1}
+                                onChange={v => applyChange({lineHeight: v})}
+                                unit={'%'}
+                            />
+                        </section>
+                        <section className={'subgrid'}>
+                            <label>Spacing</label>
+                            <NumberInput
+                                value={text.letterSpacing ?? 0}
+                                min={-10}
+                                max={50}
+                                step={0.5}
+                                unit="px"
+                                onChange={v => applyChange({letterSpacing: v})}
+                            />
+                        </section>
+                        <SelectInput
+                            label="Transform"
+                            value={text.textTransform ?? 'none'}
+                            options={[
+                                {value: 'none', label: 'None'},
+                                {value: 'uppercase', label: 'Uppercase'},
+                                {value: 'lowercase', label: 'Lowercase'},
+                                {value: 'capitalize', label: 'Capitalize'},
+                            ]}
+                            onChange={v => applyChange({textTransform: v as TextStyle['textTransform']})}
+                        />
+                    </article>
+                </details>
+
+                <details>
+                    <summary>Shadow</summary>
+                    {/* 7 — Effects: shadow */}
+                    <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                        <div style={{flex: 1}} className={inputStyles.field}>
+                            <span className={inputStyles.label}>Shadow</span>
+                            <input
+                                type="checkbox"
+                                className={inputStyles.checkbox}
+                                checked={!!text.textShadow}
+                                onChange={e => applyChange({
+                                    textShadow: e.target.checked
+                                        ? {
+                                            offsetX: 2,
+                                            offsetY: 2,
+                                            blur: 4,
+                                            color: 'rgba(0,0,0,0.5)'
+                                        }
+                                        : null
+                                })}
+                            />
+                        </div>
+                    </div>
+                    {text.textShadow && (
+                        <div style={{
+                            paddingLeft: 8,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2
+                        }}>
+                            <ColorInput
+                                label="Color"
+                                value={{color: text.textShadow.color}}
+                                onChange={ref => applyChange({
+                                    textShadow: {
+                                        ...text.textShadow!,
+                                        color: ref.color
+                                    }
+                                })}
+                            />
+                            <NumberInput label="X" value={text.textShadow.offsetX} min={-100}
+                                         max={100}
+                                         step={1} unit="px"
+                                         onChange={v => applyChange({
+                                             textShadow: {
+                                                 ...text.textShadow!,
+                                                 offsetX: v
+                                             }
+                                         })}/>
+                            <NumberInput label="Y" value={text.textShadow.offsetY} min={-100}
+                                         max={100}
+                                         step={1} unit="px"
+                                         onChange={v => applyChange({
+                                             textShadow: {
+                                                 ...text.textShadow!,
+                                                 offsetY: v
+                                             }
+                                         })}/>
+                            <NumberInput label="Blur" value={text.textShadow.blur} min={0} max={100}
+                                         step={1} unit="px"
+                                         onChange={v => applyChange({
+                                             textShadow: {
+                                                 ...text.textShadow!,
+                                                 blur: v
+                                             }
+                                         })}/>
+                        </div>
+                    )}
+
+                </details>
             </article>
         </details>
     )

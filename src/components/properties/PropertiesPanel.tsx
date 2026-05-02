@@ -11,7 +11,6 @@ import {
     type StrokedShape,
     type TransformedShape
 } from '@model/shapes'
-import {resolveTextStyle} from '@model/textStyle'
 import {getActiveTheme} from '@model/theme'
 import type {BoundingBox} from '@model/transform'
 import type {Variable, VariableType} from '@model/variable'
@@ -37,7 +36,6 @@ import {PixelImageSection} from './sections/PixelImageSection'
 import {ShadowSection} from './sections/ShadowSection'
 import {StrokeSection} from './sections/StrokeSection'
 import {TextSection} from './sections/TextSection'
-import {TextStyleDefSection} from './sections/TextStyleDefSection'
 import {TransformSection} from './sections/TransformSection'
 import {VariableSection} from './sections/VariableSection'
 
@@ -159,22 +157,6 @@ export function PropertiesPanel() {
                         <span className={styles.shapeName}>{variable.name}</span>
                     </div>
                     <VariableSection variable={variable} dispatch={dispatch}/>
-                </div>
-            )
-        }
-    }
-
-    if (state.selectedStyleId !== null) {
-        const style = state.document.textStyles.find(s => s.id === state.selectedStyleId)
-        if (style) {
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>style</span>
-                        <span className={styles.shapeName}>{style.name}</span>
-                    </div>
-                    <TextStyleDefSection style={style} dispatch={dispatch}
-                                         customFonts={state.document.customFonts.map(f => f.name)}/>
                 </div>
             )
         }
@@ -395,12 +377,8 @@ export function PropertiesPanel() {
                 )}
                 {repText && withText[0] && (
                     <TextSection
-                        text={resolveTextStyle(repText, state.document.textStyles)}
-                        rawText={repText}
-                        textStyles={state.document.textStyles}
-                        shapeId={withText[0].id}
+                        text={repText}
                         onChange={onChangeText}
-                        dispatch={dispatch}
                         customFonts={state.document.customFonts.map(f => f.name)}
                         activeFont={repText.fontFamily ? (state.document.customFonts.find(f => f.name === repText.fontFamily) ?? null) : null}
                     />
@@ -488,15 +466,9 @@ function ShapeProperties({shape, dispatch, state, variables}: {
     const patchStroke = (s: StrokeStyle) =>
         dispatch({type: 'PATCH_SHAPE', id: shape.id, patch: {stroke: s} as Partial<Shape>})
 
-    const textStyles = state.document.textStyles
     const customFontNames = state.document.customFonts.map(f => f.name)
-    // Use the resolved font family (accounts for inherited text styles) for activeFont lookup
-    const shapeRawText = (shape as unknown as {
-        text?: { fontFamily?: string; textStyleId?: string; textStyleOverrides?: string[] }
-    }).text
-    const resolvedFontFamily = shapeRawText
-        ? resolveTextStyle(shapeRawText as Parameters<typeof resolveTextStyle>[0], textStyles).fontFamily
-        : undefined
+    const shapeRawText = (shape as unknown as { text?: { fontFamily?: string } }).text
+    const resolvedFontFamily = shapeRawText?.fontFamily
     const activeFont = resolvedFontFamily
         ? (state.document.customFonts.find(f => f.name === resolvedFontFamily) ?? null)
         : null
@@ -509,12 +481,8 @@ function ShapeProperties({shape, dispatch, state, variables}: {
     if (hasText(shape)) {
         const texted: ShapeWithText = shape as ShapeWithText
         common.push(<TextSection
-            text={resolveTextStyle(texted.text, textStyles)}
-            rawText={texted.text}
-            textStyles={textStyles}
-            shapeId={shape.id}
+            text={texted.text}
             onChange={t => dispatch({type: 'PATCH_SHAPE', id: shape.id, patch: {text: t}})}
-            dispatch={dispatch}
             customFonts={customFontNames}
             activeFont={activeFont}
         />)
