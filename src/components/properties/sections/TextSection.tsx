@@ -18,7 +18,6 @@ import {
     Underline
 } from 'lucide-react'
 import {type Dispatch, useEffect, useState} from 'react'
-import {CollapsibleSection} from '../CollapsibleSection'
 import {ColorInput} from '../inputs/ColorInput'
 import inputStyles from '../inputs/inputs.module.css'
 import {NumberInput} from '../inputs/NumberInput'
@@ -209,57 +208,43 @@ export function TextSection({
             {/*/>*/}
 
             {/* 2 — Font identity: family → size */}
-            <section>
-                <SelectInput
-                    label="Font"
-                    value={text.fontFamily}
-                    options={fontOptions}
-                    onChange={v => applyChange({fontFamily: v})}
-                />
-                {hasStyle && overrides.has('fontFamily') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('fontFamily')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-            </section>
+            <SelectInput
+                label="Font"
+                value={text.fontFamily}
+                options={fontOptions}
+                onChange={v => applyChange({fontFamily: v})}
+            />
 
             {/* size */}
-            <section>
-                    <NumberInput
-                        label="Size"
-                        value={text.fontSize}
-                        min={FONT_SIZE_MIN}
-                        max={FONT_SIZE_MAX}
-                        step={1}
-                        unit="px"
-                        onChange={v => applyChange({fontSize: v})}
-                    />
-                    <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={fontSizeToSlider(Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, text.fontSize)))}
-                        onChange={e => applyChange({fontSize: sliderToFontSize(Number(e.target.value))})}
-                        style={{width: '100%', marginTop: 2, accentColor: 'var(--color-accent)'}}
-                    />
-                {hasStyle && overrides.has('fontSize') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('fontSize')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
+            <section className={'subgrid'}>
+                <label>Size</label>
+                <NumberInput
+                    value={text.fontSize}
+                    min={FONT_SIZE_MIN}
+                    max={FONT_SIZE_MAX}
+                    step={1}
+                    unit="px"
+                    onChange={v => applyChange({fontSize: v})}
+                />
+                <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={fontSizeToSlider(Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, text.fontSize)))}
+                    className={'span2'}
+                    onChange={e => applyChange({fontSize: sliderToFontSize(Number(e.target.value))})}
+                />
             </section>
 
             {/* 3 — Font style: weight + italic + small caps */}
-            <section>
-                <SelectInput
-                        label="Weight"
-                        value={text.fontWeight}
-                        options={weightOptions}
-                        onChange={v => applyChange({fontWeight: v as TextStyle['fontWeight']})}
-                    />
+            <SelectInput
+                    label="Weight"
+                    value={text.fontWeight}
+                    options={weightOptions}
+                    onChange={v => applyChange({fontWeight: v as TextStyle['fontWeight']})}
+                />
+            <section className={'subgrid'}>
                 <button
                     className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
                     title="Italic"
@@ -275,67 +260,6 @@ export function TextSection({
                 >
                     <ALargeSmall size={13}/>
                 </button>
-                {hasStyle && overrides.has('fontWeight') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('fontWeight')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-                {hasStyle && overrides.has('fontStyle') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('fontStyle')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-                {hasStyle && overrides.has('fontVariantCaps') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('fontVariantCaps')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
-
-
-            {/* 6 — Decoration: underline/strikethrough + text transform */}
-
-                    <div className={inputStyles.iconBtnGroup}>
-                        {([
-                            {value: 'underline', Icon: Underline, title: 'Underline'},
-                            {value: 'line-through', Icon: Strikethrough, title: 'Strikethrough'},
-                        ] as const).map(({value, Icon, title}) => {
-                            const cur = text.textDecoration ?? 'none'
-                            const active = cur === value || cur === 'underline line-through'
-                            const toggle = () => {
-                                const both = cur === 'underline line-through'
-                                if (value === 'underline') {
-                                    if (cur === 'underline') applyChange({textDecoration: 'none'})
-                                    else if (cur === 'line-through') applyChange({textDecoration: 'underline line-through'})
-                                    else if (both) applyChange({textDecoration: 'line-through'})
-                                    else applyChange({textDecoration: 'underline'})
-                                } else {
-                                    if (cur === 'line-through') applyChange({textDecoration: 'none'})
-                                    else if (cur === 'underline') applyChange({textDecoration: 'underline line-through'})
-                                    else if (both) applyChange({textDecoration: 'underline'})
-                                    else applyChange({textDecoration: 'line-through'})
-                                }
-                            }
-                            return (
-                                <button
-                                    key={value}
-                                    className={`${inputStyles.iconBtn} ${active ? inputStyles.iconBtnActive : ''}`}
-                                    title={title}
-                                    onClick={toggle}
-                                >
-                                    <Icon size={13}/>
-                                </button>
-                            )
-                        })}
-                </div>
-                {hasStyle && overrides.has('textDecoration') && (
-                    <button className={styles.resetOverrideBtn}
-                            onClick={() => resetOverride('textDecoration')} title="Reset to style">
-                        <RotateCcw size={10}/>
-                    </button>
-                )}
             </section>
 
 
@@ -563,11 +487,10 @@ export function TextSection({
 
             <details>
                 <summary>Advanced</summary>
-                {/* 4 — Alignment: H and V on one row */}
-                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                    <div style={{flex: 1}} className={inputStyles.field}>
-                        <span className={inputStyles.label}>Align</span>
-                        <div className={inputStyles.iconBtnGroup}>
+                <article>
+                    <section className={'subgrid'}>
+                        <label>Align</label>
+                        <div className={'group col2span3'}>
                             {([
                                 {value: 'left', Icon: AlignLeft, title: 'Left'},
                                 {value: 'center', Icon: AlignCenter, title: 'Center'},
@@ -603,26 +526,10 @@ export function TextSection({
                                 </button>
                             ))}
                         </div>
-                    </div>
-                    {hasStyle && overrides.has('align') && (
-                        <button className={styles.resetOverrideBtn}
-                                onClick={() => resetOverride('align')} title="Reset to style">
-                            <RotateCcw size={10}/>
-                        </button>
-                    )}
-                    {hasStyle && overrides.has('verticalAlign') && (
-                        <button className={styles.resetOverrideBtn}
-                                onClick={() => resetOverride('verticalAlign')} title="Reset to style">
-                            <RotateCcw size={10}/>
-                        </button>
-                    )}
-                </div>
-
-            {/*    /!* 5 — Spacing: line height + letter spacing on one row *!/*/}
-                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                    <div style={{flex: 1}}>
+                    </section>
+                    <section className={'subgrid'}>
+                        <label>Line H</label>
                         <NumberInput
-                            label="Line H"
                             value={text.lineHeight ?? 1.2}
                             min={0.5}
                             max={4}
@@ -630,18 +537,10 @@ export function TextSection({
                             onChange={v => applyChange({lineHeight: v})}
                             unit={'%'}
                         />
-                    </div>
-                    {hasStyle && overrides.has('lineHeight') && (
-                        <button className={styles.resetOverrideBtn}
-                                onClick={() => resetOverride('lineHeight')} title="Reset to style">
-                            <RotateCcw size={10}/>
-                        </button>
-                    )}
-                </div>
-                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                    <div style={{flex: 1}}>
+                    </section>
+                    <section className={'subgrid'}>
+                        <label>Spacing</label>
                         <NumberInput
-                            label="Spacing"
                             value={text.letterSpacing ?? 0}
                             min={-10}
                             max={50}
@@ -649,38 +548,19 @@ export function TextSection({
                             unit="px"
                             onChange={v => applyChange({letterSpacing: v})}
                         />
-                    </div>
-                    {hasStyle && overrides.has('letterSpacing') && (
-                        <button className={styles.resetOverrideBtn}
-                                onClick={() => resetOverride('letterSpacing')} title="Reset to style">
-                            <RotateCcw size={10}/>
-                        </button>
-                    )}
-                </div>
-
-
-                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                    <div style={{flex: 1}}>
-                        <SelectInput
-                            label="Transform"
-                            value={text.textTransform ?? 'none'}
-                            options={[
-                                {value: 'none', label: 'None'},
-                                {value: 'uppercase', label: 'Uppercase'},
-                                {value: 'lowercase', label: 'Lowercase'},
-                                {value: 'capitalize', label: 'Capitalize'},
-                            ]}
-                            onChange={v => applyChange({textTransform: v as TextStyle['textTransform']})}
-                        />
-                    </div>
-                    {hasStyle && overrides.has('textTransform') && (
-                        <button className={styles.resetOverrideBtn}
-                                onClick={() => resetOverride('textTransform')} title="Reset to style">
-                            <RotateCcw size={10}/>
-                        </button>
-                    )}
-                </div>
-
+                    </section>
+                    <SelectInput
+                        label="Transform"
+                        value={text.textTransform ?? 'none'}
+                        options={[
+                            {value: 'none', label: 'None'},
+                            {value: 'uppercase', label: 'Uppercase'},
+                            {value: 'lowercase', label: 'Lowercase'},
+                            {value: 'capitalize', label: 'Capitalize'},
+                        ]}
+                        onChange={v => applyChange({textTransform: v as TextStyle['textTransform']})}
+                    />
+                </article>
             </details>
 
             <details>

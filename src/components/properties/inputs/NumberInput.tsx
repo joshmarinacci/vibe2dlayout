@@ -3,7 +3,7 @@ import {useEffect, useRef, useState} from 'react'
 import styles from './inputs.module.css'
 
 interface Props {
-    label: string
+    label?: string
     value: number
     onChange: (v: number) => void
     min?: number
@@ -70,105 +70,73 @@ export function NumberInput({
     // When bound, show @varName display
     if (boundVariable && onVariableChange) {
         return (
-            <div className={styles.field}>
-                <label className={styles.label}>{label}</label>
-                <div className={styles.varBound}>
-                    <span className={styles.varName}>@{boundVariable.name}</span>
-                    <button className={styles.varClear} onClick={() => onVariableChange(null)}
-                            title="Clear variable binding">×
-                    </button>
-                </div>
-            </div>
+            <>
+                <label>{label}</label>
+                <span className={styles.varName}>@{boundVariable.name}</span>
+                <button className={styles.varClear} onClick={() => onVariableChange(null)}
+                        title="Clear variable binding">×
+                </button>
+            </>
         )
     }
 
     return (
-        <div className={styles.field}>
-            <label className={styles.label}>{label}</label>
-            <div className={styles.inputRow}>
-                <div className={styles.varDropdownWrap} ref={wrapRef}>
-                    <input
-                        type="text"
-                        className={styles.numberInput}
-                        value={localText}
-                        style={{textAlign: 'right'}}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => {
-                            setIsFocused(false)
-                            if (!showDropdown) commitValue(localText)
-                        }}
-                        onChange={e => {
-                            const text = e.target.value
-                            setLocalText(text)
-                            if (text.startsWith('@') && hasVars) {
-                                setShowDropdown(true)
-                            } else {
-                                setShowDropdown(false)
-                            }
-                        }}
-                        onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                                if (showDropdown && filteredVars.length > 0 && onVariableChange) {
-                                    onVariableChange(filteredVars[0].id)
-                                    setShowDropdown(false)
-                                    setLocalText(String(value))
-                                } else {
-                                    commitValue(localText)
-                                    setShowDropdown(false)
-                                }
-                                e.currentTarget.blur()
-                            }
-                            if (e.key === 'Escape') {
-                                setShowDropdown(false)
-                                setLocalText(String(value))
-                                e.currentTarget.blur()
-                            }
-                            if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !localText.startsWith('@')) {
-                                e.preventDefault()
-                                const current = parseFloat(localText)
-                                if (!isNaN(current)) {
-                                    const delta = e.key === 'ArrowUp' ? step : -step
-                                    const next = current + delta
-                                    const clamped = min !== undefined ? Math.max(min, next) : next
-                                    const final = max !== undefined ? Math.min(max, clamped) : clamped
-                                    setLocalText(String(final))
-                                    onChange(final)
-                                }
-                            }
-                        }}
-                        min={min}
-                        max={max}
-                        step={step}
-                    />
-                    {showDropdown && (
-                        <div className={styles.varDropdown}>
-                            {filteredVars.length === 0 ? (
-                                <div className={styles.varDropdownEmpty}>No matching variables</div>
-                            ) : (
-                                filteredVars.map(v => (
-                                    <div
-                                        key={v.id}
-                                        className={styles.varDropdownItem}
-                                        onMouseDown={e => {
-                                            e.preventDefault()
-                                            if (onVariableChange) {
-                                                onVariableChange(v.id)
-                                                setShowDropdown(false)
-                                                setLocalText(String(value))
-                                            }
-                                        }}
-                                    >
-                                        <span>@{v.name}</span>
-                                        <span
-                                            className={styles.varDropdownVal}>{String(v.value)}</span>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    )}
-                </div>
-                {unit && <span className={styles.unit}>{unit}</span>}
-            </div>
+        <div className={'hbox'}>
+            {label && <label>{label}</label>}
+            <input
+                type="text"
+                className={styles.numberInput}
+                value={localText}
+                style={{textAlign: 'right'}}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                    setIsFocused(false)
+                    if (!showDropdown) commitValue(localText)
+                }}
+                onChange={e => {
+                    const text = e.target.value
+                    setLocalText(text)
+                    if (text.startsWith('@') && hasVars) {
+                        setShowDropdown(true)
+                    } else {
+                        setShowDropdown(false)
+                    }
+                }}
+                onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                        if (showDropdown && filteredVars.length > 0 && onVariableChange) {
+                            onVariableChange(filteredVars[0].id)
+                            setShowDropdown(false)
+                            setLocalText(String(value))
+                        } else {
+                            commitValue(localText)
+                            setShowDropdown(false)
+                        }
+                        e.currentTarget.blur()
+                    }
+                    if (e.key === 'Escape') {
+                        setShowDropdown(false)
+                        setLocalText(String(value))
+                        e.currentTarget.blur()
+                    }
+                    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !localText.startsWith('@')) {
+                        e.preventDefault()
+                        const current = parseFloat(localText)
+                        if (!isNaN(current)) {
+                            const delta = e.key === 'ArrowUp' ? step : -step
+                            const next = current + delta
+                            const clamped = min !== undefined ? Math.max(min, next) : next
+                            const final = max !== undefined ? Math.min(max, clamped) : clamped
+                            setLocalText(String(final))
+                            onChange(final)
+                        }
+                    }
+                }}
+                min={min}
+                max={max}
+                step={step}
+            />
+            {unit && <span className={styles.unit}>{unit}</span>}
         </div>
     )
 }
