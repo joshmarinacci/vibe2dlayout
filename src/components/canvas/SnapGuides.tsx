@@ -15,8 +15,8 @@ export function SnapGuides({guides, zoom}: Props) {
             style={{
                 position: 'absolute',
                 inset: 0,
-                width: 0,
-                height: 0,
+                width: 1,
+                height: 1,
                 overflow: 'visible',
                 pointerEvents: 'none',
                 zIndex: 9998,

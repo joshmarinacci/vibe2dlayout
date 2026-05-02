@@ -73,8 +73,8 @@ export function CanvasGuides({guides, previewGuide, zoom, pageId, dispatch}: Pro
             style={{
                 position: 'absolute',
                 inset: 0,
-                width: 0,
-                height: 0,
+                width: 1,
+                height: 1,
                 overflow: 'visible',
                 zIndex: 10,
             }}
