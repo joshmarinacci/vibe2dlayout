@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, handDrawn}: Props) {
-    const {transform, value, ticks, fill, trackFill, stroke} = shape
+    const {transform, value, ticks, fill, progressFill, stroke} = shape
     const {width, height} = transform
 
     const seed = seedFromId(shape.id)
@@ -28,7 +28,7 @@ export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, ha
         seed,
         roughness: 1,
         bowing: 0.5,
-        fill: trackFill.color === 'transparent' ? undefined : trackFill.color,
+        fill: progressFill.color === 'transparent' ? undefined : progressFill.color,
         fillStyle: 'solid',
         fillWeight: 1,
         stroke: stroke.color,
@@ -90,7 +90,7 @@ export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, ha
                     <div style={{
                         position: 'absolute',
                         inset: 0,
-                        background: trackFill.color,
+                        background: progressFill.color,
                         borderRadius: height / 2,
                         ...strokeBorderCSS(stroke),
                         overflow: 'hidden',

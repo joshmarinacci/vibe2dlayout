@@ -27,7 +27,7 @@ export function ToggleShapeComp({
                                     onDoubleClick,
                                     handDrawn
                                 }: Props) {
-    const {transform, checked, text, trackFill, thumbFill, stroke} = shape
+    const {transform, checked, text, thumbFill, stroke} = shape
     const {width, height} = transform
     const {textareaRef, onChange, onKeyDown, onClickTextarea} = useTextEdit({
         content: text.content, isEditing, shapeId: shape.id, dispatch,
@@ -45,7 +45,7 @@ export function ToggleShapeComp({
     const seed = seedFromId(shape.id)
     const trackColor = checked
         ? (thumbFill.color === 'transparent' ? '#3b82f6' : thumbFill.color)
-        : (trackFill.color === 'transparent' ? '#e5e7eb' : trackFill.color)
+        : (shape.fill.color === 'transparent' ? '#e5e7eb' : shape.fill.color)
 
     const trackPaths = handDrawn ? roughRect(1, trackY, trackW - 2, trackH - 2, {
         seed,

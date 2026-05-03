@@ -743,12 +743,6 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
-                    <FillSection title={'Track Fill'} fill={shape.trackFill} onChange={f => dispatch({
-                        type: 'PATCH_SHAPE',
-                        id: shape.id,
-                        patch: {trackFill: f}
-                    })}
-                    />
                     <FillSection title={'Thumb Fill'} fill={shape.thumbFill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
                         id: shape.id,
@@ -821,10 +815,10 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
-                    <FillSection title="Track Fill" fill={shape.trackFill} onChange={f => dispatch({
+                    <FillSection fill={shape.fill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
                         id: shape.id,
-                        patch: {trackFill: f}
+                        patch: {fill: f}
                     })}/>
                     <FillSection title="Thumb Fill" fill={shape.thumbFill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
@@ -971,10 +965,10 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
-                    <FillSection fill={shape.trackFill} onChange={f => dispatch({
+                    <FillSection title={"Progress Fill"} fill={shape.progressFill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
                         id: shape.id,
-                        patch: {trackFill: f}
+                        patch: {progressFill: f}
                     })}
                     />
                     {common}

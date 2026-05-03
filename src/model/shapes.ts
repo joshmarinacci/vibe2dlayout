@@ -193,7 +193,6 @@ export interface SliderShape extends FormShape {
     type: 'slider'
     value: number       // 0–1 normalized
     ticks: number       // 0 = none, n = number of tick marks
-    trackFill: FillStyle
     thumbFill: FillStyle
 }
 
@@ -219,7 +218,6 @@ export interface ToggleShape extends FormShape {
     type: 'toggle'
     checked: boolean
     text: TextStyle
-    trackFill: FillStyle
     thumbFill: FillStyle
 }
 
@@ -255,7 +253,7 @@ export interface ProgressShape extends FormShape {
     type: 'progress'
     value: number       // 0–100
     ticks: number       // 0 = none, n = number of tick marks
-    trackFill: FillStyle
+    progressFill: FillStyle
 }
 
 export interface StepperShape extends FormShape {

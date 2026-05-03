@@ -892,8 +892,8 @@ function applyPaletteColorToShapes(
         if ('stroke' in shape && shape.stroke.paletteColorId === colorId) {
             updated = {...updated, stroke: {...shape.stroke, color: newHex}} as Shape
         }
-        if ('trackFill' in shape && shape.trackFill.paletteColorId === colorId) {
-            updated = {...updated, trackFill: {...shape.trackFill, color: newHex}} as Shape
+        if ('progressFill' in shape && shape.progressFill.paletteColorId === colorId) {
+            updated = {...updated, progressFill: {...shape.progressFill, color: newHex}} as Shape
         }
         if ('thumbFill' in shape && shape.thumbFill.paletteColorId === colorId) {
             updated = {...updated, thumbFill: {...shape.thumbFill, color: newHex}} as Shape

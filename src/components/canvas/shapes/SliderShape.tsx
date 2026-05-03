@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, handDrawn}: Props) {
-    const {transform, value, ticks, trackFill, thumbFill} = shape
+    const {transform, value, ticks, thumbFill} = shape
     const {width, height} = transform
     const thumbSize = height
     const thumbX = value * (width - thumbSize)
@@ -26,10 +26,10 @@ export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, hand
         seed,
         roughness: 1.2,
         bowing: 0.5,
-        fill: trackFill.color === 'transparent' ? undefined : trackFill.color,
+        fill: shape.fill.color === 'transparent' ? undefined : shape.fill.color,
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: trackFill.color === 'transparent' ? '#999' : trackFill.color,
+        stroke: shape.fill.color === 'transparent' ? '#999' : shape.fill.color,
         strokeWidth: 1.5,
     }) : []
 
@@ -93,7 +93,7 @@ export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, hand
                         top: trackY,
                         width: trackWidth,
                         height: trackHeight,
-                        background: trackFill.color,
+                        background: shape.fill.color,
                         borderRadius: trackHeight / 2,
                     }}/>
                     {/* Plain thumb */}

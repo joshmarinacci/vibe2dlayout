@@ -132,8 +132,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 transform: defaultTransform(x, y, 160, 24),
                 value: 0.5,
                 ticks: 0,
-                fill: themeFill(),
-                trackFill: {color: '#e5e7eb', opacity: 1},
+                fill: {color: '#e5e7eb', opacity: 1},
                 thumbFill: {color: theme ? bdr : '#3b82f6', opacity: 1},
                 stroke: formStroke(),
             }
@@ -169,7 +168,6 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 transform: defaultTransform(x, y, 130, 24),
                 checked: false,
                 text: {...themeText('Toggle'), align: 'left', color: theme ? fg : '#333333'},
-                trackFill: {color: '#e5e7eb', opacity: 1},
                 thumbFill: {color: theme ? bdr : '#3b82f6', opacity: 1},
                 fill: themeFill(),
                 stroke: formStroke(),
@@ -220,7 +218,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 value: 60,
                 ticks: 0,
                 fill: {color: theme ? bdr : '#3b82f6', opacity: 1},
-                trackFill: {color: '#e5e7eb', opacity: 1},
+                progressFill: {color: '#e5e7eb', opacity: 1},
                 stroke: formStroke(),
             }
         case 'stepper':
