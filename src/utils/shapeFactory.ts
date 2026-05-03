@@ -190,9 +190,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 fill: themeFill(),
                 stroke: formStroke(),
                 title: 'Dialog',
-                titleFontSize: size,
-                titleFontFamily: font,
-                titleColor: fg,
+                text: {...themeText('Checkbox'), align: 'left', color: theme ? fg : '#333333'},
                 okLabel: 'OK',
                 cancelLabel: 'Cancel',
             }

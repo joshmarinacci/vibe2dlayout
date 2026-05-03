@@ -233,11 +233,9 @@ export interface FrameShape extends FormShape {
 export interface DialogShape extends FormShape {
     type: 'dialog'
     title: string
-    titleFontSize: number
-    titleFontFamily: string
-    titleColor: string
     okLabel: string
     cancelLabel: string
+    text: TextStyle
 }
 
 export interface RadioShape extends FormShape {

@@ -209,8 +209,7 @@ function ShapeNode({
                                    handDrawn={effectiveHandDrawn} {...commonProps}>{children}</FrameShapeComp>
         case 'dialog':
             return <DialogShapeComp shape={resolvedShape} dispatch={dispatch}
-                                    handDrawn={effectiveHandDrawn}
-                                    themeFontFamily={themeFontFamily} {...commonProps}>{children}</DialogShapeComp>
+                                    handDrawn={effectiveHandDrawn} {...commonProps}>{children}</DialogShapeComp>
         case 'radio':
             return <RadioShapeComp shape={resolvedShape} isEditing={isEditingText}
                                    dispatch={dispatch}

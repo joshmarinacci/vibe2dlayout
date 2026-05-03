@@ -142,7 +142,7 @@ export function getContentOrigin(
     } else if (parent.type === 'tabbed-panel') {
         contentOffsetY = parent.text.fontSize + 16
     } else if (parent.type === 'dialog') {
-        contentOffsetY = parent.titleFontSize + 12
+        contentOffsetY = parent.text.fontSize + 12
     }
     return {x: abs.x, y: abs.y + contentOffsetY}
 }
@@ -173,7 +173,7 @@ export function getParentContentOrigin(
     } else if (parent?.type === 'tabbed-panel') {
         contentOffsetY = parent.text.fontSize + 16
     } else if (parent?.type === 'dialog') {
-        contentOffsetY = parent.titleFontSize + 12
+        contentOffsetY = parent.text.fontSize + 12
     }
 
     return {x: parentAbs.x, y: parentAbs.y + contentOffsetY}
@@ -208,7 +208,7 @@ export function getAbsoluteTransform(
     } else if (parent?.type === 'tabbed-panel') {
         contentOffsetY = parent.text.fontSize + 16
     } else if (parent?.type === 'dialog') {
-        contentOffsetY = parent.titleFontSize + 12
+        contentOffsetY = parent.text.fontSize + 12
     }
 
     return {
