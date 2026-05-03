@@ -47,13 +47,7 @@ export function DialogShapeComp({
     }) : []
 
     const okBtnPaths = handDrawn ? roughRect(width - btnW - 12, btnY, btnW, btnH, {
-        seed: seed + 4,
-        roughness: 1.2,
-        fill: stroke.color,
-        fillStyle: 'solid',
-        fillWeight: 1,
-        stroke: stroke.color,
-        strokeWidth: stroke.width,
+        seed: seed + 4, roughness: 1.2, stroke: stroke.color, strokeWidth: stroke.width,
     }) : []
 
 
