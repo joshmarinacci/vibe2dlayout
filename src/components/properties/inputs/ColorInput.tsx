@@ -1,6 +1,6 @@
 import type {Variable} from '@model/variable'
 import {useAppState} from '@store/context'
-import {useEffect, useRef, useState} from 'react'
+import {useRef, useState} from 'react'
 import swatchStyles from './ColorInput.module.css'
 import styles from './inputs.module.css'
 
@@ -53,7 +53,7 @@ export function ColorInput({
             {palettes.length > 0 && (
                 <>
                     {palettes.length > 1 && (
-                        <div style={{gridColumn:'1/span 4'}}>
+                        <div className={'full'}>
                             {palettes.map(p => (
                                 <button key={p.id} className={`${swatchStyles.paletteTab} ${p.id === activePalette?.id ? swatchStyles.paletteTabActive : ''}`}
                                     onClick={() => setActivePaletteId(p.id)}
@@ -62,7 +62,7 @@ export function ColorInput({
                         </div>
                     )}
                     {activePalette && (
-                        <div className={swatchStyles.swatchRow} style={{gridColumn:'1/span 4'}}>
+                        <div className={swatchStyles.swatchRow + ' full'}>
                             {activePalette.colors.map(pc => (
                                 <button
                                     key={pc.id}

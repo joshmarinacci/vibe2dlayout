@@ -126,3 +126,43 @@ section {
     }
 }
 
+section.super {
+    display: grid;
+    grid-template-columns: [gs] 2rem [s] 1fr [mid1] 1fr [mid2] 1fr [e] 1fr [ge] 2rem [ee];
+    row-gap: 0.5rem;
+    column-gap: 0.5rem;
+    .full {
+        grid-column: gs / ee;
+    }
+    .gs {
+        grid-column: gs;
+    }
+    .s {
+        grid-column: s;
+        text-align: end;
+        align-self: center;
+    }
+    .mid {
+        grid-column: mid1 / span 2;
+    }
+    .mid1 {
+        grid-column: mid1;
+    }
+    .mid2 {
+        grid-column: mid2;
+    }
+    .mid1span3 {
+        grid-column: mid1 / span 3;
+    }
+    .e {
+        grid-column: e;
+    }
+    .ge {
+        grid-column: ee;
+        border: 1px solid green;
+    }
+    .center-v {
+        align-self: center;
+    }
+}
+

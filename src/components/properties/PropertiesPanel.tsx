@@ -489,16 +489,11 @@ function ShapeProperties({shape, dispatch, state, variables}: {
     }
     if (hasFill(shape)) {
         const filled: FilledShape = shape as FilledShape
-        common.push(<FillSection fill={filled.fill} onChange={patchFill}
-                                 colorVar={vp('fill.color', 'color')}
-                                 opacityVar={vp('fill.opacity', 'number')}/>)
+        common.push(<FillSection fill={filled.fill} onChange={patchFill}/>)
     }
     if (hasStroke(shape)) {
         const stroked: StrokedShape = shape as StrokedShape
-        common.push(<StrokeSection stroke={stroked.stroke} onChange={patchStroke}
-                                   colorVar={vp('stroke.color', 'color')}
-                                   widthVar={vp('stroke.width', 'number')}
-                                   opacityVar={vp('stroke.opacity', 'number')}/>)
+        common.push(<StrokeSection stroke={stroked.stroke} onChange={patchStroke}/>)
     }
     if (hasTransform(shape)) {
         const transformed: TransformedShape = shape as TransformedShape
@@ -810,13 +805,13 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                         id: shape.id,
                         patch: {trackFill: f}
                     })}
-                                 colorVar={vp('trackFill.color', 'color')}/>
+                    />
                     <FillSection fill={shape.thumbFill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
                         id: shape.id,
                         patch: {thumbFill: f}
                     })}
-                                 colorVar={vp('thumbFill.color', 'color')}/>
+                    />
                 </>
             )
 
@@ -889,17 +884,15 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                         id: shape.id,
                         patch: {trackFill: f}
                     })}
-                                 colorVar={vp('trackFill.color', 'color')}/>
+                    />
                     <FillSection fill={shape.thumbFill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
                         id: shape.id,
                         patch: {thumbFill: f}
                     })}
-                                 colorVar={vp('thumbFill.color', 'color')}/>
+                    />
                     <StrokeSection stroke={shape.stroke} onChange={patchStroke}
-                                   colorVar={vp('stroke.color', 'color')}
-                                   widthVar={vp('stroke.width', 'number')}
-                                   opacityVar={vp('stroke.opacity', 'number')}/>
+                    />
                 </>
             )
 
@@ -1046,7 +1039,7 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                         id: shape.id,
                         patch: {trackFill: f}
                     })}
-                                 colorVar={vp('trackFill.color', 'color')}/>
+                    />
                     {common}
                 </>
             )

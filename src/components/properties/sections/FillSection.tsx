@@ -1,16 +1,10 @@
 import type {FillStyle, LinearGradient} from '@model/shapes'
-import type {Variable} from '@model/variable'
 import React, {useState} from "react";
 import {CollapsibleSection} from '../CollapsibleSection'
 import {ColorInput} from '../inputs/ColorInput'
 import {NumberInput} from '../inputs/NumberInput'
 import "../propsheet.css"
 
-interface VarProps {
-    variableId?: string | null
-    variables?: Variable[]
-    onVariableChange?: (id: string | null) => void
-}
 
 interface Props {
     fill: FillStyle
@@ -135,7 +129,7 @@ export function FillSection({fill, onChange}: Props) {
                     }}/>
                 </TabbedPanelTabs>
                 <TabbedPanelContent tab={'color'} {...tabProps}>
-                    <section>
+                    <section className={'super'}>
                         <ColorInput
                             value={{color: fill.color, paletteColorId: fill.paletteColorId}}
                             onChange={ref => onChange({
@@ -144,93 +138,126 @@ export function FillSection({fill, onChange}: Props) {
                                 paletteColorId: ref.paletteColorId
                             })}
                         />
-                        <div style={{gridColumn:'1/span 4', display:'grid', gridTemplateColumns:'subgrid'}}>
-                            <label>Opacity</label>
-                            <input type={'range'}
+                        <div className={'full center-v'}
+                             style={{display: 'grid', gridTemplateColumns: 'subgrid'}}>
+                            <label className={'s'}>Opacity</label>
+                            <input style={{
+                                gridColumn: 'mid1 / span 2',
+                                minWidth: '20px',
+                            }}
+                                   type={'range'}
                                    value={Math.round(fill.opacity * 100)}
                                    min={0} max={100}
-                                   onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
-                                   style={{
-                                       minWidth:'20px',
-                                   }}
-                               />
-                            <input type={'number'}
-                                   value={Math.round(fill.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
+                                   onChange={e => onChange({
+                                       ...fill,
+                                       opacity: parseInt(e.target.value) / 100
+                                   })}
                             />
-                            <label style={{gridColumn:'4'}}>%</label>
+                            <input className={'e'}
+                                   type={'number'}
+                                   value={Math.round(fill.opacity * 100)}
+                                   min={0} max={100}
+                                   onChange={e => onChange({
+                                       ...fill,
+                                       opacity: parseInt(e.target.value) / 100
+                                   })}
+                            />
+                            <label className={'center-v'}
+                                   style={{gridColumn: 'ge/span 1'}}>%</label>
                         </div>
-                        <button style={{gridColumn:'1/span 1',justifySelf:'center'}}>RGB/HSV</button>
-                        <button style={{gridColumn:'3/span 1',justifySelf:'center'}}>Palettes</button>
+                        <button className={'s'}>RGB/HSV</button>
+                        <button className={'e'}>Palettes</button>
                     </section>
                 </TabbedPanelContent>
                 <TabbedPanelContent tab={'gradient'} {...tabProps}>
-                    <NumberInput
-                        label="Angle"
-                        value={gradient.angle}
-                        min={0} max={360} step={1} unit="°"
-                        onChange={v => patchGradient({...gradient, angle: v})}
-                    />
+                    <section className={'super'}>
+                        <label className={'s'}>Type</label>
+                        <select className={'mid1span3'}>
+                            <option>linear</option>
+                        </select>
+                        <label className={'s'}>Colors</label>
+                        <select className={'mid1span3'}>
+                            <option>grad 1</option>
+                            <option>grad 2</option>
+                            <option>grad 3</option>
+                        </select>
+                        {/*<NumberInput*/}
+                        {/*    label="Angle"*/}
+                        {/*    value={gradient.angle}*/}
+                        {/*    min={0} max={360} step={1} unit="°"*/}
+                        {/*    onChange={v => patchGradient({...gradient, angle: v})}*/}
+                        {/*/>*/}
 
-                    {/* Stop list */}
-                    {gradient.stops.map((stop, idx) => (
-                        <div key={idx} style={{display: 'flex', alignItems: 'center', gap: 2}}>
-                            <div style={{flex: 1}}>
-                                <ColorInput
-                                    label={`Stop ${idx + 1}`}
-                                    value={{color: stop.color}}
-                                    onChange={ref => updateStop(idx, {color: ref.color})}
-                                />
-                            </div>
-                            <div style={{width: 48, flexShrink: 0}}>
-                                <NumberInput
-                                    label=""
-                                    value={Math.round(stop.position * 100)}
-                                    min={0} max={100} step={1} unit="%"
-                                    onChange={v => updateStop(idx, {position: v / 100})}
-                                />
-                            </div>
-                            <button
-                                onClick={() => removeStop(idx)}
-                                disabled={gradient.stops.length <= 2}
-                                title="Remove stop"
-                                style={{
-                                    width: 16, height: 16, flexShrink: 0, border: 'none',
-                                    background: 'transparent', color: 'var(--color-text-disabled)',
-                                    cursor: gradient.stops.length <= 2 ? 'default' : 'pointer',
-                                    fontSize: 14, lineHeight: 1, padding: 0,
-                                    opacity: gradient.stops.length <= 2 ? 0.3 : 1,
-                                }}
-                            >×
-                            </button>
-                        </div>
-                    ))}
+                        {/* Stop list */}
+                        {/*<div className={'full'}>*/}
+                        {/*{gradient.stops.map((stop, idx) => (*/}
+                        {/*    <div key={idx} style={{display: 'flex', alignItems: 'center', gap: 2}}>*/}
+                        {/*        <div style={{flex: 1}}>*/}
+                        {/*            <ColorInput*/}
+                        {/*                label={`Stop ${idx + 1}`}*/}
+                        {/*                value={{color: stop.color}}*/}
+                        {/*                onChange={ref => updateStop(idx, {color: ref.color})}*/}
+                        {/*            />*/}
+                        {/*        </div>*/}
+                        {/*        <div style={{width: 48, flexShrink: 0}}>*/}
+                        {/*            <NumberInput*/}
+                        {/*                label=""*/}
+                        {/*                value={Math.round(stop.position * 100)}*/}
+                        {/*                min={0} max={100} step={1} unit="%"*/}
+                        {/*                onChange={v => updateStop(idx, {position: v / 100})}*/}
+                        {/*            />*/}
+                        {/*        </div>*/}
+                        {/*        <button*/}
+                        {/*            onClick={() => removeStop(idx)}*/}
+                        {/*            disabled={gradient.stops.length <= 2}*/}
+                        {/*            title="Remove stop"*/}
+                        {/*            style={{*/}
+                        {/*                width: 16,*/}
+                        {/*                height: 16,*/}
+                        {/*                flexShrink: 0,*/}
+                        {/*                border: 'none',*/}
+                        {/*                background: 'transparent',*/}
+                        {/*                color: 'var(--color-text-disabled)',*/}
+                        {/*                cursor: gradient.stops.length <= 2 ? 'default' : 'pointer',*/}
+                        {/*                fontSize: 14,*/}
+                        {/*                lineHeight: 1,*/}
+                        {/*                padding: 0,*/}
+                        {/*                opacity: gradient.stops.length <= 2 ? 0.3 : 1,*/}
+                        {/*            }}*/}
+                        {/*        >×*/}
+                        {/*        </button>*/}
+                        {/*    </div>*/}
+                        {/*))}*/}
+                        {/*</div>*/}
 
-                    <button
-                        onClick={addStop}
-                        style={{
-                            width: '100%', marginTop: 2, fontSize: 11,
-                            border: '1px dashed var(--color-border)', borderRadius: 3,
-                            background: 'transparent', color: 'var(--color-text-muted)',
-                            cursor: 'pointer', padding: '2px 0',
-                        }}
-                    >
-                        + Add stop
-                    </button>
+                        {/*<button*/}
+                        {/*    onClick={addStop}*/}
+                        {/*    style={{*/}
+                        {/*        width: '100%', marginTop: 2, fontSize: 11,*/}
+                        {/*        border: '1px dashed var(--color-border)', borderRadius: 3,*/}
+                        {/*        background: 'transparent', color: 'var(--color-text-muted)',*/}
+                        {/*        cursor: 'pointer', padding: '2px 0',*/}
+                        {/*    }}*/}
+                        {/*>*/}
+                        {/*    + Add stop*/}
+                        {/*</button>*/}
 
-                    <section>
-                        <NumberInput
-                            label="Opacity"
-                            value={Math.round(fill.opacity * 100)}
-                            min={0} max={100}
-                            onChange={v => onChange({...fill, opacity: v / 100})}
-                            unit="%"
-                        />
+                        {/*<NumberInput*/}
+                        {/*    label="Opacity"*/}
+                        {/*    value={Math.round(fill.opacity * 100)}*/}
+                        {/*    min={0} max={100}*/}
+                        {/*    onChange={v => onChange({...fill, opacity: v / 100})}*/}
+                        {/*    unit="%"*/}
+                        {/*/>*/}
+
+                        <button className={'mid1'}>edit</button>
                     </section>
                 </TabbedPanelContent>
                 <TabbedPanelContent tab={'sketch'} {...tabProps}>
-                    <div>some content 3</div>
+                    <section className={'super'}>
+                        <button style={{gridColumn:'mid1/span 2'}}>sketch1</button>
+                        <button style={{gridColumn:'mid1/span 2'}}>sketch1</button>
+                    </section>
                 </TabbedPanelContent>
             </TabbedPanel>
         </CollapsibleSection>
