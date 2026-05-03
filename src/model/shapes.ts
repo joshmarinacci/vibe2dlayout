@@ -88,8 +88,6 @@ interface ShapeBase {
     name: string
     locked: boolean
     visible: boolean
-    // Variable bindings: propPath → variableId. Resolved at render time.
-    variableBindings?: Record<string, string>
     boxShadow?: BoxShadow[]
 }
 

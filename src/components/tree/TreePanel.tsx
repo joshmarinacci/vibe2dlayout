@@ -13,7 +13,6 @@ import {PixelAssetsSection} from './PixelAssetsSection'
 import {SectionHeader} from './SectionHeader'
 import {TreeNodeComp} from './TreeNode'
 import styles from './TreePanel.module.css'
-import {VariablesSection} from './VariablesSection'
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
     {type: 'rect', label: 'Rectangle'},
@@ -229,11 +228,6 @@ export function TreePanel() {
                     selectedPixelAssetId={state.selectedPixelAssetId}
                     dispatch={dispatch}
                     shapes={state.document.shapes}
-                />
-                <VariablesSection
-                    variables={state.document.variables}
-                    selectedVariableId={state.selectedVariableId}
-                    dispatch={dispatch}
                 />
                 <FontsSection
                     customFonts={state.document.customFonts}

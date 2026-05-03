@@ -1,25 +1,15 @@
 import type {StrokeStyle, StrokeType} from '@model/shapes'
-import type {Variable} from '@model/variable'
 import {CollapsibleSection} from '../CollapsibleSection'
 import {ColorInput} from '../inputs/ColorInput'
 import {NumberInput} from '../inputs/NumberInput'
 import {SelectInput} from '../inputs/SelectInput'
 
-interface VarProps {
-    variableId?: string | null
-    variables?: Variable[]
-    onVariableChange?: (id: string | null) => void
-}
-
 interface Props {
     stroke: StrokeStyle
     onChange: (s: StrokeStyle) => void
-    colorVar?: VarProps
-    widthVar?: VarProps
-    opacityVar?: VarProps
 }
 
-export function StrokeSection({stroke, onChange, colorVar, widthVar, opacityVar}: Props) {
+export function StrokeSection({stroke, onChange}: Props) {
     return (
         <CollapsibleSection title="Stroke">
             <section className={'super'}>
@@ -31,7 +21,6 @@ export function StrokeSection({stroke, onChange, colorVar, widthVar, opacityVar}
                     color: ref.color,
                     paletteColorId: ref.paletteColorId
                 })}
-                {...colorVar}
             />
             </section>
             <NumberInput
@@ -40,7 +29,6 @@ export function StrokeSection({stroke, onChange, colorVar, widthVar, opacityVar}
                 min={0} step={0.5}
                 onChange={v => onChange({...stroke, width: v})}
                 unit="px"
-                {...widthVar}
             />
             <NumberInput
                 label="Opacity"
@@ -48,7 +36,6 @@ export function StrokeSection({stroke, onChange, colorVar, widthVar, opacityVar}
                 min={0} max={100}
                 onChange={v => onChange({...stroke, opacity: v / 100})}
                 unit="%"
-                {...opacityVar}
             />
             <SelectInput
                 label="Style"

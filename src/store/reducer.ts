@@ -435,7 +435,6 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 activeThemeId: d.activeThemeId ?? 'hand-drawn',
                 gridSettings: d.gridSettings ?? {...DEFAULT_GRID_SETTINGS},
                 pageFolders: d.pageFolders ?? [],
-                variables: d.variables ?? [],
                 images,
                 customFonts: (d.customFonts ?? []).map((f: unknown) =>
                     typeof f === 'string' ? {
@@ -516,46 +515,6 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
             return {...doc, pageFolders: arr}
         }
 
-        case 'ADD_VARIABLE':
-            return {...doc, variables: [...(doc.variables ?? []), action.variable]}
-
-        case 'UPDATE_VARIABLE':
-            return {
-                ...doc,
-                variables: (doc.variables ?? []).map(v => v.id === action.variable.id ? action.variable : v),
-            }
-
-        case 'DELETE_VARIABLE': {
-            const newVariables = (doc.variables ?? []).filter(v => v.id !== action.variableId)
-            // Remove all bindings pointing to this variable from every shape
-            const newShapes = {...doc.shapes}
-            for (const [id, shape] of Object.entries(doc.shapes)) {
-                const bindings = (shape as unknown as {
-                    variableBindings?: Record<string, string>
-                }).variableBindings
-                if (!bindings) continue
-                const filtered = Object.fromEntries(
-                    Object.entries(bindings).filter(([, vId]) => vId !== action.variableId)
-                )
-                newShapes[id] = {
-                    ...shape,
-                    variableBindings: Object.keys(filtered).length > 0 ? filtered : undefined,
-                } as Shape
-            }
-            return {...doc, variables: newVariables, shapes: newShapes}
-        }
-
-        case 'REORDER_VARIABLE': {
-            const vars = [...(doc.variables ?? [])]
-            const idx = vars.findIndex(v => v.id === action.variableId)
-            if (idx < 0) return doc
-            const swapIdx = action.direction === 'up' ? idx - 1 : idx + 1
-            if (swapIdx < 0 || swapIdx >= vars.length) return doc
-                ;
-            [vars[idx], vars[swapIdx]] = [vars[swapIdx], vars[idx]]
-            return {...doc, variables: vars}
-        }
-
         case 'ADD_IMAGE_ASSET':
             return {...doc, images: [...(doc.images ?? []), action.asset]}
 
@@ -607,26 +566,6 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 }
             }
             return {...doc, pixelAssets: remaining, shapes: newShapes}
-        }
-
-        case 'BIND_VARIABLE': {
-            const shape = doc.shapes[action.shapeId]
-            if (!shape) return doc
-            const bindings = {
-                ...((shape as unknown as {
-                    variableBindings?: Record<string, string>
-                }).variableBindings ?? {})
-            }
-            if (action.variableId === null) {
-                delete bindings[action.propPath]
-            } else {
-                bindings[action.propPath] = action.variableId
-            }
-            const updatedShape = {
-                ...shape,
-                variableBindings: Object.keys(bindings).length > 0 ? bindings : undefined,
-            } as Shape
-            return {...doc, shapes: {...doc.shapes, [action.shapeId]: updatedShape}}
         }
 
         case 'ADD_GUIDE': {
@@ -996,7 +935,6 @@ export function createInitialDocument(): VibeDocument {
         activeThemeId: 'hand-drawn',
         gridSettings: {...DEFAULT_GRID_SETTINGS},
         pageFolders: [],
-        variables: [],
         images: [],
         pixelAssets: [],
         customFonts: [],
@@ -1022,7 +960,6 @@ export const initialState: AppState = {
     documentName: 'Untitled',
     isDirty: false,
     documentSelected: false,
-    selectedVariableId: null,
     selectedAssetId: null,
     selectedPixelAssetId: null,
     editingPixelAssetId: null,
@@ -1068,11 +1005,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'ASSIGN_PAGES_TO_FOLDER':
         case 'REMOVE_PAGES_FROM_FOLDER':
         case 'REORDER_PAGE_FOLDER':
-        case 'ADD_VARIABLE':
-        case 'UPDATE_VARIABLE':
-        case 'DELETE_VARIABLE':
-        case 'REORDER_VARIABLE':
-        case 'BIND_VARIABLE':
         case 'ADD_IMAGE_ASSET':
         case 'UPDATE_IMAGE_ASSET':
         case 'DELETE_IMAGE_ASSET':
@@ -1109,7 +1041,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {
                 ...state,
                 documentSelected: false,
-                selectedVariableId: null,
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
@@ -1124,7 +1055,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {
                 ...state,
                 documentSelected: false,
-                selectedVariableId: null,
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
@@ -1135,7 +1065,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {
                 ...state,
                 documentSelected: false,
-                selectedVariableId: null,
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
@@ -1206,20 +1135,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {
                 ...state,
                 documentSelected: true,
-                selectedVariableId: null,
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
-                selection: {ids: [], editingTextId: null},
-            }
-        case 'SELECT_VARIABLE':
-            return {
-                ...state,
-                selectedVariableId: action.variableId,
-                selectedAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                documentSelected: false,
                 selection: {ids: [], editingTextId: null},
             }
         case 'SELECT_IMAGE_ASSET':
@@ -1227,7 +1145,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 selectedAssetId: action.assetId,
                 selectedPixelAssetId: null,
-                selectedVariableId: null,
                 selectedFontName: null,
                 documentSelected: false,
                 selection: {ids: [], editingTextId: null},
@@ -1237,7 +1154,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 selectedPixelAssetId: action.assetId,
                 selectedAssetId: null,
-                selectedVariableId: null,
                 selectedFontName: null,
                 documentSelected: false,
                 selection: {ids: [], editingTextId: null},
@@ -1248,7 +1164,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedFontName: action.fontName,
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
-                selectedVariableId: null,
                 documentSelected: false,
                 selection: {ids: [], editingTextId: null},
             }

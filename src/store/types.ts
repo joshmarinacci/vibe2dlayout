@@ -9,7 +9,6 @@ import type {SelectionState} from '@model/selection'
 import type {Shape} from '@model/shapes'
 import type {Theme} from '@model/theme'
 import type {BoundingBox, Point} from '@model/transform'
-import type {Variable} from '@model/variable'
 
 // ─── View ──────────────────────────────────────────────────────────────────
 
@@ -84,8 +83,6 @@ export interface AppState {
     isDirty: boolean  // true when document has unsaved changes
     // true when user clicked the Document row in the tree (shows document properties)
     documentSelected: boolean
-    // ID of the variable selected in the tree (shows variable editor in props panel)
-    selectedVariableId: string | null
     // ID of the image asset selected in the tree (shows asset editor in props panel)
     selectedAssetId: string | null
     // ID of the pixel asset selected in the tree
@@ -148,11 +145,6 @@ export type DocumentAction =
     | { type: 'ASSIGN_PAGES_TO_FOLDER'; folderId: string; pageIds: string[] }
     | { type: 'REMOVE_PAGES_FROM_FOLDER'; folderId: string; pageIds: string[] }
     | { type: 'REORDER_PAGE_FOLDER'; folderId: string; direction: 'up' | 'down' }
-    | { type: 'ADD_VARIABLE'; variable: Variable }
-    | { type: 'UPDATE_VARIABLE'; variable: Variable }
-    | { type: 'DELETE_VARIABLE'; variableId: string }
-    | { type: 'REORDER_VARIABLE'; variableId: string; direction: 'up' | 'down' }
-    | { type: 'BIND_VARIABLE'; shapeId: string; propPath: string; variableId: string | null }
     | { type: 'ADD_IMAGE_ASSET'; asset: ImageAsset }
     | { type: 'UPDATE_IMAGE_ASSET'; asset: ImageAsset }
     | { type: 'DELETE_IMAGE_ASSET'; assetId: string }
@@ -197,7 +189,6 @@ export type ViewAction =
     | { type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL' }
     | { type: 'SELECT_DOCUMENT' }
     | { type: 'SET_FOLDER_COLLAPSED'; folderId: string; collapsed: boolean }
-    | { type: 'SELECT_VARIABLE'; variableId: string | null }
     | { type: 'SELECT_IMAGE_ASSET'; assetId: string | null }
     | { type: 'SELECT_PIXEL_ASSET'; assetId: string | null }
     | { type: 'START_PIXEL_EDIT'; assetId: string }

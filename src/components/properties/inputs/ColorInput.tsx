@@ -1,4 +1,3 @@
-import type {Variable} from '@model/variable'
 import {useAppState} from '@store/context'
 import {useRef, useState} from 'react'
 import swatchStyles from './ColorInput.module.css'
@@ -13,10 +12,6 @@ interface Props {
     label?: string
     value: ColorRef
     onChange: (v: ColorRef) => void
-    // Variable binding (all optional — existing call sites unchanged)
-    variableId?: string | null
-    variables?: Variable[]
-    onVariableChange?: (id: string | null) => void
 }
 
 export function ColorInput({

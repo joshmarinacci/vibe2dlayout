@@ -1,6 +1,5 @@
 import type {CustomFont} from '@model/document'
-import type {LinearGradient, TextStyle} from '@model/shapes'
-import {linearGradientCSS} from '@utils/fillCSS'
+import type {TextStyle} from "@model/shapes.ts";
 import {detectSmallCaps} from '@utils/fontFeatures'
 import {
     ALargeSmall,
@@ -101,11 +100,6 @@ const COMMON_FONTS = [
     {value: 'Arial, sans-serif', label: 'Arial'},
     {value: 'Helvetica, sans-serif', label: 'Helvetica'},
 ]
-
-const DEFAULT_TEXT_GRADIENT: LinearGradient = {
-    type: 'linear', angle: 90,
-    stops: [{color: '#4f46e5', position: 0}, {color: '#e879f9', position: 1}],
-}
 
 interface Props {
     text: TextStyle

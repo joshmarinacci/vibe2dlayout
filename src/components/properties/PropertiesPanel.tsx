@@ -13,7 +13,6 @@ import {
 } from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
 import type {BoundingBox} from '@model/transform'
-import type {Variable, VariableType} from '@model/variable'
 import {useAppDispatch, useAppState} from '@store/context'
 import {selectSelectedShapes} from '@store/selectors'
 import {RotateCcw} from 'lucide-react'
@@ -37,31 +36,11 @@ import {ShadowSection} from './sections/ShadowSection'
 import {StrokeSection} from './sections/StrokeSection'
 import {TextSection} from './sections/TextSection'
 import {TransformSection} from './sections/TransformSection'
-import {VariableSection} from './sections/VariableSection'
 
 function commonValue<T>(vals: T[]): T | null {
     if (vals.length === 0) return null
     const first = vals[0]
     return vals.every(v => JSON.stringify(v) === JSON.stringify(first)) ? first : null
-}
-
-// Helper to build variable binding props for a given shape property path and variable type.
-// All call sites just spread the result into the input component props.
-function makeVarProps(
-    shape: Shape,
-    propPath: string,
-    type: VariableType,
-    variables: Variable[],
-    dispatch: ReturnType<typeof useAppDispatch>,
-) {
-    return {
-        variableId: (shape as unknown as {
-            variableBindings?: Record<string, string>
-        }).variableBindings?.[propPath] ?? null,
-        variables: variables.filter(v => v.type === type),
-        onVariableChange: (id: string | null) =>
-            dispatch({type: 'BIND_VARIABLE', shapeId: shape.id, propPath, variableId: id}),
-    }
 }
 
 export function PropertiesPanel() {
@@ -142,21 +121,6 @@ export function PropertiesPanel() {
                         usedByShapes={usedByShapes.map(s => ({id: s.id, name: s.name}))}
                         dispatch={dispatch}
                     />
-                </div>
-            )
-        }
-    }
-
-    if (state.selectedVariableId !== null) {
-        const variable = state.document.variables.find(v => v.id === state.selectedVariableId)
-        if (variable) {
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>variable</span>
-                        <span className={styles.shapeName}>{variable.name}</span>
-                    </div>
-                    <VariableSection variable={variable} dispatch={dispatch}/>
                 </div>
             )
         }
@@ -389,7 +353,6 @@ export function PropertiesPanel() {
 
     const shape = selected[0]
     const resetToTheme = () => dispatch({type: 'RESET_SHAPES_TO_THEME', ids: [shape.id]})
-    const variables = state.document.variables
 
     return (
         <div className={styles.panel}>
@@ -446,18 +409,16 @@ export function PropertiesPanel() {
             </div>
 
             <div style={shape.locked ? {opacity: 0.5, pointerEvents: 'none'} : undefined}>
-                <ShapeProperties shape={shape} dispatch={dispatch} state={state}
-                                 variables={variables}/>
+                <ShapeProperties shape={shape} dispatch={dispatch} state={state}/>
             </div>
         </div>
     )
 }
 
-function ShapeProperties({shape, dispatch, state, variables}: {
+function ShapeProperties({shape, dispatch, state}: {
     shape: Shape
     dispatch: ReturnType<typeof useAppDispatch>
     state: ReturnType<typeof useAppState>['state']
-    variables: Variable[]
 }) {
     const patchTransform = (t: BoundingBox) =>
         dispatch({type: 'SET_TRANSFORM', id: shape.id, transform: t})
@@ -473,8 +434,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
         ? (state.document.customFonts.find(f => f.name === resolvedFontFamily) ?? null)
         : null
 
-    // Shorthand for building variable binding props for this shape's property path
-    const vp = (path: string, type: VariableType) => makeVarProps(shape, path, type, variables, dispatch)
 
     const common = []
 
@@ -497,11 +456,7 @@ function ShapeProperties({shape, dispatch, state, variables}: {
     }
     if (hasTransform(shape)) {
         const transformed: TransformedShape = shape as TransformedShape
-        common.push(<TransformSection transform={transformed.transform} onChange={patchTransform}
-                                      xVar={vp('transform.x', 'number')}
-                                      yVar={vp('transform.y', 'number')}
-                                      wVar={vp('transform.width', 'number')}
-                                      hVar={vp('transform.height', 'number')}/>)
+        common.push(<TransformSection transform={transformed.transform} onChange={patchTransform}/>)
     }
     common.push(<ShadowSection shape={shape} dispatch={dispatch}/>)
     switch (shape.type) {
@@ -534,10 +489,7 @@ function ShapeProperties({shape, dispatch, state, variables}: {
         case 'line':
             return (
                 <>
-                    <StrokeSection stroke={shape.stroke} onChange={patchStroke}
-                                   colorVar={vp('stroke.color', 'color')}
-                                   widthVar={vp('stroke.width', 'number')}
-                                   opacityVar={vp('stroke.opacity', 'number')}/>
+                    <StrokeSection stroke={shape.stroke} onChange={patchStroke}/>
                     <ConnectorSection shape={shape} dispatch={dispatch}/>
                 </>
             )
@@ -787,7 +739,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 patch: {value: v / 100}
                             })}
                             unit="%"
-                            {...vp('value', 'number')}
                         />
                         <NumberInput
                             label="Ticks"
@@ -856,7 +807,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 id: shape.id,
                                 patch: {checked: v}
                             })}
-                            {...vp('checked', 'boolean')}
                         />
                     </CollapsibleSection>
                     {common}
@@ -876,7 +826,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 id: shape.id,
                                 patch: {checked: v}
                             })}
-                            {...vp('checked', 'boolean')}
                         />
                     </CollapsibleSection>
                     <FillSection fill={shape.trackFill} onChange={f => dispatch({
@@ -981,7 +930,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 id: shape.id,
                                 patch: {checked: v}
                             })}
-                            {...vp('checked', 'boolean')}
                         />
                     </CollapsibleSection>
                 </>
@@ -1021,7 +969,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 patch: {value: v}
                             })}
                             unit="%"
-                            {...vp('value', 'number')}
                         />
                         <NumberInput
                             label="Ticks"
@@ -1056,7 +1003,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 id: shape.id,
                                 patch: {value: v}
                             })}
-                            {...vp('value', 'number')}
                         />
                     </CollapsibleSection>
                     {common}
@@ -1127,7 +1073,6 @@ function ShapeProperties({shape, dispatch, state, variables}: {
                                 id: shape.id,
                                 patch: {scrollPosition: Math.max(0, Math.min(1, v))}
                             })}
-                            {...vp('scrollPosition', 'number')}
                         />
                     </CollapsibleSection>
                     {common}

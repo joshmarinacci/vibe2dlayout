@@ -4,7 +4,6 @@ import type {ColorPalette} from './palette'
 import type {PixelAsset} from './pixelAsset'
 import type {Shape} from './shapes'
 import type {Theme} from './theme'
-import type {Variable} from './variable'
 
 /**
  * The document tree stores topology separately from shape data.
@@ -52,7 +51,6 @@ export interface VibeDocument {
     activeThemeId: string       // which theme applies to new shapes
     gridSettings: GridSettings  // document-level grid / snap settings
     pageFolders: PageFolder[]   // organizational folders for pages (UI-only, no canvas presence)
-    variables: Variable[]       // named document-level variables
     images: ImageAsset[]        // document-level image asset registry
     pixelAssets: PixelAsset[]   // pixel image asset registry
     customFonts: CustomFont[]   // Google Font family names added by the user, with metadata
