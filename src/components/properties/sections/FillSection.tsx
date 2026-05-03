@@ -8,6 +8,7 @@ import "../propsheet.css"
 interface Props {
     fill: FillStyle
     onChange: (f: FillStyle) => void
+    title?: string
 }
 
 type FillType = 'color' | 'gradient' | 'sketch'
@@ -54,7 +55,7 @@ function TabbedPanelTabs(props: { children: React.ReactNode }) {
     return <div className={'tabbed-panel-tabs'}>{props.children}</div>
 }
 
-export function FillSection({fill, onChange}: Props) {
+export function FillSection({fill, onChange, title}: Props) {
 
     const switchToGradient = () => {
         const stops = [
@@ -73,7 +74,7 @@ export function FillSection({fill, onChange}: Props) {
         setSelectedTab: setSelectedTab
     }
     return (
-        <CollapsibleSection title="Fill">
+        <CollapsibleSection title={title?title:'Fill'}>
             <TabbedPanel>
                 <TabbedPanelTabs>
                     <TabbedPanelTab tab={'color'} title={'Color'}

@@ -601,14 +601,10 @@ function ShapeProperties({shape, dispatch, state}: {
             return (
                 <>
                     <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    {common}
-                    <ButtonIconSection
-                        icon={shape.icon}
-                        onChange={ic => dispatch({
-                            type: 'PATCH_SHAPE',
-                            id: shape.id,
-                            patch: {icon: ic}
-                        })}
+                    <ButtonIconSection icon={shape.icon} onChange={ic => dispatch({
+                        type: 'PATCH_SHAPE', id: shape.id,
+                        patch: {icon: ic}
+                    })}
                     />
                     <CollapsibleSection title="Button">
                         <CornerRadiusControl
@@ -626,20 +622,18 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
+                    {common}
                 </>
             )
 
         case 'icon':
             return (
                 <>
-                    <IconSection
-                        icon={shape.icon}
-                        onChange={ic => dispatch({
-                            type: 'PATCH_SHAPE',
-                            id: shape.id,
-                            patch: {icon: ic}
-                        })}
-                    />
+                    <IconSection icon={shape.icon} onChange={ic => dispatch({
+                        type: 'PATCH_SHAPE',
+                        id: shape.id,
+                        patch: {icon: ic}
+                    })}/>
                     {common}
                 </>
             )
@@ -647,11 +641,8 @@ function ShapeProperties({shape, dispatch, state}: {
         case 'panel':
             return (
                 <>
-                    {shape.text && (
-                        <ContentSection id={shape.id} content={shape.text.content}
-                                        dispatch={dispatch}/>
-                    )}
-                    {common}
+                    {shape.text && (<ContentSection id={shape.id} content={shape.text.content}
+                                                    dispatch={dispatch}/>)}
                     <CollapsibleSection title="Panel">
                         <CornerRadiusControl
                             cornerRadius={shape.cornerRadius}
@@ -677,6 +668,7 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
+                    {common}
                 </>
             )
 
@@ -696,7 +688,6 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
-                    {common}
                     <CollapsibleSection title="Panel">
                         <CornerRadiusControl
                             cornerRadius={shape.cornerRadius}
@@ -722,6 +713,7 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
+                    {common}
                 </>
             )
 
@@ -828,28 +820,24 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
-                    <FillSection fill={shape.trackFill} onChange={f => dispatch({
+                    <FillSection title="Track Fill" fill={shape.trackFill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
                         id: shape.id,
                         patch: {trackFill: f}
-                    })}
-                    />
-                    <FillSection fill={shape.thumbFill} onChange={f => dispatch({
+                    })}/>
+                    <FillSection title="Thumb Fill" fill={shape.thumbFill} onChange={f => dispatch({
                         type: 'PATCH_SHAPE',
                         id: shape.id,
                         patch: {thumbFill: f}
-                    })}
-                    />
-                    <StrokeSection stroke={shape.stroke} onChange={patchStroke}
-                    />
+                    })}/>
+                    {common}
                 </>
             )
 
         case 'frame':
             return (
                 <>
-                    {common}
-                    <CollapsibleSection title="Panel">
+                    <CollapsibleSection title="Frame">
                         <CornerRadiusControl
                             cornerRadius={shape.cornerRadius}
                             cornerRadii={shape.cornerRadii}
@@ -874,13 +862,13 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
+                    {common}
                 </>
             )
 
         case 'dialog':
             return (
                 <>
-                    {common}
                     <CollapsibleSection title="Dialog">
                         <input
                             className={styles.nameInput}
@@ -913,6 +901,7 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
+                    {common}
                 </>
             )
 
@@ -920,7 +909,6 @@ function ShapeProperties({shape, dispatch, state}: {
             return (
                 <>
                     <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    {common}
                     <CollapsibleSection title="Radio Button">
                         <ToggleInput
                             label="Checked"
@@ -932,6 +920,7 @@ function ShapeProperties({shape, dispatch, state}: {
                             })}
                         />
                     </CollapsibleSection>
+                    {common}
                 </>
             )
 
