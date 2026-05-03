@@ -2,7 +2,6 @@ import type {FillStyle, LinearGradient} from '@model/shapes'
 import React, {useState} from "react";
 import {CollapsibleSection} from '../CollapsibleSection'
 import {ColorInput} from '../inputs/ColorInput'
-import {NumberInput} from '../inputs/NumberInput'
 import "../propsheet.css"
 
 

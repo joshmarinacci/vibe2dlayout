@@ -22,6 +22,7 @@ interface Props {
 export function StrokeSection({stroke, onChange, colorVar, widthVar, opacityVar}: Props) {
     return (
         <CollapsibleSection title="Stroke">
+            <section className={'super'}>
             <ColorInput
                 label="Color"
                 value={{color: stroke.color, paletteColorId: stroke.paletteColorId}}
@@ -32,6 +33,7 @@ export function StrokeSection({stroke, onChange, colorVar, widthVar, opacityVar}
                 })}
                 {...colorVar}
             />
+            </section>
             <NumberInput
                 label="Width"
                 value={stroke.width}

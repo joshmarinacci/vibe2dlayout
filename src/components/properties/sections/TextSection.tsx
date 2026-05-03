@@ -252,187 +252,21 @@ export function TextSection({
 
                 <details>
                     <summary>Color</summary>
-                    {/* 6 — Color / gradient */}
                     <article>
-                        {(() => {
-                            const isGradient = !!text.textGradient
-                            const gradient = text.textGradient ?? DEFAULT_TEXT_GRADIENT
-                            const patchGradient = (g: LinearGradient) => applyChange({textGradient: g})
-                            const addStop = () => {
-                                const sorted = [...gradient.stops].sort((a, b) => a.position - b.position)
-                                let bestIdx = 0, bestGap = 0
-                                for (let i = 0; i < sorted.length - 1; i++) {
-                                    const gap = sorted[i + 1].position - sorted[i].position
-                                    if (gap > bestGap) {
-                                        bestGap = gap;
-                                        bestIdx = i
-                                    }
-                                }
-                                const mid = (sorted[bestIdx].position + sorted[bestIdx + 1].position) / 2
-                                sorted.splice(bestIdx + 1, 0, {
-                                    color: sorted[bestIdx].color,
-                                    position: Math.round(mid * 100) / 100
-                                })
-                                patchGradient({...gradient, stops: sorted})
-                            }
-                            return (
-                                <>
-                                    <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                                        <div style={{flex: 1}} className={inputStyles.field}>
-                                            <span className={inputStyles.label}>Color</span>
-                                            <div className={inputStyles.iconBtnGroup}>
-                                                <button
-                                                    className={`${inputStyles.iconBtn} ${!isGradient ? inputStyles.iconBtnActive : ''}`}
-                                                    onClick={() => applyChange({textGradient: null})}
-                                                    style={{
-                                                        fontSize: 10,
-                                                        padding: '2px 6px',
-                                                        width: 'auto'
-                                                    }}
-                                                >Solid
-                                                </button>
-                                                <button
-                                                    className={`${inputStyles.iconBtn} ${isGradient ? inputStyles.iconBtnActive : ''}`}
-                                                    onClick={() => applyChange({
-                                                        textGradient: {
-                                                            ...DEFAULT_TEXT_GRADIENT,
-                                                            stops: [{
-                                                                color: text.color,
-                                                                position: 0
-                                                            }, {color: '#ffffff', position: 1}]
-                                                        }
-                                                    })}
-                                                    style={{
-                                                        fontSize: 10,
-                                                        padding: '2px 6px',
-                                                        width: 'auto'
-                                                    }}
-                                                >Gradient
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {!isGradient ? (
-                                        <ColorInput
-                                            label=""
-                                            value={{
-                                                color: text.color,
-                                                paletteColorId: text.paletteColorId
-                                            }}
-                                            onChange={ref => applyChange({
-                                                color: ref.color,
-                                                paletteColorId: ref.paletteColorId
-                                            })}
-                                        />
-                                    ) : (
-                                        <div style={{
-                                            background: 'var(--color-bg-panel)',
-                                            border: '1px solid var(--color-border-subtle)',
-                                            borderRadius: 4,
-                                            padding: '6px 6px 4px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: 4,
-                                            marginTop: 2,
-                                        }}>
-                                            {/* Preview bar */}
-                                            <div style={{
-                                                height: 12,
-                                                borderRadius: 3,
-                                                background: linearGradientCSS(gradient),
-                                                marginBottom: 2,
-                                            }}/>
-                                            {/* Angle */}
-                                            <NumberInput label="Angle" value={gradient.angle}
-                                                         min={0} max={360}
-                                                         step={1} unit="°"
-                                                         onChange={v => patchGradient({
-                                                             ...gradient,
-                                                             angle: v
-                                                         })}/>
-                                            {/* Stop rows */}
-                                            {gradient.stops.map((stop, idx) => (
-                                                <div key={idx}
-                                                     style={{
-                                                         display: 'flex',
-                                                         alignItems: 'center',
-                                                         gap: 4
-                                                     }}>
-                                                    <div style={{flex: 1}}>
-                                                        <ColorInput label=""
-                                                                    value={{color: stop.color}}
-                                                                    onChange={ref => {
-                                                                        const stops = gradient.stops.map((s, i) => i === idx ? {
-                                                                            ...s,
-                                                                            color: ref.color
-                                                                        } : s)
-                                                                        patchGradient({
-                                                                            ...gradient,
-                                                                            stops
-                                                                        })
-                                                                    }}/>
-                                                    </div>
-                                                    <div style={{width: 60, flexShrink: 0}}>
-                                                        <NumberInput label="%"
-                                                                     value={Math.round(stop.position * 100)}
-                                                                     min={0} max={100} step={1}
-                                                                     onChange={v => {
-                                                                         const stops = gradient.stops.map((s, i) => i === idx ? {
-                                                                             ...s,
-                                                                             position: v / 100
-                                                                         } : s)
-                                                                         patchGradient({
-                                                                             ...gradient,
-                                                                             stops
-                                                                         })
-                                                                     }}/>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            if (gradient.stops.length <= 2) return
-                                                            patchGradient({
-                                                                ...gradient,
-                                                                stops: gradient.stops.filter((_, i) => i !== idx)
-                                                            })
-                                                        }}
-                                                        disabled={gradient.stops.length <= 2}
-                                                        style={{
-                                                            width: 16,
-                                                            height: 16,
-                                                            flexShrink: 0,
-                                                            border: 'none',
-                                                            background: 'transparent',
-                                                            color: 'var(--color-text-disabled)',
-                                                            cursor: gradient.stops.length <= 2 ? 'default' : 'pointer',
-                                                            fontSize: 14,
-                                                            lineHeight: 1,
-                                                            padding: 0,
-                                                            opacity: gradient.stops.length <= 2 ? 0.3 : 1
-                                                        }}
-                                                    >×
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            {/* Add stop */}
-                                            <button onClick={addStop}
-                                                    style={{
-                                                        width: '100%',
-                                                        marginTop: 2,
-                                                        fontSize: 11,
-                                                        border: '1px dashed var(--color-border)',
-                                                        borderRadius: 3,
-                                                        background: 'transparent',
-                                                        color: 'var(--color-text-muted)',
-                                                        cursor: 'pointer',
-                                                        padding: '2px 0'
-                                                    }}>
-                                                + Add stop
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
-                            )
-                        })()}</article>
+                        <section className={'super'}>
+                            <ColorInput
+                                label=""
+                                value={{
+                                    color: text.color,
+                                    paletteColorId: text.paletteColorId
+                                }}
+                                onChange={ref => applyChange({
+                                    color: ref.color,
+                                    paletteColorId: ref.paletteColorId
+                                })}
+                            />
+                        </section>
+                        </article>
                 </details>
 
                 <details>
