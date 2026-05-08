@@ -1,5 +1,5 @@
 import type {ConnectorEndpoint} from '@model/connector'
-import type {CustomFont, PageFolder, VibeDocument} from '@model/document'
+import type {CustomFont, GradientDef, PageFolder, SketchStyleDef, VibeDocument} from '@model/document'
 import type {GridSettings} from '@model/grid'
 import type {CanvasGuide} from '@model/guide'
 import type {ImageAsset} from '@model/imageAsset'
@@ -93,6 +93,8 @@ export interface AppState {
     selectedFontName: string | null
     // One-shot signal from useTauriMenu to open the documents modal
     pendingDocumentsModalMode: 'open' | 'save-as' | null
+    showGradientModal: boolean
+    showSketchStyleModal: boolean
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -159,6 +161,12 @@ export type DocumentAction =
     | { type: 'ADD_CUSTOM_FONT'; font: CustomFont }
     | { type: 'DELETE_CUSTOM_FONT'; fontName: string }
     | { type: 'UPDATE_CUSTOM_FONT_META'; fontName: string; patch: Partial<CustomFont> }
+    | { type: 'ADD_GRADIENT'; gradient: GradientDef }
+    | { type: 'UPDATE_GRADIENT'; gradient: GradientDef }
+    | { type: 'DELETE_GRADIENT'; gradientId: string }
+    | { type: 'ADD_SKETCH_STYLE'; style: SketchStyleDef }
+    | { type: 'UPDATE_SKETCH_STYLE'; style: SketchStyleDef }
+    | { type: 'DELETE_SKETCH_STYLE'; styleId: string }
 
 export type AlignType =
     | 'left' | 'center-h' | 'right'
@@ -198,6 +206,8 @@ export type ViewAction =
     | { type: 'SELECT_FONT'; fontName: string | null }
     | { type: 'REQUEST_DOCUMENTS_MODAL'; mode: 'open' | 'save-as' }
     | { type: 'CLEAR_DOCUMENTS_MODAL_REQUEST' }
+    | { type: 'TOGGLE_GRADIENT_MODAL' }
+    | { type: 'TOGGLE_SKETCH_STYLE_MODAL' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

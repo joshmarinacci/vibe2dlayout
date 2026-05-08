@@ -1,4 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
+import {fillColor} from '@model/shapes'
 import type {SliderShape} from '@model/shapes'
 import {roughCircle, roughLine, roughRect, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
@@ -26,10 +27,10 @@ export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, hand
         seed,
         roughness: 1.2,
         bowing: 0.5,
-        fill: shape.fill.color === 'transparent' ? undefined : shape.fill.color,
+        fill: fillColor(shape.fill) === 'transparent' ? undefined : fillColor(shape.fill),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: shape.fill.color === 'transparent' ? '#999' : shape.fill.color,
+        stroke: fillColor(shape.fill) === 'transparent' ? '#999' : fillColor(shape.fill),
         strokeWidth: 1.5,
     }) : []
 
@@ -39,10 +40,10 @@ export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, hand
         seed: seed + 1,
         roughness: 1.4,
         bowing: 1,
-        fill: thumbFill.color === 'transparent' ? undefined : thumbFill.color,
+        fill: fillColor(thumbFill) === 'transparent' ? undefined : fillColor(thumbFill),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: thumbFill.color === 'transparent' ? '#555' : thumbFill.color,
+        stroke: fillColor(thumbFill) === 'transparent' ? '#555' : fillColor(thumbFill),
         strokeWidth: 1.5,
     }) : []
 
@@ -51,7 +52,7 @@ export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, hand
         : []
     const tickTop = trackY + trackHeight + 2
     const tickBottom = tickTop + Math.max(3, height * 0.15)
-    const tickColor = thumbFill.color === 'transparent' ? '#999' : thumbFill.color
+    const tickColor = fillColor(thumbFill) === 'transparent' ? '#999' : fillColor(thumbFill)
 
     const tickPaths = handDrawn
         ? tickPositions.flatMap((t, i) => {
@@ -93,7 +94,7 @@ export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, hand
                         top: trackY,
                         width: trackWidth,
                         height: trackHeight,
-                        background: shape.fill.color,
+                        background: fillColor(shape.fill),
                         borderRadius: trackHeight / 2,
                     }}/>
                     {/* Plain thumb */}
@@ -103,9 +104,9 @@ export function SliderShapeComp({shape, isSelected, onClick, onDoubleClick, hand
                         top: 0,
                         width: thumbSize,
                         height: thumbSize,
-                        background: thumbFill.color,
+                        background: fillColor(thumbFill),
                         borderRadius: '50%',
-                        border: `1.5px solid ${thumbFill.color}`,
+                        border: `1.5px solid ${fillColor(thumbFill)}`,
                     }}/>
                     {/* Plain tick marks */}
                     {tickPositions.map((t, i) => (

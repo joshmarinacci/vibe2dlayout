@@ -1,5 +1,31 @@
 import type {VibeDocument} from '@model/document'
 import {DEFAULT_PALETTE} from '@model/palette'
+import {defaultFill} from '@model/shapes'
+import type {ColorFill, FillStyle, GradientFill} from '@model/shapes'
+
+function migrateFill(raw: unknown): FillStyle {
+    if (!raw || typeof raw !== 'object') return defaultFill()
+    const r = raw as Record<string, unknown>
+    // Already in new format
+    if (r.type === 'color' || r.type === 'gradient' || r.type === 'sketch') return raw as FillStyle
+    // Legacy format: { color, opacity, gradient? }
+    if (r.gradient && typeof r.gradient === 'object') {
+        const g = r.gradient as Record<string, unknown>
+        return {
+            type: 'gradient',
+            gradientType: (g.type as string) ?? 'linear',
+            angle: (g.angle as number) ?? 90,
+            stops: (g.stops as GradientFill['stops']) ?? [],
+            opacity: (r.opacity as number) ?? 1,
+        } as GradientFill
+    }
+    return {
+        type: 'color',
+        color: (r.color as string) ?? '#ffffff',
+        opacity: (r.opacity as number) ?? 1,
+        paletteColorId: r.paletteColorId as string | undefined,
+    } as ColorFill
+}
 
 const CURRENT_VERSION = 2
 
@@ -65,8 +91,15 @@ export function fromJSON(json: string): VibeDocument {
             } else if (!Array.isArray(s.boxShadow)) {
                 s.boxShadow = [s.boxShadow]
             }
+            // Migrate FillStyle to discriminated union
+            if ('fill' in s) s.fill = migrateFill(s.fill)
+            if ('thumbFill' in s) s.thumbFill = migrateFill(s.thumbFill)
+            if ('progressFill' in s) s.progressFill = migrateFill(s.progressFill)
         }
     }
+    // Migrate older docs missing gradient/sketchStyle assets
+    if (!Array.isArray(docObj.gradients)) docObj.gradients = []
+    if (!Array.isArray(docObj.sketchStyles)) docObj.sketchStyles = []
     return parsed as VibeDocument
 }
 

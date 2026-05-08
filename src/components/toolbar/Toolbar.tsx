@@ -1,5 +1,7 @@
 import {DocumentSettingsModal} from '@components/layout/DocumentSettingsModal'
 import {DocumentsModal} from '@components/layout/DocumentsModal'
+import {GradientEditorModal} from '@components/layout/GradientEditorModal'
+import {SketchStyleEditorModal} from '@components/layout/SketchStyleEditorModal'
 import {ThemeEditorModal} from '@components/layout/ThemeEditorModal'
 import {PaletteEditorModal} from '@components/palette/PaletteEditorModal'
 import {useTheme} from '@hooks/useTheme'
@@ -675,6 +677,12 @@ export function Toolbar() {
             )}
             {state.showPaletteModal && (
                 <PaletteEditorModal onClose={() => dispatch({type: 'TOGGLE_PALETTE_MODAL'})}/>
+            )}
+            {state.showGradientModal && (
+                <GradientEditorModal onClose={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}/>
+            )}
+            {state.showSketchStyleModal && (
+                <SketchStyleEditorModal onClose={() => dispatch({type: 'TOGGLE_SKETCH_STYLE_MODAL'})}/>
             )}
             <ThemeEditorModal/>
             {state.showDocumentSettingsModal && (

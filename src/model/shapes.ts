@@ -5,17 +5,44 @@ import type {BoundingBox} from './transform'
 
 // ─── Shared style types ───────────────────────────────────────────────────
 
-export interface LinearGradient {
-    type: 'linear'
-    angle: number   // degrees
-    stops: Array<{ color: string; position: number; paletteColorId?: string }>
+export interface GradientStop {
+    color: string
+    position: number         // 0–1
+    paletteColorId?: string
 }
 
-export interface FillStyle {
-    color: string    // CSS color string
-    opacity: number  // 0–1
+export interface ColorFill {
+    type: 'color'
+    color: string
+    opacity: number          // 0–1
     paletteColorId?: string
-    gradient?: LinearGradient | null  // when set, overrides color for rendering
+}
+
+export interface GradientFill {
+    type: 'gradient'
+    gradientType: 'linear' | 'radial' | 'conic'
+    angle: number            // degrees; radial ignores it
+    stops: GradientStop[]
+    opacity: number          // 0–1
+    gradientId?: string      // links to VibeDocument.gradients[]
+}
+
+export interface SketchFill {
+    type: 'sketch'
+    color: string
+    fillStyle: 'solid' | 'hatched' | 'none'
+    hachureAngle: number     // degrees, default 45
+    hachureGap: number       // px, default 4
+    opacity: number          // 0–1
+    sketchStyleId?: string   // links to VibeDocument.sketchStyles[]
+}
+
+export type FillStyle = ColorFill | GradientFill | SketchFill
+
+/** Extract a single representative color from any fill type (used by rough.js). */
+export function fillColor(fill: FillStyle): string {
+    if (fill.type === 'gradient') return fill.stops[0]?.color ?? 'transparent'
+    return fill.color
 }
 
 export interface CornerRadii {
@@ -69,7 +96,7 @@ export interface TextStyle {
     align: 'left' | 'center' | 'right'
     verticalAlign: 'top' | 'middle' | 'bottom'
     textShadow?: { offsetX: number; offsetY: number; blur: number; color: string } | null
-    textGradient?: LinearGradient | null  // when set, renders text with gradient fill instead of color
+    textGradient?: GradientFill | null  // when set, renders text with gradient fill instead of color
     lineHeight?: number        // CSS multiplier, e.g. 1.5 (undefined = browser default)
     letterSpacing?: number     // pixels
     textDecoration?: 'none' | 'underline' | 'line-through' | 'underline line-through'
@@ -322,7 +349,7 @@ export type ShapeType = Shape['type']
 
 // ─── Default style factories ──────────────────────────────────────────────
 
-export const defaultFill = (): FillStyle => ({color: '#ffffff', opacity: 1})
+export const defaultFill = (): ColorFill => ({type: 'color', color: '#ffffff', opacity: 1})
 export const defaultStroke = (): StrokeStyle => ({
     type: 'solid',
     color: '#333333',

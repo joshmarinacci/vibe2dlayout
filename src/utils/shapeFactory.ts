@@ -1,4 +1,4 @@
-import type {Shape, ShapeType, StrokeStyle} from '@model/shapes'
+import type {ColorFill, Shape, ShapeType, StrokeStyle} from '@model/shapes'
 import {defaultStroke, defaultText, defaultTransform,} from '@model/shapes'
 import type {Theme} from '@model/theme'
 import {generateId} from './idgen'
@@ -23,7 +23,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
         color: '#000000',
         width: 1
     } as StrokeStyle)
-    const themeFill = () => ({color: bg, opacity: 1})
+    const themeFill = (): ColorFill => ({type: 'color', color: bg, opacity: 1})
     const themeText = (content: string) => ({
         ...defaultText(content),
         fontFamily: font,
@@ -62,7 +62,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 ...base, type: 'text',
                 transform: defaultTransform(x, y, 150, 40),
                 text: {...themeText('Text'), align: 'left'},
-                fill: {color: 'transparent', opacity: 0},
+                fill: {type: 'color', color: 'transparent', opacity: 0},
             }
         case 'image':
             return {
@@ -85,7 +85,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
             return {
                 ...base, type: 'button',
                 transform: defaultTransform(x, y, 100, 36),
-                fill: {color: theme ? bg : '#3b82f6', opacity: 1},
+                fill: {type: 'color', color: theme ? bg : '#3b82f6', opacity: 1},
                 stroke: formStroke(),
                 cornerRadius: bdrR,
                 text: {...themeText('Button'), color: theme ? fg : '#ffffff'},
@@ -96,7 +96,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 ...base, type: 'icon',
                 transform: defaultTransform(x, y, 40, 40),
                 icon: {name: 'Star'},
-                fill: {color: theme ? fg : '#333333', opacity: 1},
+                fill: {type: 'color', color: theme ? fg : '#333333', opacity: 1},
                 stroke: {
                     type: 'solid',
                     color: theme ? fg : '#333333',
@@ -132,8 +132,8 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 transform: defaultTransform(x, y, 160, 24),
                 value: 0.5,
                 ticks: 0,
-                fill: {color: '#e5e7eb', opacity: 1},
-                thumbFill: {color: theme ? bdr : '#3b82f6', opacity: 1},
+                fill: {type: 'color', color: '#e5e7eb', opacity: 1},
+                thumbFill: {type: 'color', color: theme ? bdr : '#3b82f6', opacity: 1},
                 stroke: formStroke(),
             }
         case 'label':
@@ -168,7 +168,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 transform: defaultTransform(x, y, 130, 24),
                 checked: false,
                 text: {...themeText('Toggle'), align: 'left', color: theme ? fg : '#333333'},
-                thumbFill: {color: theme ? bdr : '#3b82f6', opacity: 1},
+                thumbFill: {type: 'color', color: theme ? bdr : '#3b82f6', opacity: 1},
                 fill: themeFill(),
                 stroke: formStroke(),
             }
@@ -217,8 +217,8 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 transform: defaultTransform(x, y, 200, 16),
                 value: 60,
                 ticks: 0,
-                fill: {color: theme ? bdr : '#3b82f6', opacity: 1},
-                progressFill: {color: '#e5e7eb', opacity: 1},
+                fill: {type: 'color', color: theme ? bdr : '#3b82f6', opacity: 1},
+                progressFill: {type: 'color', color: '#e5e7eb', opacity: 1},
                 stroke: formStroke(),
             }
         case 'stepper':
@@ -252,7 +252,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
             return {
                 ...base, name: 'Sticky Note', type: 'stickynote',
                 transform: defaultTransform(x, y, 160, 140),
-                fill: {color: theme ? bg : '#fef08a', opacity: 1},
+                fill: {type: 'color', color: theme ? bg : '#fef08a', opacity: 1},
                 stroke: formStroke(),
                 text: {
                     ...themeText('Note...'),
@@ -301,7 +301,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
             return {
                 ...base, name: 'Chart Mock', type: 'chartmock',
                 transform: defaultTransform(x, y, 200, 140),
-                fill: {color: theme ? bdr : '#3b82f6', opacity: 1},
+                fill: {type: 'color', color: theme ? bdr : '#3b82f6', opacity: 1},
                 stroke: formStroke(),
                 chartType: 'bar',
             }

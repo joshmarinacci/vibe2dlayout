@@ -3,7 +3,7 @@ import {findNode, findParent, getAllIds, insertNode, removeNode} from '@model/do
 import {DEFAULT_GRID_SETTINGS} from '@model/grid'
 import type {ImageAsset} from '@model/imageAsset'
 import {DEFAULT_PALETTE} from '@model/palette'
-import type {ImageShape, Shape} from '@model/shapes'
+import type {GradientStop, ImageShape, Shape} from '@model/shapes'
 import type {Theme} from '@model/theme'
 import {BUILT_IN_THEMES, getActiveTheme} from '@model/theme'
 import {computeAlignedTransforms} from '@utils/alignment'
@@ -608,6 +608,26 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 ),
             }
 
+        case 'ADD_GRADIENT':
+            return {...doc, gradients: [...(doc.gradients ?? []), action.gradient]}
+        case 'UPDATE_GRADIENT': {
+            const newGradients = (doc.gradients ?? []).map(g => g.id === action.gradient.id ? action.gradient : g)
+            const newShapes = applyGradientToShapes(doc.shapes, action.gradient.id, action.gradient.stops)
+            return {...doc, gradients: newGradients, shapes: newShapes}
+        }
+        case 'DELETE_GRADIENT':
+            return {...doc, gradients: (doc.gradients ?? []).filter(g => g.id !== action.gradientId)}
+
+        case 'ADD_SKETCH_STYLE':
+            return {...doc, sketchStyles: [...(doc.sketchStyles ?? []), action.style]}
+        case 'UPDATE_SKETCH_STYLE':
+            return {
+                ...doc,
+                sketchStyles: (doc.sketchStyles ?? []).map(s => s.id === action.style.id ? action.style : s),
+            }
+        case 'DELETE_SKETCH_STYLE':
+            return {...doc, sketchStyles: (doc.sketchStyles ?? []).filter(s => s.id !== action.styleId)}
+
         case 'ADD_THEME':
             return {...doc, themes: [...doc.themes, action.theme]}
 
@@ -886,16 +906,24 @@ function applyPaletteColorToShapes(
         const shape = result[id]
         let updated: Shape = shape
 
-        if ('fill' in shape && shape.fill.paletteColorId === colorId) {
-            updated = {...updated, fill: {...shape.fill, color: newHex}} as Shape
+        if ('fill' in shape) {
+            const fill = shape.fill
+            if (fill.type === 'color' && fill.paletteColorId === colorId) {
+                updated = {...updated, fill: {...fill, color: newHex}} as Shape
+            } else if (fill.type === 'gradient') {
+                const newStops = fill.stops.map(s => s.paletteColorId === colorId ? {...s, color: newHex} : s)
+                if (newStops !== fill.stops) {
+                    updated = {...updated, fill: {...fill, stops: newStops}} as Shape
+                }
+            }
         }
         if ('stroke' in shape && shape.stroke.paletteColorId === colorId) {
             updated = {...updated, stroke: {...shape.stroke, color: newHex}} as Shape
         }
-        if ('progressFill' in shape && shape.progressFill.paletteColorId === colorId) {
+        if ('progressFill' in shape && shape.progressFill.type === 'color' && shape.progressFill.paletteColorId === colorId) {
             updated = {...updated, progressFill: {...shape.progressFill, color: newHex}} as Shape
         }
-        if ('thumbFill' in shape && shape.thumbFill.paletteColorId === colorId) {
+        if ('thumbFill' in shape && shape.thumbFill.type === 'color' && shape.thumbFill.paletteColorId === colorId) {
             updated = {...updated, thumbFill: {...shape.thumbFill, color: newHex}} as Shape
         }
         if ('text' in shape && shape.text.paletteColorId === colorId) {
@@ -903,6 +931,31 @@ function applyPaletteColorToShapes(
         }
         if (shape.type === 'page' && shape.backgroundPaletteColorId === colorId) {
             updated = {...updated, background: newHex} as Shape
+        }
+
+        if (updated !== shape) result[id] = updated
+    }
+    return result
+}
+
+function applyGradientToShapes(
+    shapes: Record<string, Shape>,
+    gradientId: string,
+    newStops: GradientStop[],
+): Record<string, Shape> {
+    const result = {...shapes}
+    for (const id of Object.keys(result)) {
+        const shape = result[id]
+        let updated: Shape = shape
+
+        if ('fill' in shape && shape.fill.type === 'gradient' && shape.fill.gradientId === gradientId) {
+            updated = {...updated, fill: {...shape.fill, stops: newStops}} as Shape
+        }
+        if ('thumbFill' in shape && shape.thumbFill.type === 'gradient' && (shape.thumbFill as {gradientId?: string}).gradientId === gradientId) {
+            updated = {...updated, thumbFill: {...shape.thumbFill, stops: newStops}} as Shape
+        }
+        if ('progressFill' in shape && shape.progressFill.type === 'gradient' && (shape.progressFill as {gradientId?: string}).gradientId === gradientId) {
+            updated = {...updated, progressFill: {...shape.progressFill, stops: newStops}} as Shape
         }
 
         if (updated !== shape) result[id] = updated
@@ -938,6 +991,18 @@ export function createInitialDocument(): VibeDocument {
         images: [],
         pixelAssets: [],
         customFonts: [],
+        gradients: [
+            {id: generateId(), name: 'Sunset',    stops: [{color: '#ff6b6b', position: 0}, {color: '#ffd93d', position: 1}]},
+            {id: generateId(), name: 'Ocean',     stops: [{color: '#0077b6', position: 0}, {color: '#00b4d8', position: 1}]},
+            {id: generateId(), name: 'Forest',    stops: [{color: '#1b4332', position: 0}, {color: '#52b788', position: 1}]},
+            {id: generateId(), name: 'Grayscale', stops: [{color: '#000000', position: 0}, {color: '#ffffff', position: 1}]},
+        ],
+        sketchStyles: [
+            {id: generateId(), name: 'Solid',       fillStyle: 'solid',   hachureAngle: 45, hachureGap: 4},
+            {id: generateId(), name: 'Hatched',     fillStyle: 'hatched', hachureAngle: 45, hachureGap: 4},
+            {id: generateId(), name: 'Cross Hatch', fillStyle: 'hatched', hachureAngle: 90, hachureGap: 4},
+            {id: generateId(), name: 'No Fill',     fillStyle: 'none',    hachureAngle: 45, hachureGap: 4},
+        ],
     }
 }
 
@@ -965,6 +1030,8 @@ export const initialState: AppState = {
     editingPixelAssetId: null,
     selectedFontName: null,
     pendingDocumentsModalMode: null,
+    showGradientModal: false,
+    showSketchStyleModal: false,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1018,6 +1085,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'ADD_CUSTOM_FONT':
         case 'DELETE_CUSTOM_FONT':
         case 'UPDATE_CUSTOM_FONT_META':
+        case 'ADD_GRADIENT':
+        case 'UPDATE_GRADIENT':
+        case 'DELETE_GRADIENT':
+        case 'ADD_SKETCH_STYLE':
+        case 'UPDATE_SKETCH_STYLE':
+        case 'DELETE_SKETCH_STYLE':
         case 'MOVE_SHAPES_START':
             return {
                 ...state,
@@ -1120,6 +1193,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, pendingDocumentsModalMode: action.mode}
         case 'CLEAR_DOCUMENTS_MODAL_REQUEST':
             return {...state, pendingDocumentsModalMode: null}
+        case 'TOGGLE_GRADIENT_MODAL':
+            return {...state, showGradientModal: !state.showGradientModal}
+        case 'TOGGLE_SKETCH_STYLE_MODAL':
+            return {...state, showSketchStyleModal: !state.showSketchStyleModal}
         case 'UPDATE_SETTINGS':
             return {...state, settings: {...state.settings, ...action.patch}}
         case 'SET_DOCUMENT_META':

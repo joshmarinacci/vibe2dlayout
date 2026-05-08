@@ -1,4 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
+import {fillColor} from '@model/shapes'
 import type {RadioShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
@@ -43,7 +44,7 @@ export function RadioShapeComp({
         seed,
         roughness: 1.2,
         bowing: 0.5,
-        fill: fill.color === 'transparent' ? undefined : fill.color,
+        fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
         stroke: stroke.color,

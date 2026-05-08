@@ -1,4 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
+import {fillColor} from '@model/shapes'
 import type {ImageMockShape} from '@model/shapes'
 import {roughCircle, roughLine, roughRect, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
@@ -34,7 +35,7 @@ export function ImageMockShapeComp({shape, isSelected, onClick, onDoubleClick, h
     ]
 
     const faceColor = stroke.color
-    const bgColor = fill.color === 'transparent' ? undefined : fill.color
+    const bgColor = fillColor(fill) === 'transparent' ? undefined : fillColor(fill)
 
     const roughPaths = handDrawn ? [
         ...roughRect(0, 0, w, h, {
@@ -107,7 +108,7 @@ export function ImageMockShapeComp({shape, isSelected, onClick, onDoubleClick, h
                     {/* Background */}
                     <rect
                         x={0} y={0} width={w} height={h}
-                        fill={fill.color}
+                        fill={fillColor(fill)}
                         stroke={stroke.color}
                         strokeWidth={stroke.width}
                     />

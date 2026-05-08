@@ -1,3 +1,4 @@
+import {fillColor} from '@model/shapes'
 import type {ProgressShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
@@ -28,7 +29,7 @@ export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, ha
         seed,
         roughness: 1,
         bowing: 0.5,
-        fill: progressFill.color === 'transparent' ? undefined : progressFill.color,
+        fill: fillColor(progressFill) === 'transparent' ? undefined : fillColor(progressFill),
         fillStyle: 'solid',
         fillWeight: 1,
         stroke: stroke.color,
@@ -39,7 +40,7 @@ export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, ha
         seed: seed + 1,
         roughness: 1,
         bowing: 0.5,
-        fill: fill.color,
+        fill: fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 2,
         stroke: 'none',
@@ -51,7 +52,7 @@ export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, ha
         : []
     const tickTop = height + 2
     const tickBottom = tickTop + Math.max(3, height * 0.5)
-    const tickColor = fill.color === 'transparent' ? '#999' : fill.color
+    const tickColor = fillColor(fill) === 'transparent' ? '#999' : fillColor(fill)
 
     const tickPaths = handDrawn
         ? tickPositions.flatMap((t, i) => {
@@ -90,7 +91,7 @@ export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, ha
                     <div style={{
                         position: 'absolute',
                         inset: 0,
-                        background: progressFill.color,
+                        background: fillColor(progressFill),
                         borderRadius: height / 2,
                         ...strokeBorderCSS(stroke),
                         overflow: 'hidden',

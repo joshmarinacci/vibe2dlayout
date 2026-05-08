@@ -1,8 +1,8 @@
-import type {LinearGradient, TextStyle} from '@model/shapes'
+import type {GradientFill, TextStyle} from '@model/shapes'
+import {gradientCSS} from './fillCSS'
 
-function gradientToCss(g: LinearGradient): string {
-    const stops = g.stops.map(s => `${s.color} ${Math.round(s.position * 100)}%`).join(', ')
-    return `linear-gradient(${g.angle}deg, ${stops})`
+function gradientToCss(g: GradientFill): string {
+    return gradientCSS(g)
 }
 
 /**

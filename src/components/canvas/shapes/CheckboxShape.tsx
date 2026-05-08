@@ -1,3 +1,4 @@
+import {fillColor} from '@model/shapes'
 import type {CheckboxShape} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
 import type {AppAction} from '@store/types'
@@ -44,7 +45,7 @@ export function CheckboxShapeComp({
         seed,
         roughness: 1.2,
         bowing: 0.5,
-        fill: fill.color === 'transparent' ? undefined : fill.color,
+        fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
         stroke: stroke.color,

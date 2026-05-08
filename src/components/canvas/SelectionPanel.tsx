@@ -50,23 +50,23 @@ export function SelectionPanel({}: SelectionPanelProps) {
                 <button
                     onClick={() => {
                         patchFill({
+                            type: 'color',
                             color: 'red',
                             opacity: 1.0,
-                            gradient: null,
                         })
                     }}
                 >red fill
                 </button>
-                <SelectInput label={'color'} value={fill.color} options={[
+                <SelectInput label={'color'} value={fill.type === 'color' ? fill.color : ''} options={[
                     {value: 'red', label: 'Red',},
                     {value: 'blue', label: 'Blue'},
                     {value: 'green', label: 'Green'}
                 ]} onChange={(v) => {
                     console.log("new color is", v)
                     patchFill({
+                        type: 'color',
                         color: v,
                         opacity: 1.0,
-                        gradient: null,
                     })
                 }}/>
                 <button

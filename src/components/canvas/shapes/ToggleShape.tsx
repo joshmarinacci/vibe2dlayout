@@ -1,4 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
+import {fillColor} from '@model/shapes'
 import type {ToggleShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {roughCircle, roughRect, seedFromId} from '@utils/roughPaths'
@@ -44,8 +45,8 @@ export function ToggleShapeComp({
 
     const seed = seedFromId(shape.id)
     const trackColor = checked
-        ? (thumbFill.color === 'transparent' ? '#3b82f6' : thumbFill.color)
-        : (shape.fill.color === 'transparent' ? '#e5e7eb' : shape.fill.color)
+        ? (fillColor(thumbFill) === 'transparent' ? '#3b82f6' : fillColor(thumbFill))
+        : (fillColor(shape.fill) === 'transparent' ? '#e5e7eb' : fillColor(shape.fill))
 
     const trackPaths = handDrawn ? roughRect(1, trackY, trackW - 2, trackH - 2, {
         seed,

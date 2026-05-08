@@ -1,6 +1,38 @@
 
 ## 2026-05-08
 
+### Gradient editor improvements
+
+- **`GradientDef` simplified**: removed `gradientType` and `angle` — the def now stores only a named stop collection (`id`, `name`, `stops[]`). Type and angle are per-shape settings in the fill picker.
+- **`FillSection` gradient tab**: added Type (linear/radial/conic) and Angle controls that write directly to the shape's `GradientFill`. Selecting a document gradient only swaps the stops, leaving type/angle untouched.
+- **Custom gradient swatch picker**: replaced the plain `<select>` for the stops dropdown with a custom `GradientPicker` component that renders a live gradient swatch next to each name in both the trigger and the dropdown.
+- **Stop delete buttons always visible**: fixed `GradientEditorModal` CSS — stop-row delete buttons now have `opacity: 1` (previously hidden because they only revealed on `.row:hover` which didn't apply to `.stopRow`).
+- **Gradient-to-shape sync**: `UPDATE_GRADIENT` now calls `applyGradientToShapes` in the reducer, propagating updated stops to every shape whose `GradientFill.gradientId` matches — same pattern as palette colour sync. Editing stops in the dialog now immediately re-renders linked shapes.
+- **Draggable non-modal gradient editor**: `GradientEditorModal` is no longer modal. The backdrop overlay is removed; the panel is `position: fixed` and draggable by its header (grab cursor, `mousedown` on header starts drag via `window` mousemove/mouseup listeners).
+
+## 2026-05-07
+
+### FillStyle discriminated union type system
+
+- **`src/model/shapes.ts`**: Replaced `LinearGradient` + flat `FillStyle` with a proper discriminated union: `ColorFill | GradientFill | SketchFill`, each with a `type` property. Added `fillColor()` helper for rough.js consumers. Updated `defaultFill()`.
+- **`src/model/document.ts`**: Added `GradientDef` and `SketchStyleDef` asset types; extended `VibeDocument` with `gradients: GradientDef[]` and `sketchStyles: SketchStyleDef[]`.
+- **`src/store/types.ts`**: Added 6 new `DocumentAction` variants (ADD/UPDATE/DELETE for gradients and sketch styles), 2 new `ViewAction` variants (TOGGLE_GRADIENT_MODAL, TOGGLE_SKETCH_STYLE_MODAL), and 2 new `AppState` booleans.
+- **`src/store/reducer.ts`**: Default gradients (Sunset, Ocean, Forest, Grayscale) and sketch styles (Solid, Hatched, Cross Hatch, No Fill) added to `createInitialDocument()`. Handles all 6 new document actions. Palette sync updated to handle the union type.
+- **`src/utils/fillCSS.ts`**: Rewritten — `gradientCSS()`, `sketchFillCSS()`, and `fillBackground()` handle all three fill types. Linear/radial/conic gradients and CSS hatching via `repeating-linear-gradient`.
+- **`src/utils/shapeFactory.ts`**: `themeFill()` returns `ColorFill`. All hardcoded fills include `type: 'color'`.
+- **`src/utils/serialization.ts`**: Added `migrateFill()` migration; `fromJSON()` migrates legacy fills on all shape fields, and adds missing `gradients`/`sketchStyles` arrays.
+- **Canvas shape components** (`IconShape`, `CheckboxShape`, `RadioShape`, `StepperShape`, `ToggleShape`, `SliderShape`, `ProgressShape`, `ChartMockShape`, `ImageMockShape`): replaced `fill.color` with `fillColor(fill)` helper.
+- **`src/components/properties/sections/FillSection.tsx`**: Full rewrite — color tab uses `ColorFill`, gradient tab shows document gradient picker + "Edit Gradients…" button, sketch tab shows document sketch style picker + color input + "Edit Sketch Styles…" button. Tab switching converts fill to the appropriate type.
+- **`src/components/layout/GradientEditorModal.tsx`** (new): Two-column portal modal (state-driven by `showGradientModal`). Left: gradient list with live swatch. Right: name, type, angle, stop list with color pickers + position sliders, live preview strip.
+- **`src/components/layout/SketchStyleEditorModal.tsx`** (new): Two-column portal modal (state-driven by `showSketchStyleModal`). Left: style list with preview swatch. Right: name, fill style selector, hachure params (conditional), preview.
+- **`src/components/toolbar/Toolbar.tsx`**: Mounts `GradientEditorModal` and `SketchStyleEditorModal`.
+- **`src/components/tree/GradientsSection.tsx`** (new): Collapsible tree panel section listing gradients with swatch previews; opens modal on click.
+- **`src/components/tree/SketchStylesSection.tsx`** (new): Same pattern for sketch styles.
+- **`src/components/tree/TreePanel.tsx`**: Includes both new sections below Fonts.
+- **Tests** (new): `tests/model/fillStyle.test.ts`, `tests/utils/fillCSS.test.ts`, `tests/utils/fillSerialization.test.ts`, `tests/store/gradients.test.ts` — 24 new tests covering `fillColor()`, `defaultFill()`, `gradientCSS()`, `sketchFillCSS()`, `fillBackground()`, fill migration, and all 6 gradient/sketch-style store actions.
+
+## 2026-05-08
+
 ### Tauri 2.0 desktop app integration
 - Added `@tauri-apps/api` and `@tauri-apps/cli` packages
 - Scaffolded `src-tauri/` with `tauri init` (Cargo.toml, tauri.conf.json, capabilities, icons)

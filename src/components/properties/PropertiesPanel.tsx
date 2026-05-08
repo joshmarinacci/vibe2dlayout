@@ -1,6 +1,7 @@
 import type {GridStyle} from '@model/grid'
 import type {CornerRadii, FillStyle, Shape, StrokeStyle, TextStyle} from '@model/shapes'
 import {
+    fillColor,
     type FilledShape,
     hasFill,
     hasStroke,
@@ -170,7 +171,7 @@ export function PropertiesPanel() {
 
         // Shapes with fill (show section if any have it; apply only to those that do)
         const withFill = selected.filter(s => 'fill' in s) as Extract<Shape, { fill: FillStyle }>[]
-        const commonFillColor = commonValue(withFill.map(s => s.fill.color))
+        const commonFillColor = commonValue(withFill.map(s => fillColor(s.fill)))
         const commonFillOpacity = commonValue(withFill.map(s => s.fill.opacity))
 
         // Shapes with stroke (show section if any have it; apply only to those that do)

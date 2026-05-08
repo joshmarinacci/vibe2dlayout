@@ -8,9 +8,11 @@ import {useEffect, useRef, useState} from 'react'
 import {AssetsSection} from './AssetsSection'
 import {DocumentRow} from './DocumentRow'
 import {FontsSection} from './FontsSection'
+import {GradientsSection} from './GradientsSection'
 import {PageFolderRow} from './PageFolderRow'
 import {PixelAssetsSection} from './PixelAssetsSection'
 import {SectionHeader} from './SectionHeader'
+import {SketchStylesSection} from './SketchStylesSection'
 import {TreeNodeComp} from './TreeNode'
 import styles from './TreePanel.module.css'
 
@@ -232,6 +234,14 @@ export function TreePanel() {
                 <FontsSection
                     customFonts={state.document.customFonts}
                     selectedFontName={state.selectedFontName}
+                    dispatch={dispatch}
+                />
+                <GradientsSection
+                    gradients={state.document.gradients ?? []}
+                    dispatch={dispatch}
+                />
+                <SketchStylesSection
+                    sketchStyles={state.document.sketchStyles ?? []}
                     dispatch={dispatch}
                 />
             </div>

@@ -1,4 +1,5 @@
 import type {IconShape} from '@model/shapes'
+import {fillColor} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
 import {lookupIcon} from '@utils/allLucideIcons'
 import {boxShadowCSS} from '@utils/shadowCSS'
@@ -33,7 +34,7 @@ export function IconShapeComp({shape, isSelected, onClick, onDoubleClick}: Props
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: fill.color === 'transparent' ? 'currentColor' : fill.color,
+                color: fillColor(fill) === 'transparent' ? 'currentColor' : fillColor(fill),
                 opacity: fill.opacity,
             }}
             onClick={onClick}

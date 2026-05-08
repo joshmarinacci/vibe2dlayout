@@ -1,6 +1,6 @@
 import type {TextStyle} from '@model/shapes'
 import type {CSSProperties} from 'react'
-import {linearGradientCSS} from './fillCSS'
+import {gradientCSS} from './fillCSS'
 
 /**
  * Returns a CSSProperties fragment for all extra text styling fields.
@@ -40,7 +40,7 @@ export function textGradientSpanCSS(text: Pick<TextStyle, 'textGradient'>): CSSP
     if (!text.textGradient) return null
     return {
         display: 'inline-block',
-        background: linearGradientCSS(text.textGradient),
+        background: gradientCSS(text.textGradient),
         WebkitBackgroundClip: 'text',
         backgroundClip: 'text',
         WebkitTextFillColor: 'transparent',

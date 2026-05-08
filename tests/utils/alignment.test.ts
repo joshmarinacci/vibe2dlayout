@@ -11,7 +11,7 @@ function makeRect(id: string, x: number, y: number, w: number, h: number): Shape
         locked: false,
         visible: true,
         transform: {x, y, width: w, height: h, rotation: 0},
-        fill: {color: '#ff0000', opacity: 1},
+        fill: {type: 'color', color: '#ff0000', opacity: 1},
         stroke: {type: 'solid', color: '#000000', width: 1, opacity: 1, dash: []},
         cornerRadius: 0,
     }

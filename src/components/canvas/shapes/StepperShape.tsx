@@ -1,4 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
+import {fillColor} from '@model/shapes'
 import type {StepperShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {roughRect, seedFromId} from '@utils/roughPaths'
@@ -29,7 +30,7 @@ export function StepperShapeComp({shape, isSelected, onClick, onDoubleClick, han
         seed,
         roughness: 1.2,
         bowing: 0.5,
-        fill: fill.color === 'transparent' ? undefined : fill.color,
+        fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
         stroke: stroke.color,
@@ -40,7 +41,7 @@ export function StepperShapeComp({shape, isSelected, onClick, onDoubleClick, han
         seed: seed + 1,
         roughness: 1.2,
         bowing: 0.5,
-        fill: fill.color === 'transparent' ? undefined : fill.color,
+        fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
         stroke: stroke.color,
@@ -56,7 +57,7 @@ export function StepperShapeComp({shape, isSelected, onClick, onDoubleClick, han
         strokeWidth: stroke.width * 0.6,
     }) : []
 
-    const btnBg = fill.color === 'transparent' ? undefined : fill.color
+    const btnBg = fillColor(fill) === 'transparent' ? undefined : fillColor(fill)
 
     return (
         <BoxShapeBase shape={shape} isSelected={isSelected} onClick={onClick}
