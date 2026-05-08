@@ -5,3 +5,5 @@ dist/
 .DS_Store
 src-tauri/target/
 src-tauri/gen/
+/tsconfig.tsbuildinfo
+/.claude/scheduled_tasks.lock
