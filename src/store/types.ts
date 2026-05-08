@@ -91,6 +91,8 @@ export interface AppState {
     editingPixelAssetId: string | null
     // Name of the font selected in the tree (shows font info in props panel)
     selectedFontName: string | null
+    // One-shot signal from useTauriMenu to open the documents modal
+    pendingDocumentsModalMode: 'open' | 'save-as' | null
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -194,6 +196,8 @@ export type ViewAction =
     | { type: 'START_PIXEL_EDIT'; assetId: string }
     | { type: 'STOP_PIXEL_EDIT' }
     | { type: 'SELECT_FONT'; fontName: string | null }
+    | { type: 'REQUEST_DOCUMENTS_MODAL'; mode: 'open' | 'save-as' }
+    | { type: 'CLEAR_DOCUMENTS_MODAL_REQUEST' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

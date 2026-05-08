@@ -1,4 +1,19 @@
 
+## 2026-05-08
+
+### Tauri 2.0 desktop app integration
+- Added `@tauri-apps/api` and `@tauri-apps/cli` packages
+- Scaffolded `src-tauri/` with `tauri init` (Cargo.toml, tauri.conf.json, capabilities, icons)
+- `src-tauri/src/lib.rs`: native menu bar with App / File / Edit / Window menus; File menu contains all 12 actions matching the web UI (New, Open, Save, Save As, Edit Palettes, Edit Themes, Settings, Document Settings, Import JSON, Export JSON, Export PNG, Export PDF); each item emits a `menu:*` event to the webview
+- `src/hooks/useTauriMenu.ts` (new): registers Tauri event listeners that map each native menu event to the same store dispatches and utility functions used by the web UI toolbar; uses a stateRef to avoid stale closures without re-registering on every state change
+- `src/store/types.ts` / `reducer.ts`: added `pendingDocumentsModalMode` signal field so the Tauri hook can trigger Toolbar's DocumentsModal (Open / Save As) without reaching into local state
+- `src/components/toolbar/Toolbar.tsx`: added `useEffect` watching `pendingDocumentsModalMode` to open the modal on demand
+- `src/App.tsx`: thin `AppInner` wrapper mounts `useTauriMenu` inside the store context
+- `vite.config.ts`: added `server: { port: 1420, strictPort: true }` for Tauri's dev server
+- `src/vite-env.d.ts`: added `Window.__TAURI_INTERNALS__` type declaration
+- `package.json`: added `tauri:dev` and `tauri:build` scripts
+- `.gitignore`: added `src-tauri/target/` and `src-tauri/gen/`
+
 ## 2026-05-01
 reformat code. added 2k LOC. :( 18383
 

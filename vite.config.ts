@@ -5,6 +5,10 @@ import {defineConfig} from 'vite'
 export default defineConfig({
     base: process.env.VITE_BASE_PATH || '/',
     plugins: [react()],
+    server: {
+        port: 1420,
+        strictPort: true,
+    },
     resolve: {
         alias: {
             '@model': resolve(__dirname, 'src/model'),

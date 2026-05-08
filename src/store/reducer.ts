@@ -964,6 +964,7 @@ export const initialState: AppState = {
     selectedPixelAssetId: null,
     editingPixelAssetId: null,
     selectedFontName: null,
+    pendingDocumentsModalMode: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1115,6 +1116,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, showThemeModal: !state.showThemeModal}
         case 'TOGGLE_DOCUMENT_SETTINGS_MODAL':
             return {...state, showDocumentSettingsModal: !state.showDocumentSettingsModal}
+        case 'REQUEST_DOCUMENTS_MODAL':
+            return {...state, pendingDocumentsModalMode: action.mode}
+        case 'CLEAR_DOCUMENTS_MODAL_REQUEST':
+            return {...state, pendingDocumentsModalMode: null}
         case 'UPDATE_SETTINGS':
             return {...state, settings: {...state.settings, ...action.patch}}
         case 'SET_DOCUMENT_META':

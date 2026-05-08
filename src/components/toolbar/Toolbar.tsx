@@ -212,6 +212,13 @@ export function Toolbar() {
         setShowFileMenu(false)
     }
 
+    useEffect(() => {
+        if (state.pendingDocumentsModalMode) {
+            openDocumentsModal(state.pendingDocumentsModalMode)
+            dispatch({type: 'CLEAR_DOCUMENTS_MODAL_REQUEST'})
+        }
+    }, [state.pendingDocumentsModalMode])
+
     return (
         <div className={styles.toolbar}>
 
