@@ -33,8 +33,6 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
             &MenuItem::with_id(app, "menu:settings",          "Settings...",          true, Some("CmdOrCtrl+,"))?,
             &MenuItem::with_id(app, "menu:document-settings", "Document Settings...", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "menu:import-json",       "Import JSON...",       true, None::<&str>)?,
-            &MenuItem::with_id(app, "menu:export-json",       "Export JSON...",       true, None::<&str>)?,
             &MenuItem::with_id(app, "menu:export-png",        "Export PNG...",        true, None::<&str>)?,
             &MenuItem::with_id(app, "menu:export-pdf",        "Export PDF...",        true, None::<&str>)?,
         ],
@@ -72,6 +70,8 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             let menu = build_menu(app.handle())?;
             app.set_menu(menu)?;

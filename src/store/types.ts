@@ -77,9 +77,10 @@ export interface AppState {
     showDocumentSettingsModal: boolean
     settings: UserSettings
     drilledInContainerStack: string[]  // innermost (current) is last element
-    // current document identity (localStorage)
+    // current document identity (localStorage / display name)
     documentId: string | null
     documentName: string
+    currentFilePath: string | null  // Tauri mode only: absolute path of the open file
     isDirty: boolean  // true when document has unsaved changes
     // true when user clicked the Document row in the tree (shows document properties)
     documentSelected: boolean
@@ -208,6 +209,7 @@ export type ViewAction =
     | { type: 'CLEAR_DOCUMENTS_MODAL_REQUEST' }
     | { type: 'TOGGLE_GRADIENT_MODAL' }
     | { type: 'TOGGLE_SKETCH_STYLE_MODAL' }
+    | { type: 'SET_FILE_PATH'; path: string | null }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

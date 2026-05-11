@@ -74,6 +74,8 @@ interface ToolButton {
     title: string
 }
 
+const IS_TAURI = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+
 const SHAPE_TOOLS: ToolButton[] = [
     {mode: 'insert-rect', icon: <Square size={14}/>, title: 'Rectangle'},
     {mode: 'insert-circle', icon: <Circle size={14}/>, title: 'Circle'},
@@ -162,6 +164,7 @@ export function Toolbar() {
     const activeComponentTool = ALL_COMPONENT_TOOLS.find(t => t.mode === state.toolMode)
 
     const handleSave = () => {
+        if (IS_TAURI) return  // Tauri saves are handled by the native menu via useTauriMenu
         try {
             const entry = saveDoc(state.documentId, state.documentName, state.document)
             dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
@@ -242,7 +245,7 @@ export function Toolbar() {
                                 <File size={13}/><span>New</span>
                             </button>
                             <button className={styles.formMenuItem}
-                                    onClick={() => openDocumentsModal('open')}>
+                                    onClick={() => { if (!IS_TAURI) openDocumentsModal('open'); else setShowFileMenu(false) }}>
                                 <FolderOpen size={13}/><span>Open...</span>
                             </button>
                             <div className={styles.formMenuDivider}/>
@@ -253,7 +256,7 @@ export function Toolbar() {
                                 <Save size={13}/><span>Save</span>
                             </button>
                             <button className={styles.formMenuItem}
-                                    onClick={() => openDocumentsModal('save-as')}>
+                                    onClick={() => { if (!IS_TAURI) openDocumentsModal('save-as'); else setShowFileMenu(false) }}>
                                 <FilePlus2 size={13}/><span>Save As...</span>
                             </button>
                             <div className={styles.formMenuDivider}/>
@@ -283,18 +286,20 @@ export function Toolbar() {
                                 <Grid size={13}/><span>Document Settings...</span>
                             </button>
                             <div className={styles.formMenuDivider}/>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                handleImportJSON();
-                                setShowFileMenu(false)
-                            }}>
-                                <Upload size={13}/><span>Import JSON...</span>
-                            </button>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                downloadJSON(state.document);
-                                setShowFileMenu(false)
-                            }}>
-                                <Download size={13}/><span>Export JSON...</span>
-                            </button>
+                            {!IS_TAURI && <>
+                                <button className={styles.formMenuItem} onClick={() => {
+                                    handleImportJSON();
+                                    setShowFileMenu(false)
+                                }}>
+                                    <Upload size={13}/><span>Import JSON...</span>
+                                </button>
+                                <button className={styles.formMenuItem} onClick={() => {
+                                    downloadJSON(state.document);
+                                    setShowFileMenu(false)
+                                }}>
+                                    <Download size={13}/><span>Export JSON...</span>
+                                </button>
+                            </>}
                             <button className={styles.formMenuItem} onClick={() => {
                                 exportPageAsPng(state);
                                 setShowFileMenu(false)

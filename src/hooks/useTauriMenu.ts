@@ -3,8 +3,7 @@ import {createInitialDocument} from '@store/reducer'
 import type {AppState} from '@store/types'
 import {exportDocumentAsPdf} from '@utils/exportPdf'
 import {exportPageAsPng} from '@utils/exportPng'
-import {saveDoc} from '@utils/localStorageDB'
-import {downloadJSON, fromJSON, uploadJSON} from '@utils/serialization'
+import {tauriOpenFile, tauriSaveAsFile, tauriSaveFile} from '@utils/tauriStorage'
 import {useEffect, useRef} from 'react'
 
 function isTauri(): boolean {
@@ -33,24 +32,51 @@ export function useTauriMenu() {
                 dispatch({type: 'LOAD_DOCUMENT', document: doc})
                 dispatch({type: 'SET_ACTIVE_PAGE', pageId: doc.rootNodes[0]?.id ?? null})
                 dispatch({type: 'SET_DOCUMENT_META', id: null, name: 'Untitled'})
+                dispatch({type: 'SET_FILE_PATH', path: null})
             }))
 
-            unlisten.push(await listen('menu:open', () => {
-                dispatch({type: 'REQUEST_DOCUMENTS_MODAL', mode: 'open'})
+            unlisten.push(await listen('menu:open', async () => {
+                try {
+                    const result = await tauriOpenFile()
+                    if (!result) return
+                    dispatch({type: 'LOAD_DOCUMENT', document: result.document})
+                    dispatch({type: 'SET_ACTIVE_PAGE', pageId: result.document.rootNodes[0]?.id ?? null})
+                    dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
+                    dispatch({type: 'SET_FILE_PATH', path: result.filePath})
+                } catch (err) {
+                    console.error('Open failed:', err)
+                }
             }))
 
-            unlisten.push(await listen('menu:save', () => {
+            unlisten.push(await listen('menu:save', async () => {
                 const s = stateRef.current
                 try {
-                    const entry = saveDoc(s.documentId, s.documentName, s.document)
-                    dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
+                    if (s.currentFilePath) {
+                        await tauriSaveFile(s.currentFilePath, s.document)
+                        dispatch({type: 'SET_DOCUMENT_META', id: null, name: s.documentName})
+                    } else {
+                        const result = await tauriSaveAsFile(s.document, s.documentName)
+                        if (result) {
+                            dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
+                            dispatch({type: 'SET_FILE_PATH', path: result.filePath})
+                        }
+                    }
                 } catch (err) {
                     console.error('Save failed:', err)
                 }
             }))
 
-            unlisten.push(await listen('menu:save-as', () => {
-                dispatch({type: 'REQUEST_DOCUMENTS_MODAL', mode: 'save-as'})
+            unlisten.push(await listen('menu:save-as', async () => {
+                const s = stateRef.current
+                try {
+                    const result = await tauriSaveAsFile(s.document, s.documentName)
+                    if (result) {
+                        dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
+                        dispatch({type: 'SET_FILE_PATH', path: result.filePath})
+                    }
+                } catch (err) {
+                    console.error('Save As failed:', err)
+                }
             }))
 
             unlisten.push(await listen('menu:edit-palettes', () => {
@@ -67,22 +93,6 @@ export function useTauriMenu() {
 
             unlisten.push(await listen('menu:document-settings', () => {
                 dispatch({type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL'})
-            }))
-
-            unlisten.push(await listen('menu:import-json', async () => {
-                try {
-                    const json = await uploadJSON()
-                    const doc = fromJSON(json)
-                    dispatch({type: 'LOAD_DOCUMENT', document: doc})
-                    dispatch({type: 'SET_ACTIVE_PAGE', pageId: doc.rootNodes[0]?.id ?? null})
-                    dispatch({type: 'SET_DOCUMENT_META', id: null, name: 'Untitled'})
-                } catch (err) {
-                    console.error('Import failed:', err)
-                }
-            }))
-
-            unlisten.push(await listen('menu:export-json', () => {
-                downloadJSON(stateRef.current.document)
             }))
 
             unlisten.push(await listen('menu:export-png', () => {

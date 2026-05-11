@@ -3,6 +3,8 @@ import {saveDoc} from '@utils/localStorageDB'
 import {getEffectiveGridSettings} from '@utils/snapping'
 import {useEffect} from 'react'
 
+const IS_TAURI = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+
 export function useDocumentShortcuts() {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
@@ -13,12 +15,16 @@ export function useDocumentShortcuts() {
 
             // Cmd+S: save document — intercept before input guard to prevent browser save dialog
             if (meta && e.key === 's' && !e.shiftKey) {
-                e.preventDefault()
-                try {
-                    const entry = saveDoc(state.documentId, state.documentName, state.document)
-                    dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
-                } catch (err) {
-                    console.error('Save failed:', err)
+                if (!IS_TAURI) {
+                    // preventDefault only in web mode — in Tauri, calling it blocks the native
+                    // menu accelerator (WKWebView swallows the event before AppKit sees it)
+                    e.preventDefault()
+                    try {
+                        const entry = saveDoc(state.documentId, state.documentName, state.document)
+                        dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
+                    } catch (err) {
+                        console.error('Save failed:', err)
+                    }
                 }
                 return
             }

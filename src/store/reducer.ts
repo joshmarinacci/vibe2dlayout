@@ -1023,6 +1023,7 @@ export const initialState: AppState = {
     drilledInContainerStack: [],
     documentId: null,
     documentName: 'Untitled',
+    currentFilePath: null,
     isDirty: false,
     documentSelected: false,
     selectedAssetId: null,
@@ -1197,6 +1198,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, showGradientModal: !state.showGradientModal}
         case 'TOGGLE_SKETCH_STYLE_MODAL':
             return {...state, showSketchStyleModal: !state.showSketchStyleModal}
+        case 'SET_FILE_PATH':
+            return {...state, currentFilePath: action.path}
         case 'UPDATE_SETTINGS':
             return {...state, settings: {...state.settings, ...action.patch}}
         case 'SET_DOCUMENT_META':

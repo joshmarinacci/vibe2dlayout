@@ -1,4 +1,17 @@
 
+## 2026-05-11
+
+### Tauri native file I/O; web localStorage unchanged
+
+- **`src/utils/tauriStorage.ts`** (new): Tauri-specific file helpers — `tauriOpenFile()`, `tauriSaveFile()`, `tauriSaveAsFile()` — using `@tauri-apps/plugin-dialog` and `@tauri-apps/plugin-fs` with dynamic imports so they never run in a browser bundle.
+- **`src/store/types.ts` / `reducer.ts`**: added `currentFilePath: string | null` to `AppState` and a `SET_FILE_PATH` action to track the open file path in Tauri mode.
+- **`src/hooks/useTauriMenu.ts`**: replaced localStorage save/load handlers with native file I/O. `menu:open` → file open dialog, `menu:save` → write in-place (or Save As if no path yet), `menu:save-as` → save dialog. Removed `menu:import-json` and `menu:export-json` listeners.
+- **`src-tauri/src/lib.rs`**: registered `tauri_plugin_dialog` and `tauri_plugin_fs`; removed Import JSON and Export JSON from the native File menu.
+- **`src-tauri/capabilities/default.json`**: added `dialog:default`, `fs:default`, `fs:allow-read-text-file`, `fs:allow-write-text-file` permissions.
+- **`src-tauri/Cargo.toml`**: added `tauri-plugin-dialog = "2"` and `tauri-plugin-fs = "2"` dependencies.
+- **`src/components/toolbar/Toolbar.tsx`**: Import/Export JSON toolbar items hidden in Tauri mode (`IS_TAURI` guard); Open/Save/Save As toolbar handlers no-op in Tauri (native menu is the entry point).
+- **`src/hooks/useDocumentShortcuts.ts`**: Cmd+S localStorage save guarded to web-only; Tauri handles it via the native menu accelerator.
+
 ## 2026-05-08
 
 ### Gradient editor improvements
