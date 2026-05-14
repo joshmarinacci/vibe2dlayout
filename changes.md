@@ -1,4 +1,8 @@
 
+## 2026-05-14 — Mouse wheel increment/decrement on NumberInput
+
+- **`src/components/properties/inputs/NumberInput.tsx`**: Scrolling the mouse wheel while a numeric input is focused now increments/decrements by `step` (same as ArrowUp/Down). Uses a native non-passive `wheel` event listener (mounted once via `useEffect`) so `preventDefault()` actually stops the properties panel from scrolling. A `wheelStateRef` keeps the handler reading current `localText`, `step`, `min`, `max`, and `onChange` without stale closures.
+
 ## 2026-05-14 — Fix emoji insertion in ContentSection controlled textarea
 
 - **`src/components/canvas/shapes/useEmojiCompletion.ts`**: Added optional `onValueChange(newValue, newCursorPos)` parameter. When provided, all insertion paths (Enter/Tab keyboard, mouse click, auto-replace on closing `:`) call this callback instead of DOM mutation + synthetic `input` event. DOM mutation is unreliable for React controlled textareas because React may reconcile the `value` prop back before the store update commits.

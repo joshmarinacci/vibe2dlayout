@@ -1,5 +1,16 @@
 import type {Variable} from '@model/variable'
 import {useEffect, useRef, useState} from 'react'
+
+// Keep a ref map so the wheel handler always reads the latest values without
+// stale closure issues (the native listener can't be cheaply re-registered).
+interface WheelState {
+    isFocused: boolean
+    localText: string
+    step: number
+    min?: number
+    max?: number
+    onChange: (v: number) => void
+}
 import styles from './inputs.module.css'
 
 interface Props {
@@ -34,11 +45,37 @@ export function NumberInput({
     const [isFocused, setIsFocused] = useState(false)
     const [showDropdown, setShowDropdown] = useState(false)
     const wrapRef = useRef<HTMLDivElement>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
+    const wheelStateRef = useRef<WheelState>({isFocused, localText, step, min, max, onChange})
 
     // Keep localText in sync when value changes externally (not while focused)
     useEffect(() => {
         if (!isFocused) setLocalText(String(value))
     }, [value, isFocused])
+
+    // Always keep the wheel state ref current so the native handler never goes stale
+    wheelStateRef.current = {isFocused, localText, step, min, max, onChange}
+
+    // Non-passive native wheel listener so preventDefault() actually stops panel scroll
+    useEffect(() => {
+        const el = inputRef.current
+        if (!el) return
+        const handler = (e: WheelEvent) => {
+            const {isFocused, localText, step, min, max, onChange} = wheelStateRef.current
+            if (!isFocused || localText.startsWith('@')) return
+            e.preventDefault()
+            const current = parseFloat(localText)
+            if (isNaN(current)) return
+            const delta = e.deltaY < 0 ? step : -step
+            const next = current + delta
+            const clamped = min !== undefined ? Math.max(min, next) : next
+            const final = max !== undefined ? Math.min(max, clamped) : clamped
+            setLocalText(String(final))
+            onChange(final)
+        }
+        el.addEventListener('wheel', handler, {passive: false})
+        return () => el.removeEventListener('wheel', handler)
+    }, []) // mount/unmount only — handler always reads latest state via ref
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -86,6 +123,7 @@ export function NumberInput({
         <div className={'hbox ' + (className?className:'')}>
             {label && <label>{label}</label>}
             <input
+                ref={inputRef}
                 type="text"
                 className={styles.numberInput}
                 value={localText}
