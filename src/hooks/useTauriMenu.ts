@@ -2,6 +2,7 @@ import {useAppDispatch, useAppState} from '@store/context'
 import {createInitialDocument} from '@store/reducer'
 import type {AppState} from '@store/types'
 import {exportDocumentAsPdf} from '@utils/exportPdf'
+import {exportPageAsHtml} from '@utils/exportHtml'
 import {exportPageAsPng} from '@utils/exportPng'
 import {tauriOpenFile, tauriSaveAsFile, tauriSaveFile} from '@utils/tauriStorage'
 import {useEffect, useRef} from 'react'
@@ -101,6 +102,10 @@ export function useTauriMenu() {
 
             unlisten.push(await listen('menu:export-pdf', () => {
                 exportDocumentAsPdf(stateRef.current).catch(console.error)
+            }))
+
+            unlisten.push(await listen('menu:export-html', () => {
+                exportPageAsHtml(stateRef.current)
             }))
         }
 

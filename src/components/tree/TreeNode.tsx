@@ -6,6 +6,7 @@ import {useAppState} from '@store/context'
 import type {AppAction} from '@store/types'
 import {buildParentMap, getAbsoluteTransform, getContentOrigin} from '@utils/geometry'
 import {createShape} from '@utils/shapeFactory'
+import {exportPageAsHtml} from '@utils/exportHtml'
 import {
     AppWindow,
     BarChart2,
@@ -20,6 +21,7 @@ import {
     Copy,
     Eye,
     EyeOff,
+    FileCode,
     FileText,
     GanttChart,
     Grid2X2,
@@ -318,6 +320,7 @@ export function TreeNodeComp({
         ]
 
         if (isPage) {
+            const pageShape = shape.type === 'page' ? shape : null
             return [
                 {
                     items: [
@@ -326,6 +329,12 @@ export function TreeNodeComp({
                             icon: <FileText size={14}/>,
                             onClick: () => dispatch({type: 'SET_ACTIVE_PAGE', pageId: node.id}),
                             disabled: isActivePage,
+                        },
+                        {
+                            label: 'Export HTML…',
+                            icon: <FileCode size={14}/>,
+                            onClick: () => exportPageAsHtml({...state, activePageId: node.id}),
+                            disabled: !pageShape?.fixedSize,
                         },
                     ],
                 },

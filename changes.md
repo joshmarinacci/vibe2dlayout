@@ -1,6 +1,19 @@
 
 ## 2026-05-14
 
+### Export HTML from page tree context menu
+
+- **`src/components/tree/TreeNode.tsx`**: Added "Export HTML…" item to the right-click context menu on page nodes in the tree view. The item is disabled when the page has no fixed size; otherwise it exports that specific page (not necessarily the active one) directly to a `.html` file.
+
+### Export page as self-contained HTML
+
+- **`src/utils/exportHtml.ts`** (new): Pure TypeScript HTML string generator that walks the shape tree and emits inline-styled HTML for every shape type — rect, circle, text, image, line (SVG), group, frame, panel, tabbed-panel, button, icon, label, textfield, checkbox, toggle, radio, select, slider, progress, stepper, stickynote, list, table, dialog, scrollpanel, imagemock, chartmock, pixelimage. Fills (color, gradient, sketch), strokes, box shadows, CSS transforms (rotation/scale/skew), and all text style properties — including variable font axes (`font-variation-settings`), text gradients, text shadows, and text stroke — are faithfully reproduced as inline CSS. Font families are auto-imported from Google Fonts. Pixel assets render as embedded SVG data URIs. The exported file is fully self-contained and downloads via Blob URL.
+- **`src/hooks/useTauriMenu.ts`**: Added `menu:export-html` listener that calls `exportPageAsHtml()`.
+- **`src-tauri/src/lib.rs`**: Added "Export HTML..." menu item to the File menu.
+- **`tests/utils/exportHtml.test.ts`** (new): 57 Vitest unit tests covering RectShape (fill types, corner radii, box shadow, stroke, transform), CircleShape, TextShape (all text properties including variable fonts, text gradient, text shadow, text stroke), ImageShape, LineShape (SVG output, arrows, dash), GroupShape with children, and `generatePageHtml` structure.
+
+
+
 ### Prevent browser text selection when dragging shapes
 
 - Added `user-select: none` to `.shape` in `Shape.module.css` so text inside shapes can't be selected during mouse drag interactions

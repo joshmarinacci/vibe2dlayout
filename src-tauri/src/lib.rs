@@ -35,6 +35,7 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "menu:export-png",        "Export PNG...",        true, None::<&str>)?,
             &MenuItem::with_id(app, "menu:export-pdf",        "Export PDF...",        true, None::<&str>)?,
+            &MenuItem::with_id(app, "menu:export-html",       "Export HTML...",       true, None::<&str>)?,
         ],
     )?;
 
