@@ -3,7 +3,7 @@ import {buildCSSTransform} from '@model/transform'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {boxShadowCSS} from '@utils/shadowCSS'
-import {textExtraCSS, textGradientSpanCSS, textStrokeCSS} from '@utils/textStyleCSS'
+import {textExtraCSS, textGradientKey, textGradientSpanCSS, textStrokeCSS} from '@utils/textStyleCSS'
 import type {Dispatch} from 'react'
 import styles from './Shape.module.css'
 import {useTextEdit, vAlignToJustify} from './useTextEdit'
@@ -32,6 +32,7 @@ export function TextShapeComp({
     })
 
     const gradientSpan = textGradientSpanCSS(text)
+    const gradientKey = textGradientKey(text)
     const textStyle: React.CSSProperties = {
         fontFamily: text.fontFamily,
         fontSize: text.fontSize,
@@ -101,7 +102,7 @@ export function TextShapeComp({
                 }}>
                     <div style={textStyle}>
                         {gradientSpan ?
-                            <span style={gradientSpan}>{text.content}</span> : text.content}
+                            <span key={gradientKey} style={gradientSpan}>{text.content}</span> : text.content}
                     </div>
                 </div>
             )}

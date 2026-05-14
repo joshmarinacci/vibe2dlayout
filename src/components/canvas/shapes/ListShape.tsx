@@ -1,6 +1,7 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {ListShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {roughLine, roughRect, seedFromId} from '@utils/roughPaths'
@@ -47,7 +48,7 @@ export function ListShapeComp({
         return roughLine(pad, lineY, width - pad, lineY, {
             seed: seed + i + 1,
             roughness: 0.8,
-            stroke: stroke.color,
+            stroke: strokeColor(stroke),
             strokeWidth: stroke.width * 0.5,
         })
     }) : []
@@ -136,7 +137,7 @@ export function ListShapeComp({
                                     paddingLeft: 8,
                                     paddingRight: 4,
                                     background: !handDrawn && isSelectedRow ? '#bfdbfe' : 'transparent',
-                                    borderBottom: !handDrawn && i < items.length - 1 ? `${stroke.width * 0.5}px solid ${stroke.color}` : undefined,
+                                    borderBottom: !handDrawn && i < items.length - 1 ? `${stroke.width * 0.5}px solid ${strokeColor(stroke)}` : undefined,
                                     boxSizing: 'border-box',
                                 }}
                             >

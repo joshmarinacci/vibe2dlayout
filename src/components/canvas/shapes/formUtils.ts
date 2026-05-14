@@ -1,4 +1,4 @@
-import {fillColor} from '@model/shapes'
+import {fillColor, strokeColor} from '@model/shapes'
 import type {FormShape} from "@model/shapes.ts";
 import {roughRect, seedFromId} from "@utils/roughPaths.ts";
 
@@ -19,7 +19,7 @@ export function makeRoughRect(shape: FormShape) {
         fillWeight: 1,
         hachureAngle: isSketch ? fill.hachureAngle : 45,
         hachureGap: isSketch ? fill.hachureGap : 4,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     })
 }

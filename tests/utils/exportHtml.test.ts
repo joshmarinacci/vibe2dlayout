@@ -42,7 +42,7 @@ function makeSketchFill(fillStyle: 'solid' | 'hatched' | 'none' = 'solid'): Sket
     return {type: 'sketch', color: '#333333', fillStyle, hachureAngle: 45, hachureGap: 4, opacity: 1}
 }
 
-function makeStroke(type: StrokeStyle['type'] = 'solid', color = '#000000', width = 2): StrokeStyle {
+function makeStroke(type: 'solid' | 'dashed' | 'none' = 'solid', color = '#000000', width = 2): StrokeStyle {
     return {type, color, width, dash: type === 'dashed' ? [5, 3] : [], opacity: 1}
 }
 
@@ -457,7 +457,7 @@ describe('LineShape', () => {
     })
 
     it('renders stroke-dasharray for dashed line', () => {
-        const html = htmlForShapes({l: makeLine('l', {stroke: {...makeStroke('dashed', '#000', 2), dash: [5, 3]}})})
+        const html = htmlForShapes({l: makeLine('l', {stroke: makeStroke('dashed', '#000', 2)})})
         expect(html).toContain('stroke-dasharray')
     })
 })

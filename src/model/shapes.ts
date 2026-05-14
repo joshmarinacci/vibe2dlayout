@@ -61,15 +61,38 @@ export interface BoxShadow {
     inset?: boolean
 }
 
-export type StrokeType = 'solid' | 'sketch' | 'dashed' | 'none'
-
-export interface StrokeStyle {
-    type: StrokeType
+export interface ColorStroke {
+    type: 'solid' | 'dashed' | 'none'
     color: string
     width: number
     dash: number[]   // [] = solid, [5,3] = dashed
     opacity: number
     paletteColorId?: string
+}
+
+export interface GradientStroke {
+    type: 'gradient'
+    gradientType: 'linear' | 'radial' | 'conic'
+    angle: number            // degrees; radial ignores it
+    stops: GradientStop[]
+    width: number
+    opacity: number
+    gradientId?: string      // links to VibeDocument.gradients[]
+}
+
+export interface SketchStroke {
+    type: 'sketch'
+    color: string
+    width: number
+    opacity: number
+}
+
+export type StrokeStyle = ColorStroke | GradientStroke | SketchStroke
+
+/** Extract a single representative color from any stroke type. */
+export function strokeColor(stroke: StrokeStyle): string {
+    if (stroke.type === 'gradient') return stroke.stops[0]?.color ?? '#000000'
+    return stroke.color
 }
 
 export type FontWeight =
@@ -101,7 +124,8 @@ export interface TextStyle {
     align: 'left' | 'center' | 'right'
     verticalAlign: 'top' | 'middle' | 'bottom'
     textShadow?: { offsetX: number; offsetY: number; blur: number; color: string } | null
-    textGradient?: GradientFill | null  // when set, renders text with gradient fill instead of color
+    textGradient?: GradientFill | null        // gradient fill for text characters
+    textStrokeGradient?: GradientFill | null  // gradient for text outline stroke
     lineHeight?: number        // CSS multiplier, e.g. 1.5 (undefined = browser default)
     letterSpacing?: number     // pixels
     textDecoration?: 'none' | 'underline' | 'line-through' | 'underline line-through'

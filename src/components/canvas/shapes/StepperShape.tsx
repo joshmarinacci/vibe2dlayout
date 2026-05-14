@@ -1,5 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
-import {fillColor} from '@model/shapes'
+import {fillColor, strokeColor} from '@model/shapes'
 import type {StepperShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {roughRect, seedFromId} from '@utils/roughPaths'
@@ -33,7 +33,7 @@ export function StepperShapeComp({shape, isSelected, onClick, onDoubleClick, han
         fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     }) : []
 
@@ -44,7 +44,7 @@ export function StepperShapeComp({shape, isSelected, onClick, onDoubleClick, han
         fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     }) : []
 
@@ -53,7 +53,7 @@ export function StepperShapeComp({shape, isSelected, onClick, onDoubleClick, han
         roughness: 0.8,
         bowing: 0.3,
         fill: undefined,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width * 0.6,
     }) : []
 
@@ -89,14 +89,14 @@ export function StepperShapeComp({shape, isSelected, onClick, onDoubleClick, han
                     <div style={{
                         width: BTN_W,
                         background: btnBg,
-                        borderRight: `${stroke.width}px solid ${stroke.color}`,
+                        borderRight: `${stroke.width}px solid ${strokeColor(stroke)}`,
                         flexShrink: 0
                     }}/>
                     <div style={{flex: 1}}/>
                     <div style={{
                         width: BTN_W,
                         background: btnBg,
-                        borderLeft: `${stroke.width}px solid ${stroke.color}`,
+                        borderLeft: `${stroke.width}px solid ${strokeColor(stroke)}`,
                         flexShrink: 0
                     }}/>
                 </div>

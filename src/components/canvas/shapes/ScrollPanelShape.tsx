@@ -1,6 +1,7 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {ScrollPanelShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {roughRect, seedFromId} from '@utils/roughPaths'
@@ -49,17 +50,17 @@ export function ScrollPanelShapeComp({
         fill: '#e5e7eb',
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width * 0.5,
     }) : []
 
     const sbThumbPaths = handDrawn ? roughRect(sbX + 1, thumbTop, SCROLLBAR_W - 2, thumbH, {
         seed: seed + 3,
         roughness: 0.6,
-        fill: stroke.color,
+        fill: strokeColor(stroke),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width * 0.5,
     }) : []
 
@@ -99,7 +100,7 @@ export function ScrollPanelShapeComp({
                         width: SCROLLBAR_W,
                         height: trackH,
                         background: '#e5e7eb',
-                        border: `${stroke.width * 0.5}px solid ${stroke.color}`,
+                        border: `${stroke.width * 0.5}px solid ${strokeColor(stroke)}`,
                         borderRadius: SCROLLBAR_W / 2,
                         boxSizing: 'border-box',
                     }}/>
@@ -110,7 +111,7 @@ export function ScrollPanelShapeComp({
                         right: 4,
                         width: SCROLLBAR_W,
                         height: thumbH,
-                        background: stroke.color,
+                        background: strokeColor(stroke),
                         borderRadius: SCROLLBAR_W / 2,
                     }}/>
                 </>

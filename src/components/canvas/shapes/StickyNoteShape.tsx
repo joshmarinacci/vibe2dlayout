@@ -1,12 +1,13 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {StickyNoteShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {roughLine, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
 import {strokeBorderCSS} from '@utils/strokeStyleCSS'
-import {textExtraCSS, textGradientSpanCSS} from '@utils/textStyleCSS'
+import {textExtraCSS, textGradientKey, textGradientSpanCSS} from '@utils/textStyleCSS'
 import type {Dispatch} from 'react'
 import {useTextEdit} from './useTextEdit'
 
@@ -49,7 +50,7 @@ export function StickyNoteShapeComp({
     const foldH = handDrawn ? roughLine(width - FOLD - pad, pad, width - pad, FOLD + pad, {
         seed: seed + 1,
         roughness: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width * 0.75,
     }) : []
 
@@ -93,7 +94,7 @@ export function StickyNoteShapeComp({
                         height={FOLD}
                     >
                         {/* Darken the fold crease */}
-                        <line x1={0} y1={0} x2={FOLD} y2={FOLD} stroke={stroke.color}
+                        <line x1={0} y1={0} x2={FOLD} y2={FOLD} stroke={strokeColor(stroke)}
                               strokeWidth={stroke.width * 0.75}/>
                     </svg>
                 </>
@@ -144,7 +145,7 @@ export function StickyNoteShapeComp({
                     }}>
                         {(() => {
                             const g = textGradientSpanCSS(text);
-                            return g ? <span style={g}>{text.content}</span> : text.content
+                            return g ? <span key={textGradientKey(text)} style={g}>{text.content}</span> : text.content
                         })()}
                     </div>
                 )}

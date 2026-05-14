@@ -5,7 +5,7 @@ import {getButtonIcon} from '@utils/buttonIcons'
 import {fillBackground} from '@utils/fillCSS'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
 import {cornerRadiiCSS, strokeBorderCSS} from '@utils/strokeStyleCSS'
-import {textExtraCSS, textGradientSpanCSS} from '@utils/textStyleCSS'
+import {textExtraCSS, textGradientKey, textGradientSpanCSS} from '@utils/textStyleCSS'
 import {type CSSProperties, type Dispatch} from 'react'
 import {BoxShapeBase} from "./BoxShapeBase";
 import {useTextEdit, vAlignToJustify} from './useTextEdit'
@@ -143,7 +143,7 @@ function ButtonContent({
             {IconComp && (
                 <IconComp size={iconSize} color={text.color} strokeWidth={1.5}/>
             )}
-            {text.content && <span style={textStyle}>{text.content}</span>}
+            {text.content && <span key={textGradientKey(text)} style={textStyle}>{text.content}</span>}
         </div>
     )
 }

@@ -1,5 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
-import {fillColor} from '@model/shapes'
+import {fillColor, strokeColor} from '@model/shapes'
 import type {ChartMockShape} from '@model/shapes'
 import {roughCircle, roughLine, roughRect, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
@@ -25,7 +25,7 @@ export function ChartMockShapeComp({shape, isSelected, onClick, onDoubleClick, h
     const chartW = w - axisX - p
     const chartH = axisY - p
     const barColor = fillColor(fill)
-    const axisColor = stroke.color
+    const axisColor = strokeColor(stroke)
 
     // Bar geometry
     const gap = chartW / (DATA.length + 1)

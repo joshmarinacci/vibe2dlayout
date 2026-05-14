@@ -1,5 +1,5 @@
-import type {CustomFont} from '@model/document'
-import type {TextStyle} from "@model/shapes.ts";
+import type {CustomFont, GradientDef} from '@model/document'
+import type {GradientFill, TextStyle} from "@model/shapes.ts"
 import {detectSmallCaps} from '@utils/fontFeatures'
 import {
     ALargeSmall,
@@ -16,6 +16,8 @@ import {ColorInput} from '../inputs/ColorInput'
 import inputStyles from '../inputs/inputs.module.css'
 import {NumberInput} from '../inputs/NumberInput'
 import {SelectInput} from '../inputs/SelectInput'
+import {useAppDispatch, useAppState} from '@store/context'
+import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
 import "../propsheet.css"
 
 // Logarithmic slider: maps slider 0–100 to font size 5–500
@@ -114,9 +116,61 @@ export function TextSection({
                                 customFonts,
                                 activeFont,
                             }: Props) {
+    const {state} = useAppState()
+    const dispatch = useAppDispatch()
+    const docGradients: GradientDef[] = state.document.gradients ?? []
+
     const applyChange = (changes: Partial<TextStyle>) => {
         onChange({...text, ...changes})
     }
+
+    const [colorTab, setColorTab] = useState<'color' | 'gradient'>(() =>
+        text.textGradient ? 'gradient' : 'color'
+    )
+    const [strokeTab, setStrokeTab] = useState<'color' | 'gradient'>(() =>
+        text.textStrokeGradient ? 'gradient' : 'color'
+    )
+
+    const switchColorToColor = () => applyChange({textGradient: null})
+    const switchColorToGradient = () => {
+        const first = docGradients[0]
+        const gf: GradientFill = {
+            type: 'gradient',
+            gradientType: 'linear',
+            angle: 90,
+            stops: first ? first.stops : [{color: text.color, position: 0}, {color: '#ffffff', position: 1}],
+            opacity: 1,
+            gradientId: first?.id,
+        }
+        applyChange({textGradient: gf})
+    }
+    const handleColorGradientSelect = (gradientId: string) => {
+        const g = docGradients.find(x => x.id === gradientId)
+        if (!g || !text.textGradient) return
+        applyChange({textGradient: {...text.textGradient, stops: g.stops, gradientId: g.id}})
+    }
+
+    const switchStrokeToColor = () => applyChange({textStrokeGradient: null})
+    const switchStrokeToGradient = () => {
+        const first = docGradients[0]
+        const gf: GradientFill = {
+            type: 'gradient',
+            gradientType: 'linear',
+            angle: 90,
+            stops: first ? first.stops : [{color: text.stroke?.color ?? '#000000', position: 0}, {color: '#ffffff', position: 1}],
+            opacity: 1,
+            gradientId: first?.id,
+        }
+        applyChange({textStrokeGradient: gf})
+    }
+    const handleStrokeGradientSelect = (gradientId: string) => {
+        const g = docGradients.find(x => x.id === gradientId)
+        if (!g || !text.textStrokeGradient) return
+        applyChange({textStrokeGradient: {...text.textStrokeGradient, stops: g.stops, gradientId: g.id}})
+    }
+
+    const colorTabProps = {selectedTab: colorTab, setSelectedTab: setColorTab}
+    const strokeTabProps = {selectedTab: strokeTab, setSelectedTab: setStrokeTab}
 
     const customFontEntries = (customFonts ?? []).map(name => ({value: name, label: name}))
     const fontOptions = [...COMMON_FONTS, ...customFontEntries]
@@ -247,20 +301,52 @@ export function TextSection({
                 <details>
                     <summary>Color</summary>
                     <article>
-                        <section className={'super'}>
-                            <ColorInput
-                                label=""
-                                value={{
-                                    color: text.color,
-                                    paletteColorId: text.paletteColorId
-                                }}
-                                onChange={ref => applyChange({
-                                    color: ref.color,
-                                    paletteColorId: ref.paletteColorId
-                                })}
-                            />
-                        </section>
-                        </article>
+                        <TabbedPanel>
+                            <TabbedPanelTabs>
+                                <TabbedPanelTab tab={'color'} title={'Color'} onChange={switchColorToColor} {...colorTabProps}/>
+                                <TabbedPanelTab tab={'gradient'} title={'Gradient'} onChange={switchColorToGradient} {...colorTabProps}/>
+                            </TabbedPanelTabs>
+                            <TabbedPanelContent tab={'color'} {...colorTabProps}>
+                                <section className={'super'}>
+                                    <ColorInput
+                                        value={{color: text.color, paletteColorId: text.paletteColorId}}
+                                        onChange={ref => applyChange({color: ref.color, paletteColorId: ref.paletteColorId})}
+                                    />
+                                </section>
+                            </TabbedPanelContent>
+                            <TabbedPanelContent tab={'gradient'} {...colorTabProps}>
+                                <section className={'super'}>
+                                    <label className={'s'}>Stops</label>
+                                    <GradientPicker
+                                        className={'mid1span3'}
+                                        gradients={docGradients}
+                                        value={text.textGradient?.gradientId ?? ''}
+                                        onChange={handleColorGradientSelect}
+                                        showCustom={!text.textGradient?.gradientId}
+                                    />
+                                    <label className={'s'}>Type</label>
+                                    <select
+                                        className={'mid1span3'}
+                                        value={text.textGradient?.gradientType ?? 'linear'}
+                                        onChange={e => text.textGradient && applyChange({textGradient: {...text.textGradient, gradientType: e.target.value as GradientFill['gradientType']}})}
+                                    >
+                                        <option value='linear'>Linear</option>
+                                        <option value='radial'>Radial</option>
+                                        <option value='conic'>Conic</option>
+                                    </select>
+                                    {text.textGradient?.gradientType !== 'radial' && <>
+                                        <label className={'s'}>Angle</label>
+                                        <input className={'mid1span2'} type={'number'}
+                                               value={text.textGradient?.angle ?? 90} min={0} max={360}
+                                               onChange={e => text.textGradient && applyChange({textGradient: {...text.textGradient, angle: parseInt(e.target.value) || 0}})}
+                                        />
+                                        <label className={'e'}>°</label>
+                                    </>}
+                                    <button className={'mid1span3'} onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}>Edit Gradients…</button>
+                                </section>
+                            </TabbedPanelContent>
+                        </TabbedPanel>
+                    </article>
                 </details>
 
                 <details>
@@ -430,27 +516,66 @@ export function TextSection({
                                 className={inputStyles.checkbox}
                                 checked={!!text.stroke}
                                 onChange={e => applyChange({
-                                    stroke: e.target.checked
-                                        ? {width: 1, color: '#000000'}
-                                        : undefined
+                                    stroke: e.target.checked ? {width: 1, color: '#000000'} : undefined,
+                                    textStrokeGradient: e.target.checked ? text.textStrokeGradient : null,
                                 })}
                             />
                         </div>
                     </div>
                     {text.stroke && (
-                        <div style={{paddingLeft: 8, display: 'flex', flexDirection: 'column', gap: 2}}>
-                            <ColorInput
-                                label="Color"
-                                value={{color: text.stroke.color}}
-                                onChange={ref => applyChange({stroke: {...text.stroke!, color: ref.color}})}
-                            />
+                        <>
+                            <TabbedPanel>
+                                <TabbedPanelTabs>
+                                    <TabbedPanelTab tab={'color'} title={'Color'} onChange={switchStrokeToColor} {...strokeTabProps}/>
+                                    <TabbedPanelTab tab={'gradient'} title={'Gradient'} onChange={switchStrokeToGradient} {...strokeTabProps}/>
+                                </TabbedPanelTabs>
+                                <TabbedPanelContent tab={'color'} {...strokeTabProps}>
+                                    <section className={'super'}>
+                                        <ColorInput
+                                            value={{color: text.stroke.color}}
+                                            onChange={ref => applyChange({stroke: {...text.stroke!, color: ref.color}})}
+                                        />
+                                    </section>
+                                </TabbedPanelContent>
+                                <TabbedPanelContent tab={'gradient'} {...strokeTabProps}>
+                                    <section className={'super'}>
+                                        <label className={'s'}>Stops</label>
+                                        <GradientPicker
+                                            className={'mid1span3'}
+                                            gradients={docGradients}
+                                            value={text.textStrokeGradient?.gradientId ?? ''}
+                                            onChange={handleStrokeGradientSelect}
+                                            showCustom={!text.textStrokeGradient?.gradientId}
+                                        />
+                                        <label className={'s'}>Type</label>
+                                        <select
+                                            className={'mid1span3'}
+                                            value={text.textStrokeGradient?.gradientType ?? 'linear'}
+                                            onChange={e => text.textStrokeGradient && applyChange({textStrokeGradient: {...text.textStrokeGradient, gradientType: e.target.value as GradientFill['gradientType']}})}
+                                        >
+                                            <option value='linear'>Linear</option>
+                                            <option value='radial'>Radial</option>
+                                            <option value='conic'>Conic</option>
+                                        </select>
+                                        {text.textStrokeGradient?.gradientType !== 'radial' && <>
+                                            <label className={'s'}>Angle</label>
+                                            <input className={'mid1span2'} type={'number'}
+                                                   value={text.textStrokeGradient?.angle ?? 90} min={0} max={360}
+                                                   onChange={e => text.textStrokeGradient && applyChange({textStrokeGradient: {...text.textStrokeGradient, angle: parseInt(e.target.value) || 0}})}
+                                            />
+                                            <label className={'e'}>°</label>
+                                        </>}
+                                        <button className={'mid1span3'} onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}>Edit Gradients…</button>
+                                    </section>
+                                </TabbedPanelContent>
+                            </TabbedPanel>
                             <NumberInput
                                 label="Width"
                                 value={text.stroke.width}
                                 min={0} max={20} step={0.5} unit="px"
                                 onChange={v => applyChange({stroke: {...text.stroke!, width: v}})}
                             />
-                        </div>
+                        </>
                     )}
                 </details>
             </article>

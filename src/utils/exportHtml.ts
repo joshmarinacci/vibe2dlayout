@@ -37,6 +37,7 @@ import type {
     TextStyle,
     ToggleShape,
 } from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppState} from '@store/types'
 import {arrowMarkerPath, buildConnectorPath, resolveEndpoint} from '@utils/connectors'
 import {fillBackground, gradientCSS} from '@utils/fillCSS'
@@ -108,13 +109,15 @@ function fillProps(fill: FillStyle): Record<string, StyleValue> {
 
 function strokeProps(stroke: StrokeStyle): Record<string, StyleValue> {
     if (stroke.type === 'none') return {border: 'none'}
+    if (stroke.type === 'gradient') return {borderWidth: stroke.width, borderStyle: 'solid', borderColor: strokeColor(stroke)}
+    const dash = 'dash' in stroke ? stroke.dash : []
     const borderStyle = stroke.type === 'dashed'
-        ? (stroke.dash?.[0] <= 3 ? 'dotted' : 'dashed')
+        ? (dash?.[0] <= 3 ? 'dotted' : 'dashed')
         : 'solid'
     return {
         borderWidth: stroke.width,
         borderStyle,
-        borderColor: stroke.color,
+        borderColor: strokeColor(stroke),
     }
 }
 
@@ -160,7 +163,7 @@ function textBaseProps(text: TextStyle): Record<string, StyleValue> {
             .join(', ')
         if ('opsz' in text.fontVariationSettings) result.fontOpticalSizing = 'none'
     }
-    if (text.stroke && text.stroke.width > 0) {
+    if (text.stroke && text.stroke.width > 0 && !text.textStrokeGradient) {
         result.WebkitTextStroke = `${text.stroke.width}px ${text.stroke.color}`
     }
     return result
@@ -168,15 +171,31 @@ function textBaseProps(text: TextStyle): Record<string, StyleValue> {
 
 function textContentHtml(text: TextStyle): string {
     const escaped = escHtml(text.content)
-    if (!text.textGradient) return escaped
-    const spanStyle = styleStr({
-        display: 'inline-block',
-        background: gradientCSS(text.textGradient),
-        WebkitBackgroundClip: 'text',
-        backgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-    })
-    return `<span style="${spanStyle}">${escaped}</span>`
+    // Fill gradient takes precedence
+    if (text.textGradient) {
+        const spanStyle = styleStr({
+            display: 'inline-block',
+            background: gradientCSS(text.textGradient),
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+        })
+        return `<span style="${spanStyle}">${escaped}</span>`
+    }
+    // Stroke gradient: background-clip shows gradient on stroke outline
+    if (text.textStrokeGradient && text.stroke && text.stroke.width > 0) {
+        const spanStyle = styleStr({
+            display: 'inline-block',
+            background: gradientCSS(text.textStrokeGradient),
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            WebkitTextStroke: `${text.stroke.width}px transparent`,
+            paintOrder: 'stroke fill',
+        })
+        return `<span style="${spanStyle}">${escaped}</span>`
+    }
+    return escaped
 }
 
 // Renders a text block inside an already-positioned outer div
@@ -268,12 +287,13 @@ function renderLine(shape: LineShape, shapes: Record<string, Shape>): string {
     const {stroke} = shape
     const markerId = `arrow-${shape.id}`
     const markerStartId = `arrow-start-${shape.id}`
-    const dashArray = stroke.dash?.length ? ` stroke-dasharray="${stroke.dash.join(' ')}"` : ''
+    const strokeDash = 'dash' in stroke ? stroke.dash : []
+    const dashArray = strokeDash?.length ? ` stroke-dasharray="${strokeDash.join(' ')}"` : ''
     const markerEnd = shape.endArrow !== 'none' ? ` marker-end="url(#${markerId})"` : ''
     const markerStart = shape.startArrow !== 'none' ? ` marker-start="url(#${markerStartId})"` : ''
     const defs = (shape.endArrow !== 'none' || shape.startArrow !== 'none') ? `<defs>
-${shape.endArrow !== 'none' ? `    <marker id="${markerId}" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="${arrowMarkerPath(shape.endArrow)}" fill="${stroke.color}"/></marker>` : ''}
-${shape.startArrow !== 'none' ? `    <marker id="${markerStartId}" markerWidth="10" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><path d="${arrowMarkerPath(shape.startArrow)}" fill="${stroke.color}"/></marker>` : ''}
+${shape.endArrow !== 'none' ? `    <marker id="${markerId}" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="${arrowMarkerPath(shape.endArrow)}" fill="${strokeColor(stroke)}"/></marker>` : ''}
+${shape.startArrow !== 'none' ? `    <marker id="${markerStartId}" markerWidth="10" markerHeight="10" refX="1" refY="5" orient="auto-start-reverse"><path d="${arrowMarkerPath(shape.startArrow)}" fill="${strokeColor(stroke)}"/></marker>` : ''}
   </defs>` : ''
     return `<svg${sa({
         position: 'absolute',
@@ -283,7 +303,7 @@ ${shape.startArrow !== 'none' ? `    <marker id="${markerStartId}" markerWidth="
         height: svgH,
         overflow: 'visible',
     })}>${defs}
-  <path d="${pathD}" fill="none" stroke="${stroke.color}" stroke-width="${stroke.width}"${dashArray} stroke-opacity="${stroke.opacity}"${markerEnd}${markerStart}/>
+  <path d="${pathD}" fill="none" stroke="${strokeColor(stroke)}" stroke-width="${stroke.width}"${dashArray} stroke-opacity="${stroke.opacity}"${markerEnd}${markerStart}/>
 </svg>`
 }
 
@@ -319,7 +339,7 @@ function renderPanel(shape: PanelShape, children: string): string {
         fontSize: text.fontSize,
         fontWeight: String(text.fontWeight),
         color: text.color,
-        borderBottom: `1px solid ${stroke.color}`,
+        borderBottom: `1px solid ${strokeColor(stroke)}`,
         overflow: 'hidden',
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
@@ -361,7 +381,7 @@ function renderTabbedPanel(shape: TabbedPanelShape, children: string): string {
     }).join('')
     const tabBarStyle = styleStr({
         display: 'flex',
-        borderBottom: `1px solid ${stroke.color}`,
+        borderBottom: `1px solid ${strokeColor(stroke)}`,
         padding: '0 4px',
     })
     const contentStyle = styleStr({
@@ -413,7 +433,7 @@ function renderIcon(shape: IconShape): string {
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: Math.min(shape.transform.width, shape.transform.height) * 0.6,
-        color: shape.stroke.color,
+        color: strokeColor(shape.stroke),
     })}>${escHtml(shape.icon.name)}</div>`
 }
 
@@ -453,8 +473,8 @@ function renderCheckbox(shape: CheckboxShape): string {
         height: boxSize,
         minWidth: boxSize,
         borderRadius: '2px',
-        border: `1px solid ${stroke.color}`,
-        background: checked ? stroke.color : 'transparent',
+        border: `1px solid ${strokeColor(stroke)}`,
+        background: checked ? strokeColor(stroke) : 'transparent',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -525,7 +545,7 @@ function renderRadio(shape: RadioShape): string {
         height: r * 2,
         minWidth: r * 2,
         borderRadius: '50%',
-        border: `1px solid ${stroke.color}`,
+        border: `1px solid ${strokeColor(stroke)}`,
         background: 'transparent',
         display: 'flex',
         alignItems: 'center',
@@ -533,7 +553,7 @@ function renderRadio(shape: RadioShape): string {
         marginRight: '6px',
         flexShrink: '0',
     })
-    const dotStyle = checked ? ` style="width: ${r}px; height: ${r}px; border-radius: 50%; background: ${stroke.color};"` : ''
+    const dotStyle = checked ? ` style="width: ${r}px; height: ${r}px; border-radius: 50%; background: ${strokeColor(stroke)};"` : ''
     return `<div${sa({
         ...posStyle(transform),
         ...fillProps(fill),
@@ -577,7 +597,7 @@ function renderSlider(shape: SliderShape): string {
         top: '50%',
         height: '4px',
         marginTop: '-2px',
-        background: `linear-gradient(to right, ${stroke.color} ${thumbPct}%, #ddd ${thumbPct}%)`,
+        background: `linear-gradient(to right, ${strokeColor(stroke)} ${thumbPct}%, #ddd ${thumbPct}%)`,
         borderRadius: '2px',
     })
     const thumbStyle = styleStr({
@@ -590,7 +610,7 @@ function renderSlider(shape: SliderShape): string {
         marginLeft: '-7px',
         borderRadius: '50%',
         background: fillBackground(thumbFill),
-        border: `1px solid ${stroke.color}`,
+        border: `1px solid ${strokeColor(stroke)}`,
     })
     return `<div${sa({
         ...posStyle(transform),
@@ -613,7 +633,7 @@ function renderProgress(shape: ProgressShape): string {
         background: '#e5e7eb',
         borderRadius: '4px',
         overflow: 'hidden',
-        border: `1px solid ${stroke.color}`,
+        border: `1px solid ${strokeColor(stroke)}`,
     })
     const fillStyle2 = styleStr({
         width: `${pct}%`,
@@ -636,7 +656,7 @@ function renderStepper(shape: StepperShape): string {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        border: `1px solid ${stroke.color}`,
+        border: `1px solid ${strokeColor(stroke)}`,
         borderRadius: '3px',
         cursor: 'default',
         userSelect: 'none',
@@ -674,7 +694,7 @@ function renderList(shape: ListShape): string {
         const isSelected = i === selectedIndex
         const liStyle = styleStr({
             padding: '3px 8px',
-            background: isSelected ? stroke.color : 'transparent',
+            background: isSelected ? strokeColor(stroke) : 'transparent',
             color: isSelected ? fill.type === 'color' ? fill.color : '#fff' : text.color,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -696,11 +716,11 @@ function renderTable(shape: TableShape): string {
     const rows = text.content.split('\n').map(r => r.split(','))
     const [header, ...body] = rows
     const thHtml = (header ?? []).map(h =>
-        `<th style="padding:4px 8px; border-bottom:2px solid ${stroke.color}; text-align:left;">${escHtml(h.trim())}</th>`
+        `<th style="padding:4px 8px; border-bottom:2px solid ${strokeColor(stroke)}; text-align:left;">${escHtml(h.trim())}</th>`
     ).join('')
     const trHtml = body.map(row =>
         `<tr>${row.map(cell =>
-            `<td style="padding:4px 8px; border-bottom:1px solid ${stroke.color}30;">${escHtml(cell.trim())}</td>`
+            `<td style="padding:4px 8px; border-bottom:1px solid ${strokeColor(stroke)}30;">${escHtml(cell.trim())}</td>`
         ).join('')}</tr>`
     ).join('')
     return `<div${sa({
@@ -720,7 +740,7 @@ function renderDialog(shape: DialogShape): string {
         fontWeight: 'bold',
         fontSize: text.fontSize + 1,
         color: text.color,
-        borderBottom: `1px solid ${stroke.color}`,
+        borderBottom: `1px solid ${strokeColor(stroke)}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -735,14 +755,14 @@ function renderDialog(shape: DialogShape): string {
     })
     const footerStyle = styleStr({
         padding: '8px 12px',
-        borderTop: `1px solid ${stroke.color}`,
+        borderTop: `1px solid ${strokeColor(stroke)}`,
         display: 'flex',
         gap: '8px',
         justifyContent: 'flex-end',
     })
     const btnStyle = styleStr({
         padding: '4px 16px',
-        border: `1px solid ${stroke.color}`,
+        border: `1px solid ${strokeColor(stroke)}`,
         borderRadius: '3px',
         cursor: 'default',
         fontSize: text.fontSize,
@@ -757,7 +777,7 @@ function renderDialog(shape: DialogShape): string {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-    })}><div style="${titleBarStyle}">${escHtml(title)}<span style="opacity:0.5; cursor:default;">✕</span></div><div style="${bodyStyle}">${escHtml(text.content)}</div><div style="${footerStyle}"><div style="${btnStyle}">${escHtml(cancelLabel)}</div><div style="${btnStyle} background:${stroke.color}; color:#fff;">${escHtml(okLabel)}</div></div></div>`
+    })}><div style="${titleBarStyle}">${escHtml(title)}<span style="opacity:0.5; cursor:default;">✕</span></div><div style="${bodyStyle}">${escHtml(text.content)}</div><div style="${footerStyle}"><div style="${btnStyle}">${escHtml(cancelLabel)}</div><div style="${btnStyle} background:${strokeColor(stroke)}; color:#fff;">${escHtml(okLabel)}</div></div></div>`
 }
 
 function renderScrollPanel(shape: ScrollPanelShape, children: string): string {
@@ -776,9 +796,9 @@ function renderImageMock(shape: ImageMockShape): string {
     const {fill, stroke, transform} = shape
     const svgW = transform.width
     const svgH = transform.height
-    const xLine1 = `<line x1="0" y1="0" x2="${svgW}" y2="${svgH}" stroke="${stroke.color}" stroke-width="1" opacity="0.4"/>`
-    const xLine2 = `<line x1="${svgW}" y1="0" x2="0" y2="${svgH}" stroke="${stroke.color}" stroke-width="1" opacity="0.4"/>`
-    const border = `<rect x="0" y="0" width="${svgW}" height="${svgH}" fill="none" stroke="${stroke.color}" stroke-width="1"/>`
+    const xLine1 = `<line x1="0" y1="0" x2="${svgW}" y2="${svgH}" stroke="${strokeColor(stroke)}" stroke-width="1" opacity="0.4"/>`
+    const xLine2 = `<line x1="${svgW}" y1="0" x2="0" y2="${svgH}" stroke="${strokeColor(stroke)}" stroke-width="1" opacity="0.4"/>`
+    const border = `<rect x="0" y="0" width="${svgW}" height="${svgH}" fill="none" stroke="${strokeColor(stroke)}" stroke-width="1"/>`
     return `<div${sa({
         ...posStyle(transform),
         ...fillProps(fill),
@@ -799,19 +819,19 @@ function renderChartMock(shape: ChartMockShape): string {
             const bh = (h - 24) * v
             const bx = 12 + i * barW + barW * 0.1
             const by = h - 12 - bh
-            return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${(barW * 0.8).toFixed(1)}" height="${bh.toFixed(1)}" fill="${stroke.color}" opacity="0.7"/>`
+            return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${(barW * 0.8).toFixed(1)}" height="${bh.toFixed(1)}" fill="${strokeColor(stroke)}" opacity="0.7"/>`
         }).join('')
     } else {
         const points = bars.map((v, i) =>
             `${(12 + i * barW + barW / 2).toFixed(1)},${(h - 12 - (h - 24) * v).toFixed(1)}`
         ).join(' ')
-        chart = `<polyline points="${points}" fill="none" stroke="${stroke.color}" stroke-width="2" opacity="0.7"/>`
+        chart = `<polyline points="${points}" fill="none" stroke="${strokeColor(stroke)}" stroke-width="2" opacity="0.7"/>`
     }
     return `<div${sa({
         ...posStyle(transform),
         ...fillProps(fill),
         overflow: 'hidden',
-    })}><svg width="${w}" height="${h}" style="position:absolute;left:0;top:0;"><rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="${stroke.color}" stroke-width="1" opacity="0.3"/>${chart}</svg></div>`
+    })}><svg width="${w}" height="${h}" style="position:absolute;left:0;top:0;"><rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="${strokeColor(stroke)}" stroke-width="1" opacity="0.3"/>${chart}</svg></div>`
 }
 
 function renderPixelImage(shape: PixelImageShape, pixelAssets: Record<string, PixelAsset>): string {

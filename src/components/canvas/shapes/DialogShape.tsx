@@ -1,6 +1,7 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {DialogShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {roughLine, roughRect, seedFromId} from '@utils/roughPaths'
@@ -31,11 +32,11 @@ export function DialogShapeComp({
     const seed = seedFromId(shape.id)
 
     const titleDivider = handDrawn ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
-        seed: seed + 1, roughness: 1, stroke: stroke.color, strokeWidth: stroke.width * 0.75,
+        seed: seed + 1, roughness: 1, stroke: strokeColor(stroke), strokeWidth: stroke.width * 0.75,
     }) : []
 
     const footerDivider = handDrawn ? roughLine(pad, height - footerHeight, width - pad, height - footerHeight, {
-        seed: seed + 2, roughness: 1, stroke: stroke.color, strokeWidth: stroke.width * 0.75,
+        seed: seed + 2, roughness: 1, stroke: strokeColor(stroke), strokeWidth: stroke.width * 0.75,
     }) : []
 
     const btnW = 80
@@ -43,11 +44,11 @@ export function DialogShapeComp({
     const btnY = height - footerHeight + (footerHeight - btnH) / 2
 
     const cancelBtnPaths = handDrawn ? roughRect(12, btnY, btnW, btnH, {
-        seed: seed + 3, roughness: 1.2, stroke: stroke.color, strokeWidth: stroke.width,
+        seed: seed + 3, roughness: 1.2, stroke: strokeColor(stroke), strokeWidth: stroke.width,
     }) : []
 
     const okBtnPaths = handDrawn ? roughRect(width - btnW - 12, btnY, btnW, btnH, {
-        seed: seed + 4, roughness: 1.2, stroke: stroke.color, strokeWidth: stroke.width,
+        seed: seed + 4, roughness: 1.2, stroke: strokeColor(stroke), strokeWidth: stroke.width,
     }) : []
 
 
@@ -80,7 +81,7 @@ export function DialogShapeComp({
             {/* Title bar divider */}
             <div style={{
                 height: titleBarHeight,
-                borderBottom: `${stroke.width * 0.75}px solid ${stroke.color}`,
+                borderBottom: `${stroke.width * 0.75}px solid ${strokeColor(stroke)}`,
                 flexShrink: 0
             }}/>
             {/* Body */}
@@ -88,7 +89,7 @@ export function DialogShapeComp({
             {/* Footer divider */}
             <div style={{
                 height: footerHeight,
-                borderTop: `${stroke.width * 0.75}px solid ${stroke.color}`,
+                borderTop: `${stroke.width * 0.75}px solid ${strokeColor(stroke)}`,
                 flexShrink: 0,
                 position: 'relative'
             }}>
@@ -109,7 +110,7 @@ export function DialogShapeComp({
                     top: (footerHeight - btnH) / 2,
                     width: btnW,
                     height: btnH,
-                    // background: stroke.color,
+                    // background: strokeColor(stroke),
                     ...strokeBorderCSS(stroke),
                     borderRadius: 4,
                 }}/>

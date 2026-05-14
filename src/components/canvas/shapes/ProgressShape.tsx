@@ -1,4 +1,4 @@
-import {fillColor} from '@model/shapes'
+import {fillColor, strokeColor} from '@model/shapes'
 import type {ProgressShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
@@ -32,7 +32,7 @@ export function ProgressShapeComp({shape, isSelected, onClick, onDoubleClick, ha
         fill: fillColor(progressFill) === 'transparent' ? undefined : fillColor(progressFill),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     }) : []
 

@@ -1,6 +1,7 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {TabbedPanelShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {roughLine, seedFromId} from '@utils/roughPaths'
@@ -63,7 +64,7 @@ export function TabbedPanelShapeComp({
     const dividerPaths = handDrawn ? roughLine(pad, tabBarHeight, width - pad, tabBarHeight, {
         seed: seed + 1,
         roughness: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width * 0.75,
     }) : []
 
@@ -74,7 +75,7 @@ export function TabbedPanelShapeComp({
             return roughLine(sepX, 2, sepX, tabBarHeight - 2, {
                 seed: seed + 2 + i,
                 roughness: 0.8,
-                stroke: stroke.color,
+                stroke: strokeColor(stroke),
                 strokeWidth: stroke.width * 0.5,
             })
         })
@@ -114,7 +115,7 @@ export function TabbedPanelShapeComp({
                         left: stroke.width,
                         right: stroke.width,
                         height: tabBarHeight,
-                        borderBottom: `${stroke.width * 0.75}px solid ${stroke.color}`,
+                        borderBottom: `${stroke.width * 0.75}px solid ${strokeColor(stroke)}`,
                     }}/>
                 </>
             )}
@@ -186,7 +187,7 @@ export function TabbedPanelShapeComp({
                                     color: text.color,
                                     opacity: isActive ? 1 : 0.45,
                                     borderRight: i < tabLabels.length - 1
-                                        ? `${Math.max(stroke.width * 0.5, 0.5)}px solid ${stroke.color}`
+                                        ? `${Math.max(stroke.width * 0.5, 0.5)}px solid ${strokeColor(stroke)}`
                                         : 'none',
                                     userSelect: 'none',
                                     overflow: 'hidden',

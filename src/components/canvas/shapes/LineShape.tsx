@@ -1,4 +1,5 @@
 import type {LineShape, Shape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {arrowMarkerPath, buildConnectorPath, resolveEndpoint} from '@utils/connectors'
 import type {Dispatch} from 'react'
@@ -53,7 +54,7 @@ export function LineShapeComp({shape, shapes, isSelected, onClick}: Props) {
                         refY="5"
                         orient="auto"
                     >
-                        <path d={arrowMarkerPath(shape.endArrow)} fill={stroke.color}/>
+                        <path d={arrowMarkerPath(shape.endArrow)} fill={strokeColor(stroke)}/>
                     </marker>
                 )}
                 {shape.startArrow !== 'none' && (
@@ -65,7 +66,7 @@ export function LineShapeComp({shape, shapes, isSelected, onClick}: Props) {
                         refY="5"
                         orient="auto-start-reverse"
                     >
-                        <path d={arrowMarkerPath(shape.startArrow)} fill={stroke.color}/>
+                        <path d={arrowMarkerPath(shape.startArrow)} fill={strokeColor(stroke)}/>
                     </marker>
                 )}
             </defs>
@@ -84,9 +85,9 @@ export function LineShapeComp({shape, shapes, isSelected, onClick}: Props) {
             <path
                 d={pathD}
                 fill="none"
-                stroke={stroke.color}
+                stroke={strokeColor(stroke)}
                 strokeWidth={stroke.width}
-                strokeDasharray={stroke.dash.join(' ')}
+                strokeDasharray={'dash' in stroke ? stroke.dash.join(' ') : undefined}
                 strokeOpacity={stroke.opacity}
                 markerEnd={shape.endArrow !== 'none' ? `url(#${markerId})` : undefined}
                 markerStart={shape.startArrow !== 'none' ? `url(#${markerStartId})` : undefined}

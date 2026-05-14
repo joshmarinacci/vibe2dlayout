@@ -1,4 +1,34 @@
 
+## 2026-05-14 — Fix text shadow rendering on top of gradient text
+
+- **`src/utils/textStyleCSS.ts`**: CSS paints `text-shadow` after `background` (including `background-clip:text`), so an inherited shadow lands on top of the gradient. Fix: `textExtraCSS` now skips `textShadow` when a gradient is active; `textGradientSpanCSS` accepts `textShadow` and applies it as `filter: drop-shadow(...)` instead — which runs after compositing so the shadow correctly appears behind the gradient text. Also cancels the inherited `textShadow` on the span to prevent double-shadow if the parent still emits it.
+
+## 2026-05-14 — Fix Chrome background-clip:text stale-cache bug
+
+- **`src/utils/textStyleCSS.ts`**: Added `textGradientKey(text)` helper that returns a string derived from the gradient CSS. Used as a React `key` prop to force span remount when gradient changes, working around the Chrome bug where `background-clip: text` is not re-applied when React only patches the `background` style property.
+- **`src/components/canvas/shapes/TextShape.tsx`**, **`LabelShape.tsx`**, **`StickyNoteShape.tsx`**, **`PanelShape.tsx`**, **`TextFieldShape.tsx`**, **`ButtonShape.tsx`**: All gradient spans now use `key={textGradientKey(text)}` so Chrome remounts the element and correctly re-applies the clip whenever the gradient stops or angle changes.
+
+## 2026-05-14 — Gradient text color and stroke
+
+### Add gradient options to Text shape color and stroke
+
+- **`src/model/shapes.ts`**: Added `textStrokeGradient?: GradientFill | null` to `TextStyle`, alongside the existing `textGradient` field.
+- **`src/utils/textStyleCSS.ts`**: `textGradientSpanCSS` now handles both fill gradient and stroke gradient. Stroke gradient uses CSS `paint-order: stroke fill` + `background-clip: text` + transparent text fill to show the gradient through the stroke outline. `textStrokeCSS` skips solid stroke output when `textStrokeGradient` is active.
+- **`src/components/properties/sections/TextSection.tsx`**: Replaced the plain `ColorInput` in the Color section with a two-tab panel (Color | Gradient), and replaced the stroke color row with the same two-tab pattern. Both gradient pickers reuse `GradientPicker` and `TabbedPanel` components from `TabbedPanel.tsx`. Width input stays outside the tabs.
+- **`src/utils/exportHtml.ts`**: `textContentHtml` now wraps text in a gradient span for both fill gradient and stroke gradient cases, matching canvas rendering fidelity.
+
+## 2026-05-14 — Gradient stroke support
+
+### Add gradient stroke type to StrokeStyle
+
+- **`src/model/shapes.ts`**: Replaced flat `StrokeStyle` interface with a discriminated union `ColorStroke | GradientStroke | SketchStroke`, mirroring the existing `FillStyle` pattern. Added `strokeColor(stroke)` helper to extract a representative color from any stroke variant.
+- **`src/utils/strokeStyleCSS.ts`**: Updated `strokeBorderCSS` to handle all three stroke variants. Gradient strokes set a transparent CSS border (to reserve layout space) and rely on an SVG overlay for the visual.
+- **`src/components/canvas/shapes/RectShape.tsx`**: Added `GradientStrokeSVG` component that renders an absolutely-positioned SVG with a `<linearGradient>` or `<radialGradient>` definition and a stroked `<rect>` with corner radius support — rendered when `stroke.type === 'gradient'`.
+- **`src/components/properties/TabbedPanel.tsx`** (new): Extracted `TabbedPanel`, `TabbedPanelTabs`, `TabbedPanelTab`, `TabbedPanelContent`, and `GradientPicker` from `FillSection.tsx` into a shared file.
+- **`src/components/properties/sections/FillSection.tsx`**: Updated to import tab components from the new shared `TabbedPanel.tsx`.
+- **`src/components/properties/sections/StrokeSection.tsx`**: Rewritten with three-tab structure (Color / Gradient / Sketch), matching the FillSection pattern. Color tab has dash style selector (None/Solid/Dashed/Dotted) and opacity. Gradient tab reuses document-level gradients with type and angle controls. Sketch tab has color picker.
+- All shape components and `exportHtml.ts` updated to use `strokeColor(stroke)` helper instead of direct `stroke.color` access.
+
 ## 2026-05-14
 
 ### Include custom/Google Fonts in HTML export

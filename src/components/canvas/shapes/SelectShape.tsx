@@ -1,5 +1,6 @@
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {SelectShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
@@ -161,7 +162,7 @@ export function SelectShapeComp({
                 bottom: 0,
                 display: 'flex',
                 alignItems: 'center',
-                color: stroke.color,
+                color: strokeColor(stroke),
                 pointerEvents: 'none',
             }}>
                 <ChevronDown size={14}/>

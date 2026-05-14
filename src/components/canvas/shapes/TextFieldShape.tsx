@@ -5,7 +5,7 @@ import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
 import {strokeBorderCSS} from '@utils/strokeStyleCSS'
-import {textExtraCSS, textGradientSpanCSS} from '@utils/textStyleCSS'
+import {textExtraCSS, textGradientKey, textGradientSpanCSS} from '@utils/textStyleCSS'
 import {type Dispatch, useEffect, useRef} from 'react'
 
 interface Props {
@@ -138,7 +138,7 @@ export function TextFieldShapeComp({
                 }}>
                     {showPlaceholder ? placeholder : (() => {
                         const g = textGradientSpanCSS(text);
-                        return g ? <span style={g}>{text.content}</span> : text.content
+                        return g ? <span key={textGradientKey(text)} style={g}>{text.content}</span> : text.content
                     })()}
                 </div>
             )}

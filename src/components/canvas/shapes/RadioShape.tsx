@@ -1,5 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
-import {fillColor} from '@model/shapes'
+import {fillColor, strokeColor} from '@model/shapes'
 import type {RadioShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
@@ -47,17 +47,17 @@ export function RadioShapeComp({
         fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     }) : []
 
     const dotPaths = handDrawn && checked ? roughCircle(cx, cy, boxSize * 0.45, {
         seed: seed + 1,
         roughness: 1,
-        fill: stroke.color,
+        fill: strokeColor(stroke),
         fillStyle: 'solid',
         fillWeight: 2,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: 0.5,
     }) : []
 
@@ -99,7 +99,7 @@ export function RadioShapeComp({
                         <div style={{
                             width: boxSize * 0.45,
                             height: boxSize * 0.45,
-                            background: stroke.color,
+                            background: strokeColor(stroke),
                             borderRadius: '50%',
                         }}/>
                     )}

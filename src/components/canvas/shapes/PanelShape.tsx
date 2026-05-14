@@ -1,12 +1,13 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {PanelShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {roughLine, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
 import {cornerRadiiCSS, strokeBorderCSS} from '@utils/strokeStyleCSS'
-import {textExtraCSS, textGradientSpanCSS} from '@utils/textStyleCSS'
+import {textExtraCSS, textGradientKey, textGradientSpanCSS} from '@utils/textStyleCSS'
 import {type Dispatch, useEffect, useRef} from 'react'
 
 interface Props {
@@ -61,7 +62,7 @@ export function PanelShapeComp({
     const dividerPath = handDrawn && text ? roughLine(pad, titleBarHeight, width - pad, titleBarHeight, {
         seed: seed + 1,
         roughness: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width * 0.75,
     }) : []
 
@@ -99,7 +100,7 @@ export function PanelShapeComp({
                             left: stroke.width,
                             right: stroke.width,
                             height: titleBarHeight,
-                            borderBottom: `${stroke.width * 0.75}px solid ${stroke.color}`,
+                            borderBottom: `${stroke.width * 0.75}px solid ${strokeColor(stroke)}`,
                         }}/>
                     )}
                 </>
@@ -181,7 +182,7 @@ export function PanelShapeComp({
                             }}>
                                 {(() => {
                                     const g = textGradientSpanCSS(text);
-                                    return g ? <span style={g}>{text.content}</span> : text.content
+                                    return g ? <span key={textGradientKey(text)} style={g}>{text.content}</span> : text.content
                                 })()}
                             </div>
                         </div>

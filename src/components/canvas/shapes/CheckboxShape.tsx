@@ -1,4 +1,4 @@
-import {fillColor} from '@model/shapes'
+import {fillColor, strokeColor} from '@model/shapes'
 import type {CheckboxShape} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
 import type {AppAction} from '@store/types'
@@ -48,7 +48,7 @@ export function CheckboxShapeComp({
         fill: fillColor(fill) === 'transparent' ? undefined : fillColor(fill),
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     }) : []
 
@@ -56,13 +56,13 @@ export function CheckboxShapeComp({
         ...roughLine(3, boxY + boxSize * 0.5, boxSize * 0.42, boxY + boxSize * 0.78, {
             seed: seed + 1,
             roughness: 1.5,
-            stroke: stroke.color,
+            stroke: strokeColor(stroke),
             strokeWidth: stroke.width + 0.5,
         }),
         ...roughLine(boxSize * 0.42, boxY + boxSize * 0.78, boxSize - 2, boxY + boxSize * 0.22, {
             seed: seed + 2,
             roughness: 1.5,
-            stroke: stroke.color,
+            stroke: strokeColor(stroke),
             strokeWidth: stroke.width + 0.5,
         }),
     ] : []
@@ -116,7 +116,7 @@ export function CheckboxShapeComp({
                 }}>
                     {checked && (
                         <svg width={boxSize - 4} height={boxSize - 4} viewBox="0 0 12 12">
-                            <polyline points="2,6 5,9 10,3" fill="none" stroke={stroke.color}
+                            <polyline points="2,6 5,9 10,3" fill="none" stroke={strokeColor(stroke)}
                                       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     )}

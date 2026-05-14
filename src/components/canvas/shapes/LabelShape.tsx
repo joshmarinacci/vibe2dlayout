@@ -4,7 +4,7 @@ import type {AppAction} from '@store/types'
 import {roughLine, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
 import {boxShadowCSS} from '@utils/shadowCSS'
-import {textExtraCSS, textGradientSpanCSS} from '@utils/textStyleCSS'
+import {textExtraCSS, textGradientKey, textGradientSpanCSS} from '@utils/textStyleCSS'
 import type {Dispatch} from 'react'
 import styles from './Shape.module.css'
 import {useTextEdit, vAlignToJustify} from './useTextEdit'
@@ -43,6 +43,7 @@ export function LabelShapeComp({
     }) : []
 
     const gradientSpan = textGradientSpanCSS(text)
+    const gradientKey = textGradientKey(text)
     const textStyle: React.CSSProperties = {
         fontFamily: text.fontFamily,
         fontSize: text.fontSize,
@@ -133,7 +134,7 @@ export function LabelShapeComp({
                 }}>
                     <div style={textStyle}>
                         {gradientSpan ?
-                            <span style={gradientSpan}>{text.content}</span> : text.content}
+                            <span key={gradientKey} style={gradientSpan}>{text.content}</span> : text.content}
                     </div>
                 </div>
             )}

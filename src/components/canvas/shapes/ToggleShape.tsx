@@ -1,5 +1,5 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
-import {fillColor} from '@model/shapes'
+import {fillColor, strokeColor} from '@model/shapes'
 import type {ToggleShape} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {roughCircle, roughRect, seedFromId} from '@utils/roughPaths'
@@ -55,7 +55,7 @@ export function ToggleShapeComp({
         fill: trackColor,
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     }) : []
 
@@ -65,7 +65,7 @@ export function ToggleShapeComp({
         fill: '#ffffff',
         fillStyle: 'solid',
         fillWeight: 1,
-        stroke: stroke.color,
+        stroke: strokeColor(stroke),
         strokeWidth: stroke.width,
     }) : []
 

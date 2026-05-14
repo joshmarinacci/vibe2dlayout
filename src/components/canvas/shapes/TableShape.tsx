@@ -1,6 +1,7 @@
 import {BoxShapeBase} from "@components/canvas/shapes/BoxShapeBase.tsx";
 import {makeRoughRect} from "@components/canvas/shapes/formUtils.ts";
 import type {TableShape} from '@model/shapes'
+import {strokeColor} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {roughLine, roughRect, seedFromId} from '@utils/roughPaths'
@@ -47,7 +48,7 @@ export function TableShapeComp({
     const headerBgPaths = handDrawn && rows.length > 0 ? roughRect(pad, pad, width - pad * 2, Math.min(rowHeight, height - pad * 2), {
         seed: seed + 1,
         roughness: 0.4,
-        fill: stroke.color,
+        fill: strokeColor(stroke),
         fillStyle: 'solid',
         fillWeight: 1,
         stroke: 'none',
@@ -61,7 +62,7 @@ export function TableShapeComp({
         return roughLine(pad, lineY, width - pad, lineY, {
             seed: seed + 10 + i,
             roughness: 0.7,
-            stroke: stroke.color,
+            stroke: strokeColor(stroke),
             strokeWidth: stroke.width * 0.5,
         })
     }) : []
@@ -72,7 +73,7 @@ export function TableShapeComp({
         return roughLine(lineX, pad, lineX, height - pad, {
             seed: seed + 20 + i,
             roughness: 0.7,
-            stroke: stroke.color,
+            stroke: strokeColor(stroke),
             strokeWidth: stroke.width * 0.5,
         })
     }).flat() : []
@@ -146,9 +147,9 @@ export function TableShapeComp({
                                     top,
                                     height: rowHeight,
                                     display: 'flex',
-                                    background: !handDrawn && isHeader ? stroke.color : 'transparent',
+                                    background: !handDrawn && isHeader ? strokeColor(stroke) : 'transparent',
                                     borderBottom: !handDrawn && rowIdx < rows.length - 1
-                                        ? `${stroke.width * 0.5}px solid ${stroke.color}` : undefined,
+                                        ? `${stroke.width * 0.5}px solid ${strokeColor(stroke)}` : undefined,
                                     boxSizing: 'border-box',
                                 }}
                             >
@@ -163,7 +164,7 @@ export function TableShapeComp({
                                             paddingLeft: 6,
                                             paddingRight: 4,
                                             borderRight: !handDrawn && colIdx < numCols - 1
-                                                ? `${stroke.width * 0.5}px solid ${stroke.color}` : undefined,
+                                                ? `${stroke.width * 0.5}px solid ${strokeColor(stroke)}` : undefined,
                                             boxSizing: 'border-box',
                                             overflow: 'hidden',
                                         }}

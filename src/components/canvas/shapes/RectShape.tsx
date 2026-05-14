@@ -1,4 +1,4 @@
-import type {RectShape as RectShapeType} from '@model/shapes'
+import type {GradientStroke, RectShape as RectShapeType} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
 import {fillBackground} from '@utils/fillCSS'
 import {boxShadowCSS} from '@utils/shadowCSS'
@@ -11,6 +11,36 @@ interface Props {
     onClick: (e: React.MouseEvent) => void
     onDoubleClick: (e: React.MouseEvent) => void
     children?: React.ReactNode
+}
+
+function gradientStrokeCSS(gs: GradientStroke): string {
+    const stops = gs.stops.map(s => `${s.color} ${Math.round(s.position * 100)}%`).join(', ')
+    switch (gs.gradientType) {
+        case 'linear': return `linear-gradient(${gs.angle}deg, ${stops})`
+        case 'radial':  return `radial-gradient(circle, ${stops})`
+        case 'conic':   return `conic-gradient(from ${gs.angle}deg, ${stops})`
+    }
+}
+
+function GradientStrokeBorder({shape}: {shape: RectShapeType}) {
+    const gs = shape.stroke as GradientStroke
+    const borderRadius = cornerRadiiCSS(shape.cornerRadius, shape.cornerRadii)
+    const gradient = gradientStrokeCSS(gs)
+    return (
+        <div style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius,
+            border: `${gs.width}px solid transparent`,
+            background: `${gradient} border-box`,
+            WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'destination-out',
+            maskComposite: 'exclude',
+            opacity: gs.opacity,
+            pointerEvents: 'none',
+            boxSizing: 'border-box',
+        }}/>
+    )
 }
 
 export function RectShape({shape, isSelected, onClick, onDoubleClick, children}: Props) {
@@ -38,6 +68,7 @@ export function RectShape({shape, isSelected, onClick, onDoubleClick, children}:
             onClick={onClick}
             onDoubleClick={onDoubleClick}
         >
+            {stroke.type === 'gradient' && <GradientStrokeBorder shape={shape}/>}
             {children}
         </div>
     )

@@ -917,7 +917,7 @@ function applyPaletteColorToShapes(
                 }
             }
         }
-        if ('stroke' in shape && shape.stroke.paletteColorId === colorId) {
+        if ('stroke' in shape && 'paletteColorId' in shape.stroke && shape.stroke.paletteColorId === colorId) {
             updated = {...updated, stroke: {...shape.stroke, color: newHex}} as Shape
         }
         if ('progressFill' in shape && shape.progressFill.type === 'color' && shape.progressFill.paletteColorId === colorId) {
