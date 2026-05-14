@@ -1,6 +1,12 @@
 
 ## 2026-05-14
 
+### Fix text shape default fill opacity
+
+- `src/utils/shapeFactory.ts`: new text shapes now default to `fill.opacity: 1` instead of `0`. The background colour stays `transparent`, but `opacity` applies to the entire shape element — setting it to 0 was hiding the text content as well.
+
+
+
 ### Export HTML from page tree context menu
 
 - **`src/components/tree/TreeNode.tsx`**: Added "Export HTML…" item to the right-click context menu on page nodes in the tree view. The item is disabled when the page has no fixed size; otherwise it exports that specific page (not necessarily the active one) directly to a `.html` file.

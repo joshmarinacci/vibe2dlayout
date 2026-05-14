@@ -62,7 +62,7 @@ export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Sha
                 ...base, type: 'text',
                 transform: defaultTransform(x, y, 150, 40),
                 text: {...themeText('Text'), align: 'left'},
-                fill: {type: 'color', color: 'transparent', opacity: 0},
+                fill: {type: 'color', color: 'transparent', opacity: 1},
             }
         case 'image':
             return {
