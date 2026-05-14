@@ -19,37 +19,42 @@ export function PageSection({shape, dispatch}: Props) {
 
     return (
         <CollapsibleSection title="Page">
-            <ColorInput
-                label="Background"
-                value={{color: shape.background, paletteColorId: shape.backgroundPaletteColorId}}
-                onChange={ref => patch({
-                    background: ref.color,
-                    backgroundPaletteColorId: ref.paletteColorId
-                })}
-            />
-            <ToggleInput
-                label="Fixed Size"
-                value={isFixed}
-                onChange={v => patch({fixedSize: v ? {width: 800, height: 600} : null})}
-            />
-            {isFixed && shape.fixedSize && (
-                <>
-                    <NumberInput
-                        label="Width"
-                        value={shape.fixedSize.width}
-                        min={1}
-                        onChange={v => patch({fixedSize: {...shape.fixedSize!, width: v}})}
-                        unit="px"
-                    />
-                    <NumberInput
-                        label="Height"
-                        value={shape.fixedSize.height}
-                        min={1}
-                        onChange={v => patch({fixedSize: {...shape.fixedSize!, height: v}})}
-                        unit="px"
-                    />
-                </>
-            )}
+            <section className={'super'}>
+                <ColorInput
+                    label="Background"
+                    value={{color: shape.background, paletteColorId: shape.backgroundPaletteColorId}}
+                    onChange={ref => patch({
+                        background: ref.color,
+                        backgroundPaletteColorId: ref.paletteColorId
+                    })}
+                />
+                <ToggleInput
+                    label="Fixed Size"
+                    value={isFixed}
+                    onChange={v => patch({fixedSize: v ? {width: 800, height: 600} : null})}
+                    className={'s'}
+                />
+                {isFixed && shape.fixedSize && (
+                    <>
+                        <NumberInput
+                            label="Width"
+                            value={shape.fixedSize.width}
+                            min={1}
+                            onChange={v => patch({fixedSize: {...shape.fixedSize!, width: v}})}
+                            unit="px"
+                            className={'s'}
+                        />
+                        <NumberInput
+                            label="Height"
+                            value={shape.fixedSize.height}
+                            min={1}
+                            onChange={v => patch({fixedSize: {...shape.fixedSize!, height: v}})}
+                            unit="px"
+                            className={'s'}
+                        />
+                    </>
+                )}
+            </section>
             <ToggleInput
                 label="Clip"
                 value={shape.clipChildren}

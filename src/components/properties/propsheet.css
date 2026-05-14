@@ -131,12 +131,15 @@ section.super {
     grid-template-columns: [gs] 2rem [s] 1fr [mid1] 1fr [mid2] 1fr [e] 1fr [ge] 2rem [ee];
     row-gap: 0.5rem;
     column-gap: 0.5rem;
+    /* fill the entire row */
     .full {
         grid-column: gs / ee;
     }
+    /* gutter start */
     .gs {
         grid-column: gs;
     }
+    /* start */
     .s {
         grid-column: s;
         text-align: end;

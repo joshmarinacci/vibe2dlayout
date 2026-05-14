@@ -14,6 +14,7 @@ interface Props {
     variableId?: string | null
     variables?: Variable[]
     onVariableChange?: (id: string | null) => void
+    className?: string
 }
 
 export function NumberInput({
@@ -26,7 +27,8 @@ export function NumberInput({
                                 unit,
                                 variableId,
                                 variables,
-                                onVariableChange
+                                onVariableChange,
+                                className,
                             }: Props) {
     const [localText, setLocalText] = useState(String(value))
     const [isFocused, setIsFocused] = useState(false)
@@ -81,7 +83,7 @@ export function NumberInput({
     }
 
     return (
-        <div className={'hbox'}>
+        <div className={'hbox ' + (className?className:'')}>
             {label && <label>{label}</label>}
             <input
                 type="text"

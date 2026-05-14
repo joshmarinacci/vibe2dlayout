@@ -10,6 +10,7 @@ interface Props {
     variableId?: string | null
     variables?: Variable[]
     onVariableChange?: (id: string | null) => void
+    className?: string
 }
 
 export function ToggleInput({
@@ -18,7 +19,8 @@ export function ToggleInput({
                                 onChange,
                                 variableId,
                                 variables,
-                                onVariableChange
+                                onVariableChange,
+                                className,
                             }: Props) {
     const [showDropdown, setShowDropdown] = useState(false)
     const wrapRef = useRef<HTMLDivElement>(null)
@@ -52,7 +54,7 @@ export function ToggleInput({
     }
 
     return (
-        <div className={styles.field}>
+        <div className={styles.field + (className?(' ' + className):'')}>
             <label className={styles.label}>{label}</label>
             <div style={{display: 'flex', alignItems: 'center', gap: 6, position: 'relative'}}
                  ref={wrapRef}>
