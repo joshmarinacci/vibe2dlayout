@@ -2,6 +2,13 @@ import type {TextStyle} from '@model/shapes'
 import type {CSSProperties} from 'react'
 import {gradientCSS} from './fillCSS'
 
+export function textStrokeCSS(text: Pick<TextStyle, 'stroke'>): CSSProperties {
+    if (!text.stroke || text.stroke.width <= 0) return {}
+    return {
+        WebkitTextStroke: `${text.stroke.width}px ${text.stroke.color}`,
+    }
+}
+
 /**
  * Returns a CSSProperties fragment for all extra text styling fields.
  * Spread this into any style object that renders text.

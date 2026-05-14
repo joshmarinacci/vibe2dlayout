@@ -419,6 +419,40 @@ export function TextSection({
                     )}
 
                 </details>
+
+                <details>
+                    <summary>Stroke</summary>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
+                        <div style={{flex: 1}} className={inputStyles.field}>
+                            <span className={inputStyles.label}>Stroke</span>
+                            <input
+                                type="checkbox"
+                                className={inputStyles.checkbox}
+                                checked={!!text.stroke}
+                                onChange={e => applyChange({
+                                    stroke: e.target.checked
+                                        ? {width: 1, color: '#000000'}
+                                        : undefined
+                                })}
+                            />
+                        </div>
+                    </div>
+                    {text.stroke && (
+                        <div style={{paddingLeft: 8, display: 'flex', flexDirection: 'column', gap: 2}}>
+                            <ColorInput
+                                label="Color"
+                                value={{color: text.stroke.color}}
+                                onChange={ref => applyChange({stroke: {...text.stroke!, color: ref.color}})}
+                            />
+                            <NumberInput
+                                label="Width"
+                                value={text.stroke.width}
+                                min={0} max={20} step={0.5} unit="px"
+                                onChange={v => applyChange({stroke: {...text.stroke!, width: v}})}
+                            />
+                        </div>
+                    )}
+                </details>
             </article>
         </details>
     )

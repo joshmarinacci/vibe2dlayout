@@ -3,7 +3,7 @@ import {buildCSSTransform} from '@model/transform'
 import type {AppAction} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
 import {boxShadowCSS} from '@utils/shadowCSS'
-import {textExtraCSS, textGradientSpanCSS} from '@utils/textStyleCSS'
+import {textExtraCSS, textGradientSpanCSS, textStrokeCSS} from '@utils/textStyleCSS'
 import type {Dispatch} from 'react'
 import styles from './Shape.module.css'
 import {useTextEdit, vAlignToJustify} from './useTextEdit'
@@ -44,6 +44,7 @@ export function TextShapeComp({
         width: '100%',
         userSelect: 'none',
         ...textExtraCSS(text),
+        ...textStrokeCSS(text),
     }
 
     return (

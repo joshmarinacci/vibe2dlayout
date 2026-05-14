@@ -85,6 +85,11 @@ export type FontWeight =
     | '800'
     | '900'
 
+export type TextStrokeStyle = {
+    width: number
+    color: string
+}
+
 export interface TextStyle {
     content: string
     fontFamily: string
@@ -103,6 +108,7 @@ export interface TextStyle {
     textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
     fontVariantCaps?: 'normal' | 'small-caps'
     fontVariationSettings?: Record<string, number>  // e.g. { wght: 600, wdth: 75 }
+    stroke?: TextStrokeStyle,
 }
 
 export type ArrowType = 'none' | 'arrow' | 'circle' | 'diamond'

@@ -1,4 +1,12 @@
 
+## 2026-05-14
+
+### Text stroke rendering and property editor
+
+- Added `textStrokeCSS()` utility in `src/utils/textStyleCSS.ts` — converts `TextStrokeStyle` to `WebkitTextStroke` CSS
+- Updated `TextShape.tsx` to spread stroke CSS into the display-mode text style (not applied to textarea edit mode, where `-webkit-text-stroke` is unsupported)
+- Added collapsible **Stroke** section to `TextSection.tsx` with a toggle checkbox, color picker, and width number input
+
 ## 2026-05-11
 
 ### Tauri native file I/O; web localStorage unchanged
