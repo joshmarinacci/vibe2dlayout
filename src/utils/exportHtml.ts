@@ -40,6 +40,7 @@ import type {
 import type {AppState} from '@store/types'
 import {arrowMarkerPath, buildConnectorPath, resolveEndpoint} from '@utils/connectors'
 import {fillBackground, gradientCSS} from '@utils/fillCSS'
+import {buildGoogleFontHref} from '@utils/fontFeatures'
 
 // ─── CSS string helpers ───────────────────────────────────────────────────
 
@@ -888,15 +889,18 @@ function collectFonts(nodes: TreeNode[], shapes: Record<string, Shape>, out: Set
     }
 }
 
+const SYSTEM_FONTS = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy', 'system-ui'])
+
 function buildFontImports(families: Set<string>, customFonts: CustomFont[]): string {
-    const customNames = new Set(customFonts.map(f => f.name.toLowerCase()))
-    const systemFonts = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy', 'system-ui'])
+    const customByName = new Map(customFonts.map(f => [f.name.toLowerCase(), f]))
     const lines: string[] = []
     for (const family of families) {
-        if (systemFonts.has(family.toLowerCase())) continue
-        if (customNames.has(family.toLowerCase())) continue
-        const encoded = encodeURIComponent(family).replace(/%20/g, '+')
-        lines.push(`@import url('https://fonts.googleapis.com/css2?family=${encoded}:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');`)
+        if (SYSTEM_FONTS.has(family.toLowerCase())) continue
+        const custom = customByName.get(family.toLowerCase())
+        const href = custom
+            ? buildGoogleFontHref(custom)
+            : `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;700&display=swap`
+        lines.push(`@import url('${href}');`)
     }
     return lines.join('\n')
 }

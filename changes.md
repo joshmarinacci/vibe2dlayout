@@ -1,6 +1,10 @@
 
 ## 2026-05-14
 
+### Include custom/Google Fonts in HTML export
+
+- `src/utils/exportHtml.ts`: `buildFontImports` now looks up each used font family in `doc.customFonts` and calls `buildGoogleFontHref()` to generate the correct `@import` URL — including full variable-font axis ranges. Previously, custom fonts were incorrectly excluded from the import.
+
 ### Fix text shape default fill opacity
 
 - `src/utils/shapeFactory.ts`: new text shapes now default to `fill.opacity: 1` instead of `0`. The background colour stays `transparent`, but `opacity` applies to the entire shape element — setting it to 0 was hiding the text content as well.
