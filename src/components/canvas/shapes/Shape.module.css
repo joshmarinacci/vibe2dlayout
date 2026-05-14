@@ -1,6 +1,7 @@
 .shape {
     cursor: move;
     pointer-events: all;
+    user-select: none;
 }
 
 .selected {

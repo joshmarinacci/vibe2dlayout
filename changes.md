@@ -1,6 +1,10 @@
 
 ## 2026-05-14
 
+### Prevent browser text selection when dragging shapes
+
+- Added `user-select: none` to `.shape` in `Shape.module.css` so text inside shapes can't be selected during mouse drag interactions
+
 ### Text stroke rendering and property editor
 
 - Added `textStrokeCSS()` utility in `src/utils/textStyleCSS.ts` — converts `TextStrokeStyle` to `WebkitTextStroke` CSS
