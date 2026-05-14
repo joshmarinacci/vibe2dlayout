@@ -6,6 +6,7 @@ import {boxShadowCSS} from '@utils/shadowCSS'
 import {textExtraCSS, textGradientKey, textGradientSpanCSS, textStrokeCSS} from '@utils/textStyleCSS'
 import type {Dispatch} from 'react'
 import styles from './Shape.module.css'
+import {EmojiCompletionPopup} from './EmojiCompletionPopup'
 import {useTextEdit, vAlignToJustify} from './useTextEdit'
 
 interface Props {
@@ -27,7 +28,7 @@ export function TextShapeComp({
                               }: Props) {
     const {transform, text, fill} = shape
     const {x, y, width, height} = transform
-    const {textareaRef, onChange, onKeyDown, onClickTextarea} = useTextEdit({
+    const {textareaRef, onChange, onKeyDown, onClickTextarea, emojiCompletion} = useTextEdit({
         content: text.content, isEditing, shapeId: shape.id, dispatch,
     })
 
@@ -67,6 +68,7 @@ export function TextShapeComp({
             onDoubleClick={onDoubleClick}
         >
             {isEditing ? (
+                <>
                 <textarea
                     ref={textareaRef}
                     defaultValue={text.content}
@@ -90,6 +92,14 @@ export function TextShapeComp({
                     onKeyDown={onKeyDown}
                     onClick={onClickTextarea}
                 />
+                <EmojiCompletionPopup
+                    state={emojiCompletion.emojiState}
+                    onSelect={emojiCompletion.onSelectEmoji}
+                    onClose={emojiCompletion.closeEmoji}
+                    setPopupRef={emojiCompletion.setPopupRef}
+                    setSelectedIndex={emojiCompletion.setSelectedIndex}
+                />
+                </>
             ) : (
                 <div style={{
                     position: 'absolute',

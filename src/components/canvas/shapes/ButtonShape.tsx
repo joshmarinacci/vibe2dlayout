@@ -8,6 +8,7 @@ import {cornerRadiiCSS, strokeBorderCSS} from '@utils/strokeStyleCSS'
 import {textExtraCSS, textGradientKey, textGradientSpanCSS} from '@utils/textStyleCSS'
 import {type CSSProperties, type Dispatch} from 'react'
 import {BoxShapeBase} from "./BoxShapeBase";
+import {EmojiCompletionPopup} from './EmojiCompletionPopup'
 import {useTextEdit, vAlignToJustify} from './useTextEdit'
 
 interface Props {
@@ -31,7 +32,7 @@ export function ButtonShapeComp({
                                 }: Props) {
     const {transform, fill, stroke, text, icon} = shape
     const {width, height} = transform
-    const {textareaRef, onChange, onKeyDown, onClickTextarea} = useTextEdit({
+    const {textareaRef, onChange, onKeyDown, onClickTextarea, emojiCompletion} = useTextEdit({
         content: text.content, isEditing, shapeId: shape.id, dispatch,
     })
 
@@ -65,6 +66,7 @@ export function ButtonShapeComp({
             )}
 
             {isEditing ? (
+                <>
                 <textarea
                     ref={textareaRef}
                     defaultValue={text.content}
@@ -88,6 +90,14 @@ export function ButtonShapeComp({
                     onKeyDown={onKeyDown}
                     onClick={onClickTextarea}
                 />
+                <EmojiCompletionPopup
+                    state={emojiCompletion.emojiState}
+                    onSelect={emojiCompletion.onSelectEmoji}
+                    onClose={emojiCompletion.closeEmoji}
+                    setPopupRef={emojiCompletion.setPopupRef}
+                    setSelectedIndex={emojiCompletion.setSelectedIndex}
+                />
+                </>
             ) : (
                 <div style={{
                     position: 'absolute',

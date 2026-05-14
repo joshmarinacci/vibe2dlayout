@@ -1,4 +1,19 @@
 
+## 2026-05-14 — Fix emoji insertion in ContentSection controlled textarea
+
+- **`src/components/canvas/shapes/useEmojiCompletion.ts`**: Added optional `onValueChange(newValue, newCursorPos)` parameter. When provided, all insertion paths (Enter/Tab keyboard, mouse click, auto-replace on closing `:`) call this callback instead of DOM mutation + synthetic `input` event. DOM mutation is unreliable for React controlled textareas because React may reconcile the `value` prop back before the store update commits.
+- **`src/components/properties/sections/ContentSection.tsx`**: Passes an `onValueChange` callback to `useEmojiCompletion` that dispatches `COMMIT_TEXT_EDIT` directly and uses `requestAnimationFrame` to restore the cursor position after React reconciles the controlled textarea.
+
+## 2026-05-14 — Emoji insertion via colon codes
+
+- **`src/utils/emojiData.ts`** (new): ~300 emoji entries as `[name, char]` tuples covering smileys, gestures, hearts, animals, food, travel, objects, and symbols. `searchEmojis(query)` returns prefix matches first (sorted shortest-name-first), then contains matches.
+- **`src/components/canvas/shapes/useEmojiCompletion.ts`** (new): Hook that detects `:query` patterns in a textarea as the user types, manages completion state, handles keyboard navigation (ArrowUp/Down selects, Enter/Tab inserts, Escape closes without cancelling the edit), and auto-replaces when a closing `:` completes a known name (e.g. `:fire:`). `insertEmoji` directly mutates the uncontrolled textarea value and fires a synthetic `input` event so React stays in sync.
+- **`src/components/canvas/shapes/EmojiCompletionPopup.tsx`** (new): `createPortal`-based popup rendered at `position:fixed` to escape canvas transforms and `overflow:hidden`. Positioned below the textarea with viewport clamping and above-flip fallback. Mouse-hover updates selection; `onMouseDown` inserts without blurring the textarea.
+- **`src/components/canvas/shapes/useTextEdit.ts`**: Integrates `useEmojiCompletion`; routes `onKeyDown` through emoji completion first; closes popup on edit start/end transitions.
+- **TextShape, LabelShape, StickyNoteShape, ButtonShape**: Render `<EmojiCompletionPopup>` in the editing branch.
+- **`src/components/properties/sections/ContentSection.tsx`**: Added ref + `useEmojiCompletion` + popup for the property panel content textarea.
+- **`tests/utils/emojiData.test.ts`** (new): 9 unit tests for `searchEmojis`.
+
 ## 2026-05-14 — Fix text shadow rendering on top of gradient text
 
 - **`src/utils/textStyleCSS.ts`**: CSS paints `text-shadow` after `background` (including `background-clip:text`), so an inherited shadow lands on top of the gradient. Fix: `textExtraCSS` now skips `textShadow` when a gradient is active; `textGradientSpanCSS` accepts `textShadow` and applies it as `filter: drop-shadow(...)` instead — which runs after compositing so the shadow correctly appears behind the gradient text. Also cancels the inherited `textShadow` on the span to prevent double-shadow if the parent still emits it.

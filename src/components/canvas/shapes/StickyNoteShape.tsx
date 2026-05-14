@@ -8,6 +8,7 @@ import {roughLine, seedFromId} from '@utils/roughPaths'
 import {RoughSvgPaths} from '@utils/RoughSvgPaths'
 import {strokeBorderCSS} from '@utils/strokeStyleCSS'
 import {textExtraCSS, textGradientKey, textGradientSpanCSS} from '@utils/textStyleCSS'
+import {EmojiCompletionPopup} from './EmojiCompletionPopup'
 import type {Dispatch} from 'react'
 import {useTextEdit} from './useTextEdit'
 
@@ -34,7 +35,7 @@ export function StickyNoteShapeComp({
                                     }: Props) {
     const {transform, fill, stroke, text} = shape
     const {width, height} = transform
-    const {textareaRef, onChange, onKeyDown, onClickTextarea} = useTextEdit({
+    const {textareaRef, onChange, onKeyDown, onClickTextarea, emojiCompletion} = useTextEdit({
         content: text.content, isEditing, shapeId: shape.id, dispatch,
     })
 
@@ -110,6 +111,7 @@ export function StickyNoteShapeComp({
                 overflow: 'hidden',
             }}>
                 {isEditing ? (
+                    <>
                     <textarea
                         ref={textareaRef}
                         defaultValue={text.content}
@@ -131,6 +133,14 @@ export function StickyNoteShapeComp({
                         onKeyDown={onKeyDown}
                         onClick={onClickTextarea}
                     />
+                    <EmojiCompletionPopup
+                        state={emojiCompletion.emojiState}
+                        onSelect={emojiCompletion.onSelectEmoji}
+                        onClose={emojiCompletion.closeEmoji}
+                        setPopupRef={emojiCompletion.setPopupRef}
+                        setSelectedIndex={emojiCompletion.setSelectedIndex}
+                    />
+                    </>
                 ) : (
                     <div style={{
                         fontFamily: text.fontFamily,
