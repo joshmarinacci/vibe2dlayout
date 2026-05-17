@@ -1108,5 +1108,3 @@ function ShapeProperties({shape, dispatch, state}: {
     }
 }
 
-// ─── Per-corner radius control ─────────────────────────────────────────────
-
