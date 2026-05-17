@@ -1,8 +1,6 @@
 import type {TreeNode} from '@model/document'
 import type {PixelAsset} from '@model/pixelAsset'
 import type {FormShape, Shape} from '@model/shapes'
-import type {Variable} from '@model/variable'
-import {resolveVariableBindings} from '@model/variable'
 import type {AppAction} from '@store/types'
 import type {Dispatch} from 'react'
 import {ButtonShapeComp} from './shapes/ButtonShape'
@@ -43,7 +41,6 @@ interface Props {
     dispatch: Dispatch<AppAction>
     handDrawn: boolean
     themeFontFamily: string
-    variables?: Variable[]
     pixelAssets?: Record<string, PixelAsset>
 }
 
@@ -55,7 +52,6 @@ export function ShapeRenderer({
                                   dispatch,
                                   handDrawn,
                                   themeFontFamily,
-                                  variables = [],
                                   pixelAssets = {}
                               }: Props) {
     return (
@@ -74,7 +70,6 @@ export function ShapeRenderer({
                         dispatch={dispatch}
                         handDrawn={handDrawn}
                         themeFontFamily={themeFontFamily}
-                        variables={variables}
                         pixelAssets={pixelAssets}
                     />
                 )
@@ -92,7 +87,6 @@ interface ShapeNodeProps {
     dispatch: Dispatch<AppAction>
     handDrawn: boolean
     themeFontFamily: string
-    variables: Variable[]
     pixelAssets: Record<string, PixelAsset>
 }
 
@@ -105,7 +99,6 @@ function ShapeNode({
                        dispatch,
                        handDrawn,
                        themeFontFamily,
-                       variables,
                        pixelAssets
                    }: ShapeNodeProps) {
     const isSelected = selectedIds.includes(shape.id)
@@ -118,7 +111,7 @@ function ShapeNode({
             effectiveHandDrawn = true
         }
     }
-    const resolvedShape = resolveVariableBindings(shape, variables)
+    const resolvedShape = shape
 
     const onClick = (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -148,7 +141,6 @@ function ShapeNode({
             dispatch={dispatch}
             handDrawn={handDrawn}
             themeFontFamily={themeFontFamily}
-            variables={variables}
             pixelAssets={pixelAssets}
         />
     ) : null

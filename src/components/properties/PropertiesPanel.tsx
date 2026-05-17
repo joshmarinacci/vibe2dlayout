@@ -1139,10 +1139,9 @@ function CornerRadiusControl({
 
     return (
         <>
-            <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                <div style={{flex: 1}}>
+            <section className={'super'}>
+                <label className={'s'}>Radius</label>
                     <NumberInput
-                        label="Radius"
                         value={perCorner ? Math.round((cornerRadii!.topLeft + cornerRadii!.topRight + cornerRadii!.bottomRight + cornerRadii!.bottomLeft) / 4) : cornerRadius}
                         min={0}
                         onChange={v => {
@@ -1159,49 +1158,32 @@ function CornerRadiusControl({
                         }}
                         unit="px"
                     />
-                </div>
                 <button
                     onClick={togglePerCorner}
                     title={perCorner ? 'Use uniform radius' : 'Set per-corner radius'}
-                    style={{
-                        width: 20,
-                        height: 20,
-                        flexShrink: 0,
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 3,
-                        background: perCorner ? 'var(--color-accent)' : 'transparent',
-                        color: perCorner ? '#fff' : 'var(--color-text-muted)',
-                        fontSize: 9,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    ⌗
-                </button>
-            </div>
+                    className={'mid2'}
+                >⌗</button>
             {perCorner && (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: 4,
-                    paddingLeft: 4
-                }}>
-                    <NumberInput label="TL" value={cornerRadii!.topLeft} min={0}
+                <>
+                    <label className={'s'}>TL</label>
+                    <NumberInput value={cornerRadii!.topLeft} min={0}
                                  onChange={v => onChangeRadii({...cornerRadii!, topLeft: v})}
                                  unit="px"/>
-                    <NumberInput label="TR" value={cornerRadii!.topRight} min={0}
+                    <label className={'mid2'}>TR</label>
+                    <NumberInput value={cornerRadii!.topRight} min={0}
                                  onChange={v => onChangeRadii({...cornerRadii!, topRight: v})}
                                  unit="px"/>
-                    <NumberInput label="BR" value={cornerRadii!.bottomRight} min={0}
+                    <label className={'s'}>BR</label>
+                    <NumberInput value={cornerRadii!.bottomRight} min={0}
                                  onChange={v => onChangeRadii({...cornerRadii!, bottomRight: v})}
                                  unit="px"/>
-                    <NumberInput label="BL" value={cornerRadii!.bottomLeft} min={0}
+                    <label className={'mid2'}>BL</label>
+                    <NumberInput value={cornerRadii!.bottomLeft} min={0}
                                  onChange={v => onChangeRadii({...cornerRadii!, bottomLeft: v})}
                                  unit="px"/>
-                </div>
+                </>
             )}
+            </section>
         </>
     )
 }
