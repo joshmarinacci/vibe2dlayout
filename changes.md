@@ -1,4 +1,18 @@
 
+## 2026-05-17 — Drag gradient stops past each other to reorder
+
+- **`src/utils/fillCSS.ts`**: `gradientCSS` now sorts stops by position before generating CSS, so out-of-order stops (from mid-drag crossing) always render correctly.
+- **`src/components/properties/sections/GradientStopBar.tsx`**: Added optional `onDragEnd` prop; fires on mouseup when a stop is released without being deleted. Lets the parent re-sort the data model after drag completes.
+- **`src/components/layout/GradientEditorModal.tsx`**: Added `handleDragEnd` — sorts stops by position, then updates `selectedStopIdx` to track the moved stop in its new sorted position. Also replaced the local `previewCSS` with `gradientCSS` from fillCSS so list swatches benefit from the same sort.
+
+## 2026-05-17 — Gradient stop bar editor in dialog
+
+- **`src/components/properties/sections/GradientStopBar.tsx`** (new): Visual gradient bar with draggable triangular handles. Click the bar to add a stop (color interpolated from surrounding stops); click a handle to select it; drag to reposition; drag far off the bar (>40px) to delete (min 2 stops enforced).
+- **`src/components/properties/sections/GradientStopBar.module.css`** (new): Styles for the bar and handle triangles with selected/hover states.
+- **`src/components/layout/GradientEditorModal.tsx`**: Replaced per-stop slider rows + static preview bar with the new `GradientStopBar`. Stop details (color picker + position input) now appear below the bar for the selected stop. Added `interpolateHex` helper for color blending when inserting new stops.
+- **`src/components/layout/GradientEditorModal.module.css`**: Added `.stopDetails` flex row style.
+- **`src/components/properties/sections/FillSection.tsx`**: Gradient tab reverted to the simple preset-picker layout — stop editing lives entirely in the dialog.
+
 ## 2026-05-14 — Mouse wheel increment/decrement on NumberInput
 
 - **`src/components/properties/inputs/NumberInput.tsx`**: Scrolling the mouse wheel while a numeric input is focused now increments/decrements by `step` (same as ArrowUp/Down). Uses a native non-passive `wheel` event listener (mounted once via `useEffect`) so `preventDefault()` actually stops the properties panel from scrolling. A `wheelStateRef` keeps the handler reading current `localText`, `step`, `min`, `max`, and `onChange` without stale closures.

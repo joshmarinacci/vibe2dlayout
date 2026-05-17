@@ -1,0 +1,37 @@
+.container {
+    width: 100%;
+    user-select: none;
+}
+
+.bar {
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    cursor: crosshair;
+}
+
+.handleRow {
+    position: relative;
+    height: 14px;
+    margin-top: 2px;
+}
+
+.handle {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 10px solid var(--color-text-muted);
+    transform: translateX(-50%);
+    cursor: grab;
+
+    &:hover {
+        border-bottom-color: var(--color-text-primary);
+    }
+}
+
+.selected {
+    border-bottom-color: var(--color-accent) !important;
+}
+

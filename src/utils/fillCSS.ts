@@ -1,7 +1,8 @@
 import type {FillStyle, GradientFill, SketchFill} from '@model/shapes'
 
 export function gradientCSS(fill: GradientFill): string {
-    const stops = fill.stops
+    const stops = [...fill.stops]
+        .sort((a, b) => a.position - b.position)
         .map(s => `${s.color} ${Math.round(s.position * 100)}%`)
         .join(', ')
     switch (fill.gradientType) {

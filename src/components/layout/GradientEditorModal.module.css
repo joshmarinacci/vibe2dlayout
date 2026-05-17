@@ -277,6 +277,12 @@
     margin-top: 4px;
 }
 
+.stopDetails {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .emptyRight {
     flex: 1;
     display: flex;
