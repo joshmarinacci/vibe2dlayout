@@ -51,12 +51,11 @@ export function NumberInput({
         const el = inputRef.current
         if (!el) return
         const handler = (e: WheelEvent) => {
-            const {isFocused, localText, step, min, max, onChange} = wheelStateRef.current
-            if (!isFocused || localText.startsWith('@')) return
+            const {localText, step, min, max, onChange} = wheelStateRef.current
             e.preventDefault()
             const current = parseFloat(localText)
             if (isNaN(current)) return
-            const delta = e.deltaY < 0 ? step : -step
+            const delta = e.deltaY < 0 ? -step : step
             const next = current + delta
             const clamped = min !== undefined ? Math.max(min, next) : next
             const final = max !== undefined ? Math.min(max, clamped) : clamped
@@ -103,7 +102,7 @@ export function NumberInput({
                         setLocalText(String(value))
                         e.currentTarget.blur()
                     }
-                    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !localText.startsWith('@')) {
+                    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
                         e.preventDefault()
                         const current = parseFloat(localText)
                         if (!isNaN(current)) {
