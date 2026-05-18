@@ -15,8 +15,11 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
                 app,
                 None,
                 Some(AboutMetadata {
-                    version: Some(env!("CARGO_PKG_VERSION").to_string()),
-                    comments: Some(format!("Built {}", env!("BUILD_TIME"))),
+                    version: Some(format!(
+                        "{}  •  Built {}",
+                        env!("CARGO_PKG_VERSION"),
+                        env!("BUILD_TIME")
+                    )),
                     ..Default::default()
                 }),
             )?,
