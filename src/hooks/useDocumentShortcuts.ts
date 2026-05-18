@@ -57,6 +57,37 @@ export function useDocumentShortcuts() {
                 }
                 return
             }
+            if (meta && e.key === 'g' && !e.shiftKey) {
+                if (state.selection.ids.length > 1) {
+                    e.preventDefault()
+                    dispatch({type: 'GROUP_SHAPES', ids: state.selection.ids})
+                }
+                return
+            }
+            if (meta && e.key === 'g' && e.shiftKey) {
+                if (state.selection.ids.length === 1) {
+                    const shape = state.document.shapes[state.selection.ids[0]]
+                    if (shape?.type === 'group') {
+                        e.preventDefault()
+                        dispatch({type: 'UNGROUP_SHAPES', id: state.selection.ids[0]})
+                    }
+                }
+                return
+            }
+            if (meta && e.key === ']') {
+                if (state.selection.ids.length === 1) {
+                    e.preventDefault()
+                    dispatch({type: 'REORDER_SHAPE', id: state.selection.ids[0], direction: 'up'})
+                }
+                return
+            }
+            if (meta && e.key === '[') {
+                if (state.selection.ids.length === 1) {
+                    e.preventDefault()
+                    dispatch({type: 'REORDER_SHAPE', id: state.selection.ids[0], direction: 'down'})
+                }
+                return
+            }
 
             if (e.key === 'Delete' || e.key === 'Backspace') {
                 if (state.selection.ids.length > 0) {

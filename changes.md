@@ -1,4 +1,11 @@
 
+## 2026-05-18 — Quality of life improvements
+
+- **`src/components/toolbar/Toolbar.tsx`**: Removed duplicate divider in the File menu.
+- **`src/components/layout/ShortcutsModal.tsx`**: Added Cmd+S, Cmd+G, Cmd+Shift+G, Cmd+], and Cmd+[ to the shortcuts cheat sheet.
+- **`src/components/properties/sections/TransformSection.tsx`**: Shift+Arrow now nudges by 10 in the Transform panel inputs, matching canvas behavior.
+- **`src/hooks/useDocumentShortcuts.ts`**: Added Cmd+G (group), Cmd+Shift+G (ungroup), Cmd+] (bring forward), Cmd+[ (send backward) keyboard shortcuts.
+
 ## 2026-05-17 — Drag gradient stops past each other to reorder
 
 - **`src/utils/fillCSS.ts`**: `gradientCSS` now sorts stops by position before generating CSS, so out-of-order stops (from mid-drag crossing) always render correctly.

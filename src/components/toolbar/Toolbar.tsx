@@ -260,7 +260,6 @@ export function Toolbar() {
                                 <FilePlus2 size={13}/><span>Save As...</span>
                             </button>
                             <div className={styles.formMenuDivider}/>
-                            <div className={styles.formMenuDivider}/>
                             <button className={styles.formMenuItem} onClick={() => {
                                 dispatch({type: 'TOGGLE_PALETTE_MODAL'});
                                 setShowFileMenu(false)

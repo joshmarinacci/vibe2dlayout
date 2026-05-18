@@ -60,7 +60,7 @@ function TField({
                         e.preventDefault()
                         const v = parseFloat(localText)
                         if (!isNaN(v)) {
-                            const next = v + 1;
+                            const next = v + (e.shiftKey ? 10 : 1);
                             setLocalText(String(next));
                             onChange(min !== undefined ? Math.max(min, next) : next)
                         }
@@ -68,7 +68,7 @@ function TField({
                         e.preventDefault()
                         const v = parseFloat(localText)
                         if (!isNaN(v)) {
-                            const next = v - 1;
+                            const next = v - (e.shiftKey ? 10 : 1);
                             setLocalText(String(next));
                             onChange(min !== undefined ? Math.max(min, next) : next)
                         }
