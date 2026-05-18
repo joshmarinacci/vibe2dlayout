@@ -8,6 +8,12 @@ interface Props {
     onChange: (t: BoundingBox) => void
 }
 
+interface WheelState {
+    localText: string
+    min?: number
+    onChange: (v: number) => void
+}
+
 function TField({
                     label, value, onChange, min,
                 }: {
@@ -19,10 +25,33 @@ function TField({
     const [localText, setLocalText] = useState(String(Math.round(value)))
     const [isFocused, setIsFocused] = useState(false)
     const wrapRef = useRef<HTMLDivElement>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
+    const wheelStateRef = useRef<WheelState>({localText, min, onChange})
 
     useEffect(() => {
         if (!isFocused) setLocalText(String(Math.round(value)))
     }, [value, isFocused])
+
+    wheelStateRef.current = {localText, min, onChange}
+
+    useEffect(() => {
+        const el = inputRef.current
+        if (!el) return
+        const handler = (e: WheelEvent) => {
+            e.preventDefault()
+            const {localText, min, onChange} = wheelStateRef.current
+            const current = parseFloat(localText)
+            if (isNaN(current)) return
+            const rawDelta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+            const delta = rawDelta < 0 ? -(e.shiftKey ? 10 : 1) : (e.shiftKey ? 10 : 1)
+            const next = current + delta
+            const clamped = min !== undefined ? Math.max(min, next) : next
+            setLocalText(String(clamped))
+            onChange(clamped)
+        }
+        el.addEventListener('wheel', handler, {passive: false})
+        return () => el.removeEventListener('wheel', handler)
+    }, [])
 
     const commit = (text: string) => {
         const v = parseFloat(text)
@@ -33,6 +62,7 @@ function TField({
         <div className={styles.tfield} ref={wrapRef} style={{position: 'relative'}}>
             <span className={styles.tlabel}>{label}</span>
             <input
+                ref={inputRef}
                 type="text"
                 className={styles.tinput}
                 value={localText}

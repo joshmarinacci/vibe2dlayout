@@ -115,6 +115,12 @@ export function useDocumentShortcuts() {
                 return
             }
 
+            if (meta && e.key === '0') {
+                e.preventDefault()
+                dispatch({type: 'RESET_VIEW'})
+                return
+            }
+
             // Arrow key nudge
             if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
                 if (state.selection.ids.length > 0) {

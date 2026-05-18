@@ -43,7 +43,7 @@ import {
     Type,
     Unlock,
 } from 'lucide-react'
-import {type Dispatch, useCallback, useRef, useState} from 'react'
+import {type Dispatch, useCallback, useEffect, useRef, useState} from 'react'
 import {createPortal} from 'react-dom'
 import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
 import styles from './TreeNode.module.css'
@@ -161,6 +161,18 @@ export function TreeNodeComp({
         setIsEditing(true)
         setTimeout(() => nameInputRef.current?.select(), 0)
     }, [shape.name])
+
+    useEffect(() => {
+        if (!isSelected || isPage) return
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === 'F2') {
+                e.preventDefault()
+                startRename()
+            }
+        }
+        window.addEventListener('keydown', handler)
+        return () => window.removeEventListener('keydown', handler)
+    }, [isSelected, isPage, startRename])
 
     const commitRename = useCallback(() => {
         const trimmed = editName.trim()

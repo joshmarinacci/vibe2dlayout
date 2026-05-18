@@ -1,3 +1,4 @@
+import {computeBoundingBox} from '@components/canvas/SelectionOverlay'
 import {useAppState} from '@store/context'
 import styles from './StatusBar.module.css'
 
@@ -20,6 +21,11 @@ export function StatusBar({leftCollapsed, rightCollapsed, onToggleLeft, onToggle
         label = `${ids.length} shapes selected`
     }
 
+    const bbox = ids.length > 0 ? computeBoundingBox(state) : null
+    const sizeLabel = bbox
+        ? `  ${Math.round(bbox.width)} × ${Math.round(bbox.height)}  at  (${Math.round(bbox.x)}, ${Math.round(bbox.y)})`
+        : ''
+
     return (
         <div className={styles.statusBar}>
             <button
@@ -30,7 +36,7 @@ export function StatusBar({leftCollapsed, rightCollapsed, onToggleLeft, onToggle
                 {leftCollapsed ? '›' : '‹'}
             </button>
 
-            <span className={styles.label}>{label}</span>
+            <span className={styles.label}>{label}{sizeLabel}</span>
 
             <button
                 className={styles.toggleBtn}

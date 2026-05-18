@@ -12,9 +12,11 @@ interface Props {
 export function IconPickerDialog({currentIcon, onSelect, onClose}: Props) {
     const [query, setQuery] = useState('')
     const searchRef = useRef<HTMLInputElement>(null)
+    const activeIconRef = useRef<HTMLButtonElement>(null)
 
     useEffect(() => {
         searchRef.current?.focus()
+        activeIconRef.current?.scrollIntoView({block: 'center'})
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose()
         }
@@ -58,6 +60,7 @@ export function IconPickerDialog({currentIcon, onSelect, onClose}: Props) {
                         filtered.map(({name, label, Icon}) => (
                             <button
                                 key={name}
+                                ref={currentIcon === name ? activeIconRef : undefined}
                                 className={`${styles.cell} ${currentIcon === name ? styles.cellActive : ''}`}
                                 title={label}
                                 onClick={() => {

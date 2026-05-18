@@ -55,7 +55,8 @@ export function NumberInput({
             e.preventDefault()
             const current = parseFloat(localText)
             if (isNaN(current)) return
-            const delta = e.deltaY < 0 ? -step : step
+            const rawDelta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+            const delta = rawDelta < 0 ? -(e.shiftKey ? step * 10 : step) : (e.shiftKey ? step * 10 : step)
             const next = current + delta
             const clamped = min !== undefined ? Math.max(min, next) : next
             const final = max !== undefined ? Math.min(max, clamped) : clamped

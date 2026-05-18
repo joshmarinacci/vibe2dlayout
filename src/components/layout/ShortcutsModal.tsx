@@ -18,8 +18,10 @@ const KEYBOARD_SHORTCUTS = [
     {keys: 'Escape', description: 'Cancel / deselect'},
     {keys: '↑ ↓ ← →', description: 'Nudge 1px'},
     {keys: '⇧ + Arrow', description: 'Nudge 10px'},
+    {keys: '⌘0', description: 'Reset view'},
     {keys: 'V', description: 'Select tool'},
     {keys: 'H', description: 'Pan tool'},
+    {keys: 'F2', description: 'Rename selected layer'},
     {keys: '?', description: 'Show/hide this help'},
 ]
 

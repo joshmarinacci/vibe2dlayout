@@ -1,4 +1,15 @@
 
+## 2026-05-18 — Quality of life improvements (round 2)
+
+- **`src/components/layout/StatusBar.tsx`**: Now shows `W × H  at  (X, Y)` next to the shape name when one or more shapes are selected, using `computeBoundingBox` from `SelectionOverlay`.
+- **`src/components/properties/sections/TransformSection.tsx`**: Transform panel `TField` inputs now support mouse wheel to increment/decrement, matching `NumberInput` behavior.
+- **`src/hooks/useDocumentShortcuts.ts`**: Added Cmd+0 to reset the view.
+- **`src/components/layout/ShortcutsModal.tsx`**: Added Cmd+0 and F2 to the shortcuts cheat sheet.
+- **`src/components/properties/IconPickerDialog.tsx`**: Active icon now scrolls into view when the picker is opened.
+- **`src/components/tree/TreeNode.tsx`**: F2 now starts inline rename for the selected layer, matching standard OS rename behavior.
+- **`src/components/properties/inputs/NumberInput.tsx`**: Shift+wheel now jumps by 10× step. Also fixed macOS behavior where holding Shift converts vertical scroll to horizontal (deltaY=0, deltaX non-zero) by falling back to deltaX.
+- **`src/components/properties/sections/TransformSection.tsx`**: Same Shift+wheel and macOS deltaX fixes applied to Transform panel inputs.
+
 ## 2026-05-18 — Quality of life improvements
 
 - **`src/components/toolbar/Toolbar.tsx`**: Removed duplicate divider in the File menu.
