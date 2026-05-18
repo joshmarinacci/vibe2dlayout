@@ -132,6 +132,7 @@ export function Toolbar() {
         subMenuCloseTimer.current = setTimeout(() => setComponentSubMenu(null), 300)
     }, [cancelSubMenuClose])
     const [showFileMenu, setShowFileMenu] = useState(false)
+    const [showAboutModal, setShowAboutModal] = useState(false)
     const [showDocumentsModal, setShowDocumentsModal] = useState(false)
     const [documentsModalMode, setDocumentsModalMode] = useState<'open' | 'save-as'>('open')
     const [editingName, setEditingName] = useState(false)
@@ -227,96 +228,105 @@ export function Toolbar() {
     return (
         <div className={styles.toolbar}>
 
-            {/* File menu */}
-            <div className={styles.group}>
-                <div ref={fileMenuRef} style={{position: 'relative'}}>
-                    <button
-                        className={`${styles.btn} ${styles.formBtn}`}
-                        title="File"
-                        onClick={() => setShowFileMenu(v => !v)}
-                    >
-                        <FolderOpen size={14}/>
-                        <span style={{fontSize: 12}}>File</span>
-                        <ChevronDown size={10}/>
-                    </button>
-                    {showFileMenu && (
-                        <div className={styles.formMenu} style={{minWidth: 160}}>
-                            <button className={styles.formMenuItem} onClick={handleNew}>
-                                <File size={13}/><span>New</span>
+            {/* File menu — web only; Tauri uses the native menu bar */}
+            {!IS_TAURI && (
+                <>
+                    <div className={styles.group}>
+                        <div ref={fileMenuRef} style={{position: 'relative'}}>
+                            <button
+                                className={`${styles.btn} ${styles.formBtn}`}
+                                title="File"
+                                onClick={() => setShowFileMenu(v => !v)}
+                            >
+                                <FolderOpen size={14}/>
+                                <span style={{fontSize: 12}}>File</span>
+                                <ChevronDown size={10}/>
                             </button>
-                            <button className={styles.formMenuItem}
-                                    onClick={() => { if (!IS_TAURI) openDocumentsModal('open'); else setShowFileMenu(false) }}>
-                                <FolderOpen size={13}/><span>Open...</span>
-                            </button>
-                            <div className={styles.formMenuDivider}/>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                handleSave();
-                                setShowFileMenu(false)
-                            }}>
-                                <Save size={13}/><span>Save</span>
-                            </button>
-                            <button className={styles.formMenuItem}
-                                    onClick={() => { if (!IS_TAURI) openDocumentsModal('save-as'); else setShowFileMenu(false) }}>
-                                <FilePlus2 size={13}/><span>Save As...</span>
-                            </button>
-                            <div className={styles.formMenuDivider}/>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                dispatch({type: 'TOGGLE_PALETTE_MODAL'});
-                                setShowFileMenu(false)
-                            }}>
-                                <Palette size={13}/><span>Edit Palettes...</span>
-                            </button>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                dispatch({type: 'TOGGLE_THEME_MODAL'});
-                                setShowFileMenu(false)
-                            }}>
-                                <Paintbrush size={13}/><span>Edit Themes...</span>
-                            </button>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                dispatch({type: 'TOGGLE_SETTINGS_MODAL'});
-                                setShowFileMenu(false)
-                            }}>
-                                <Settings size={13}/><span>Settings...</span>
-                            </button>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                dispatch({type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL'});
-                                setShowFileMenu(false)
-                            }}>
-                                <Grid size={13}/><span>Document Settings...</span>
-                            </button>
-                            <div className={styles.formMenuDivider}/>
-                            {!IS_TAURI && <>
-                                <button className={styles.formMenuItem} onClick={() => {
-                                    handleImportJSON();
-                                    setShowFileMenu(false)
-                                }}>
-                                    <Upload size={13}/><span>Import JSON...</span>
-                                </button>
-                                <button className={styles.formMenuItem} onClick={() => {
-                                    downloadJSON(state.document);
-                                    setShowFileMenu(false)
-                                }}>
-                                    <Download size={13}/><span>Export JSON...</span>
-                                </button>
-                            </>}
-                            <button className={styles.formMenuItem} onClick={() => {
-                                exportPageAsPng(state);
-                                setShowFileMenu(false)
-                            }}>
-                                <FileImage size={13}/><span>Export PNG...</span>
-                            </button>
-                            <button className={styles.formMenuItem} onClick={() => {
-                                exportDocumentAsPdf(state);
-                                setShowFileMenu(false)
-                            }}>
-                                <Download size={13}/><span>Export PDF...</span>
-                            </button>
+                            {showFileMenu && (
+                                <div className={styles.formMenu} style={{minWidth: 160}}>
+                                    <button className={styles.formMenuItem} onClick={handleNew}>
+                                        <File size={13}/><span>New</span>
+                                    </button>
+                                    <button className={styles.formMenuItem}
+                                            onClick={() => openDocumentsModal('open')}>
+                                        <FolderOpen size={13}/><span>Open...</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        handleSave();
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Save size={13}/><span>Save</span>
+                                    </button>
+                                    <button className={styles.formMenuItem}
+                                            onClick={() => openDocumentsModal('save-as')}>
+                                        <FilePlus2 size={13}/><span>Save As...</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_PALETTE_MODAL'});
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Palette size={13}/><span>Edit Palettes...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_THEME_MODAL'});
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Paintbrush size={13}/><span>Edit Themes...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_SETTINGS_MODAL'});
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Settings size={13}/><span>Settings...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL'});
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Grid size={13}/><span>Document Settings...</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        handleImportJSON();
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Upload size={13}/><span>Import JSON...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        downloadJSON(state.document);
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Download size={13}/><span>Export JSON...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        exportPageAsPng(state);
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <FileImage size={13}/><span>Export PNG...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        exportDocumentAsPdf(state);
+                                        setShowFileMenu(false)
+                                    }}>
+                                        <Download size={13}/><span>Export PDF...</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        setShowFileMenu(false);
+                                        setShowAboutModal(true)
+                                    }}>
+                                        <HelpCircle size={13}/><span>About...</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
-            </div>
+                    </div>
 
-            <div className={styles.separator}/>
+                    <div className={styles.separator}/>
+                </>
+            )}
 
             {/* Document name */}
             {editingName ? (
@@ -670,6 +680,22 @@ export function Toolbar() {
                 ><HelpCircle size={15}/></button>
             </div>
 
+            {showAboutModal && (
+                <div
+                    style={{position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+                    onClick={() => setShowAboutModal(false)}
+                >
+                    <div
+                        style={{background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '24px 28px', minWidth: 260, boxShadow: '0 8px 32px rgba(0,0,0,0.2)'}}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div style={{fontWeight: 'bold', fontSize: 15, marginBottom: 12}}>Vibe 2D Layout</div>
+                        <div style={{fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4}}>Version {__APP_VERSION__}</div>
+                        <div style={{fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16}}>Built {__BUILD_TIME__}</div>
+                        <button style={{fontSize: 12}} onClick={() => setShowAboutModal(false)}>Close</button>
+                    </div>
+                </div>
+            )}
             {showDocumentsModal && (
                 <DocumentsModal
                     mode={documentsModalMode}

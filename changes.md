@@ -1,4 +1,12 @@
 
+## 2026-05-18 — Version info in About menu; hide inline file menu in Tauri
+
+- **`vite.config.ts`**: Injects `__APP_VERSION__` (from `package.json`) and `__BUILD_TIME__` (ISO timestamp at build time) as Vite `define` constants available in all frontend code.
+- **`src/vite-env.d.ts`**: Added `declare const` for `__APP_VERSION__` and `__BUILD_TIME__`.
+- **`src-tauri/build.rs`**: Emits `BUILD_TIME` env var at Rust compile time using Hinnant's civil-date algorithm — no external crates needed.
+- **`src-tauri/src/lib.rs`**: Passes `AboutMetadata` (version + build timestamp) to the native macOS About dialog.
+- **`src/components/toolbar/Toolbar.tsx`**: Inline File menu is hidden in Tauri mode (native menu bar handles all file operations). Web mode gets an "About…" item at the bottom of the File menu that shows a modal with version and build time.
+
 ## 2026-05-18 — Quality of life improvements (round 2)
 
 - **`src/components/layout/StatusBar.tsx`**: Now shows `W × H  at  (X, Y)` next to the shape name when one or more shapes are selected, using `computeBoundingBox` from `SelectionOverlay`.
