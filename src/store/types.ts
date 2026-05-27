@@ -96,6 +96,7 @@ export interface AppState {
     pendingDocumentsModalMode: 'open' | 'save-as' | null
     showGradientModal: boolean
     showSketchStyleModal: boolean
+    croppingShapeId: string | null
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -210,6 +211,8 @@ export type ViewAction =
     | { type: 'TOGGLE_GRADIENT_MODAL' }
     | { type: 'TOGGLE_SKETCH_STYLE_MODAL' }
     | { type: 'SET_FILE_PATH'; path: string | null }
+    | { type: 'ENTER_CROP_MODE'; shapeId: string }
+    | { type: 'EXIT_CROP_MODE' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

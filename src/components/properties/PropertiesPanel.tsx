@@ -505,13 +505,17 @@ function ShapeProperties({shape, dispatch, state}: {
                 </>
             )
 
-        case 'image':
+        case 'image': {
+            const linkedAsset = shape.assetId
+                ? state.document.images.find(a => a.id === shape.assetId) ?? null
+                : null
             return (
                 <>
-                    <ImageSection shape={shape} dispatch={dispatch}/>
+                    <ImageSection shape={shape} asset={linkedAsset} dispatch={dispatch}/>
                     {common}
                 </>
             )
+        }
 
         case 'page': {
             const pageGridOverride = shape.gridSettings

@@ -10,11 +10,13 @@ import {CanvasGrid} from './CanvasGrid'
 import {CanvasGuides} from './CanvasGuides'
 import {CanvasRuler, RULER_SIZE} from './CanvasRuler'
 import styles from './CanvasView.module.css'
+import {CropOverlay} from './CropOverlay'
 import {PixelEditorOverlay} from './PixelEditorOverlay'
 import {SelectionOverlay} from './SelectionOverlay'
 import {ShapeRenderer} from './ShapeRenderer'
 import {SnapGuides} from './SnapGuides'
 import {TextCssDialog} from './TextCssDialog'
+import {useCanvasDrop} from './useCanvasDrop'
 import {useCanvasPointer} from './useCanvasPointer'
 
 export function CanvasView() {
@@ -47,6 +49,7 @@ export function CanvasView() {
         snapGuides,
         guidePreview
     } = useCanvasPointer(containerRef)
+    const {onDragOver, onDrop} = useCanvasDrop(containerRef)
     const [cssDialog, setCssDialog] = useState<CssDialogState | null>(null)
 
     const {panX, panY, zoom} = state.viewTransform
@@ -85,6 +88,8 @@ export function CanvasView() {
             onPointerUp={onPointerUp}
             onDoubleClick={onDoubleClick}
             onContextMenu={onContextMenu}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
         >
             {/* Canvas background (offset by ruler) */}
             <div className={styles.background} style={{top: RULER_SIZE, left: RULER_SIZE}}/>
@@ -259,6 +264,9 @@ export function CanvasView() {
                     dispatch={dispatch}
                 />
             )}
+
+            {/* Crop overlay */}
+            {state.croppingShapeId && <CropOverlay containerRef={containerRef}/>}
         </div>
     )
 }

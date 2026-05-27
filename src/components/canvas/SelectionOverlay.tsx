@@ -189,43 +189,58 @@ function ResizeHandle({
                 break
         }
 
-        // Shift: constrain to square, keeping the anchor's fixed corner in place
+        // Shift: constrain to aspect ratio (image's cropped ratio, or 1:1 for other shapes)
         if (e.shiftKey) {
-            const size = Math.max(Math.abs(width), Math.abs(height))
+            // Compute target aspect ratio (width / height)
+            let ar = 1
+            if (ids.length === 1) {
+                const shape = state.document.shapes[ids[0]]
+                if (shape?.type === 'image') {
+                    const asset = state.document.images.find(a => a.id === shape.assetId)
+                    if (asset?.width && asset?.height) {
+                        const crop = shape.crop
+                        const cropW = crop ? asset.width  * crop.width  : asset.width
+                        const cropH = crop ? asset.height * crop.height : asset.height
+                        ar = cropW / cropH
+                    }
+                }
+            }
+            // Normalise both raw dimensions to "height units" and take the dominant one
+            const normW = Math.abs(width) / ar
+            const normH = Math.abs(height)
+            const dominant = Math.max(normW, normH)
+            const newW = dominant * ar
+            const newH = dominant
             switch (anchor) {
                 case 'top-left':
-                    x = startBbox.x + startBbox.width - size
-                    y = startBbox.y + startBbox.height - size
-                    width = size;
-                    height = size;
+                    x = startBbox.x + startBbox.width - newW
+                    y = startBbox.y + startBbox.height - newH
+                    width = newW; height = newH
                     break
                 case 'top-right':
-                    y = startBbox.y + startBbox.height - size
-                    width = size;
-                    height = size;
+                    y = startBbox.y + startBbox.height - newH
+                    width = newW; height = newH
                     break
                 case 'bottom-left':
-                    x = startBbox.x + startBbox.width - size
-                    width = size;
-                    height = size;
+                    x = startBbox.x + startBbox.width - newW
+                    width = newW; height = newH
                     break
                 case 'bottom-right':
-                    width = size;
-                    height = size;
+                    width = newW; height = newH
                     break
                 case 'middle-left':
                 case 'middle-right':
-                    height = size;
-                    width = size
-                    y = startBbox.y + (startBbox.height - size) / 2
-                    if (anchor === 'middle-left') x = startBbox.x + startBbox.width - size
+                    // Horizontal drag is primary; derive height from width
+                    width = Math.abs(width); height = width / ar
+                    y = startBbox.y + (startBbox.height - height) / 2
+                    if (anchor === 'middle-left') x = startBbox.x + startBbox.width - width
                     break
                 case 'top-center':
                 case 'bottom-center':
-                    width = size;
-                    height = size
-                    x = startBbox.x + (startBbox.width - size) / 2
-                    if (anchor === 'top-center') y = startBbox.y + startBbox.height - size
+                    // Vertical drag is primary; derive width from height
+                    height = Math.abs(height); width = height * ar
+                    x = startBbox.x + (startBbox.width - width) / 2
+                    if (anchor === 'top-center') y = startBbox.y + startBbox.height - height
                     break
             }
         }

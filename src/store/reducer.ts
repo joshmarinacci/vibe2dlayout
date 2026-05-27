@@ -1033,6 +1033,7 @@ export const initialState: AppState = {
     pendingDocumentsModalMode: null,
     showGradientModal: false,
     showSketchStyleModal: false,
+    croppingShapeId: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1256,6 +1257,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, editingPixelAssetId: action.assetId}
         case 'STOP_PIXEL_EDIT':
             return {...state, editingPixelAssetId: null}
+        case 'ENTER_CROP_MODE':
+            return {...state, croppingShapeId: action.shapeId}
+        case 'EXIT_CROP_MODE':
+            return {...state, croppingShapeId: null}
         case 'SET_FOLDER_COLLAPSED':
             return {
                 ...state,

@@ -195,6 +195,13 @@ export interface TextShape extends ShapeBase, TransformedShape, FilledShape, Sha
     type: 'text'
 }
 
+export interface ImageCrop {
+    x: number       // 0–1 fraction of image width, left edge of visible region
+    y: number       // 0–1 fraction of image height, top edge of visible region
+    width: number   // 0–1 fraction of image width, size of visible region
+    height: number  // 0–1 fraction of image height, size of visible region
+}
+
 export interface ImageShape extends ShapeBase, TransformedShape {
     type: 'image'
     src: string      // base64 data URI or http(s) URL
@@ -202,6 +209,7 @@ export interface ImageShape extends ShapeBase, TransformedShape {
     preserveAspectRatio: boolean
     opacity: number
     assetId?: string  // references ImageAsset.id in document.images
+    crop?: ImageCrop
 }
 
 export interface PageShape extends ShapeBase, TransformedShape {

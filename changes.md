@@ -1,4 +1,39 @@
 
+## 2026-05-27 — Image support improvements
+
+### Drag-to-add images
+Drop image files (PNG, JPEG, GIF, WebP, SVG) directly onto the canvas. Works in the browser via the HTML5 File API and in Tauri via the `tauri://drag-drop` event + `@tauri-apps/plugin-fs`. Multiple files dropped at once each create their own image shape and asset centred at the drop position, scaled to fit within 400 × 400 px.
+- New `src/components/canvas/useCanvasDrop.ts`
+- `src/components/canvas/CanvasView.tsx` — wires `onDragOver`/`onDrop`; Tauri listener registered on mount
+- `src-tauri/capabilities/default.json` — added `fs:allow-read-file`
+
+### Image format in asset panel
+The Source section of the image asset property panel now shows a **Format** row (PNG, JPEG, GIF, WebP, SVG) for both embedded and URL images.
+- `src/components/properties/sections/ImageAssetSection.tsx`
+
+### Interactive crop
+Select an image shape with content and click **Crop** / **Edit Crop** (prop panel or right-click menu) to enter crop mode. A full-screen overlay shows 8 drag handles, a solid crop border, a dashed boundary showing the full image extent, and dark masks outside the crop region. Drag handles to adjust; click **Done** to apply, **Reset** to clear the crop, **Cancel** or Escape to abort.
+- Applying the crop resizes the shape bounds to the selected region and composes the absolute image crop fraction so repeated crops narrow correctly into the already-cropped area.
+- Locked images cannot enter crop mode.
+- New `src/components/canvas/CropOverlay.tsx`
+- `src/model/shapes.ts` — added `ImageCrop` type and `crop?` field to `ImageShape`
+- `src/store/types.ts` — added `croppingShapeId` to `AppState`; added `ENTER_CROP_MODE` / `EXIT_CROP_MODE` to `ViewAction`
+- `src/store/reducer.ts` — handles new actions; adds `croppingShapeId: null` to initial state
+- `src/components/canvas/shapes/ImageShape.tsx` — renders crop via CSS `position: absolute` / percentage offsets
+- `src/components/canvas/CanvasView.tsx` — renders `<CropOverlay>` when cropping
+- `src/components/properties/sections/ImageSection.tsx` — Crop / Edit Crop button
+- `src/components/canvas/CanvasContextMenu.tsx` — Crop / Edit Crop context menu item
+
+### Actual Size action
+When a linked asset has known pixel dimensions an **Actual Size (W × H)** button appears in the Image prop panel and as a context menu item. Both account for any active crop, so the reported and applied size reflects the cropped region, not the full image.
+- `src/components/properties/sections/ImageSection.tsx`
+- `src/components/properties/PropertiesPanel.tsx` — passes linked asset to `ImageSection`
+- `src/components/canvas/CanvasContextMenu.tsx`
+
+### Shift-resize snaps to image aspect ratio
+Holding Shift while resizing an image shape constrains to the image's natural aspect ratio (accounting for any crop) instead of 1:1.
+- `src/components/canvas/SelectionOverlay.tsx`
+
 ## 2026-05-18 — Version info in About menu; hide inline file menu in Tauri
 
 - **`vite.config.ts`**: Injects `__APP_VERSION__` (from `package.json`) and `__BUILD_TIME__` (ISO timestamp at build time) as Vite `define` constants available in all frontend code.

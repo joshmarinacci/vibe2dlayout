@@ -1,6 +1,6 @@
 import type {TreeNode} from '@model/document'
 import {createEmptyPixelAsset} from '@model/pixelAsset'
-import type {Shape, ShapeType} from '@model/shapes'
+import type {ImageShape, Shape, ShapeType} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
 import {useAppState} from '@store/context'
 import type {AlignType, AppAction} from '@store/types'
@@ -24,11 +24,13 @@ import {
   ChevronUp,
   Code2,
   Copy,
+  Crop,
   Eye,
   EyeOff,
   FileImage,
   Group,
   Lock,
+  Maximize2,
   Trash2,
   Ungroup,
   Unlock,
@@ -105,6 +107,13 @@ export function CanvasContextMenu({
     const {screenX, screenY, canvasX, canvasY, shapeId, selectedIds} = menuState
     const shape = shapeId ? shapes[shapeId] : null
     const isMultiSelect = selectedIds.length > 1
+
+    const imageAsset = shape?.type === 'image' && (shape as ImageShape).assetId
+        ? state.document.images.find(a => a.id === (shape as ImageShape).assetId)
+        : null
+    const imageCrop = shape?.type === 'image' ? (shape as ImageShape).crop : undefined
+    const actualW = imageAsset?.width  ? (imageCrop ? Math.round(imageAsset.width  * imageCrop.width)  : imageAsset.width)  : null
+    const actualH = imageAsset?.height ? (imageCrop ? Math.round(imageAsset.height * imageCrop.height) : imageAsset.height) : null
 
     const addShape = (type: ShapeType, parentId: string | null) => {
         let localX = canvasX
@@ -271,6 +280,24 @@ export function CanvasContextMenu({
                                 onShowCssDialog({css, name: shape.name})
                                 onClose()
                             },
+                        },
+                    ] : []),
+                    ...(shape.type === 'image' && (shape as ImageShape).src && !shape.locked ? [
+                        {
+                            label: (shape as ImageShape).crop ? 'Edit Crop' : 'Crop',
+                            icon: <Crop size={14}/>,
+                            onClick: () => dispatch({type: 'ENTER_CROP_MODE', shapeId: shapeId!}),
+                        },
+                    ] : []),
+                    ...(shape.type === 'image' && actualW && actualH ? [
+                        {
+                            label: `Actual Size (${actualW} × ${actualH})`,
+                            icon: <Maximize2 size={14}/>,
+                            onClick: () => dispatch({
+                                type: 'PATCH_SHAPE',
+                                id: shapeId!,
+                                patch: {transform: {...shape.transform, width: actualW, height: actualH}} as Partial<ImageShape>,
+                            }),
                         },
                     ] : []),
                     ...(shape.type === 'group' ? [

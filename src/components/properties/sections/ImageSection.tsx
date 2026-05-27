@@ -10,10 +10,11 @@ import styles from '../PropertiesPanel.module.css'
 
 interface Props {
     shape: ImageShape
+    asset?: ImageAsset | null
     dispatch: Dispatch<AppAction>
 }
 
-export function ImageSection({shape, dispatch}: Props) {
+export function ImageSection({shape, asset, dispatch}: Props) {
     const handleUpload = () => {
         const input = document.createElement('input')
         input.type = 'file'
@@ -88,11 +89,37 @@ export function ImageSection({shape, dispatch}: Props) {
         input.click()
     }
 
+    const handleCrop = () => {
+        dispatch({type: 'ENTER_CROP_MODE', shapeId: shape.id})
+    }
+
+    const handleActualSize = () => {
+        if (!asset?.width || !asset?.height) return
+        const crop = shape.crop
+        const w = crop ? Math.round(asset.width * crop.width) : asset.width
+        const h = crop ? Math.round(asset.height * crop.height) : asset.height
+        dispatch({
+            type: 'PATCH_SHAPE',
+            id: shape.id,
+            patch: {transform: {...shape.transform, width: w, height: h}} as Partial<ImageShape>,
+        })
+    }
+
     return (
         <CollapsibleSection title="Image">
             <button className={styles.uploadBtn} onClick={handleUpload}>
                 {shape.src ? 'Replace Image' : 'Upload Image'}
             </button>
+            {shape.src && !shape.locked && (
+                <button className={styles.actionBtn} onClick={handleCrop}>
+                    {shape.crop ? 'Edit Crop' : 'Crop'}
+                </button>
+            )}
+            {asset?.width && asset?.height && (
+                <button className={styles.actionBtn} onClick={handleActualSize}>
+                    Actual Size ({asset.width} × {asset.height})
+                </button>
+            )}
             <ToggleInput
                 label="Keep Ratio"
                 value={shape.preserveAspectRatio}

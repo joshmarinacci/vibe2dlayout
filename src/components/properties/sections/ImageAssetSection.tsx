@@ -18,6 +18,14 @@ function formatBytes(base64: string): string {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+const FORMAT_LABELS: Record<string, string> = {
+    'image/png': 'PNG',
+    'image/jpeg': 'JPEG',
+    'image/gif': 'GIF',
+    'image/webp': 'WebP',
+    'image/svg+xml': 'SVG',
+}
+
 function guessMimeType(url: string, fallback: ImageAsset['mimeType']): ImageAsset['mimeType'] {
     const ext = url.split('.').pop()?.split('?')[0].toLowerCase() ?? ''
     const map: Record<string, ImageAsset['mimeType']> = {
@@ -70,6 +78,10 @@ export function ImageAssetSection({asset, usageCount, usedByShapes, dispatch}: P
                             <span style={{fontSize: 12, color: '#555'}}>Embedded</span>
                         </div>
                         <div className={styles.row}>
+                            <label className={styles.label}>Format</label>
+                            <span style={{fontSize: 12, color: '#555'}}>{FORMAT_LABELS[asset.mimeType] ?? asset.mimeType}</span>
+                        </div>
+                        <div className={styles.row}>
                             <label className={styles.label}>Size</label>
                             <span style={{
                                 fontSize: 12,
@@ -88,6 +100,10 @@ export function ImageAssetSection({asset, usageCount, usedByShapes, dispatch}: P
                     </>
                 ) : (
                     <>
+                        <div className={styles.row}>
+                            <label className={styles.label}>Format</label>
+                            <span style={{fontSize: 12, color: '#555'}}>{FORMAT_LABELS[asset.mimeType] ?? asset.mimeType}</span>
+                        </div>
                         <div className={styles.row}>
                             <label className={styles.label}>URL</label>
                             <input

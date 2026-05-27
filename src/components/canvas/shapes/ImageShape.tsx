@@ -1,6 +1,7 @@
 import type {ImageShape} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
 import {boxShadowCSS} from '@utils/shadowCSS'
+import type React from 'react'
 import styles from './Shape.module.css'
 
 interface Props {
@@ -11,8 +12,23 @@ interface Props {
 }
 
 export function ImageShapeComp({shape, isSelected, onClick, onDoubleClick}: Props) {
-    const {transform, src, mimeType, preserveAspectRatio, opacity} = shape
+    const {transform, src, mimeType, preserveAspectRatio, opacity, crop} = shape
     const {x, y, width, height} = transform
+
+    const imgStyle: React.CSSProperties = crop
+        ? {
+            position: 'absolute',
+            width: `${100 / crop.width}%`,
+            height: `${100 / crop.height}%`,
+            left: `${-crop.x / crop.width * 100}%`,
+            top: `${-crop.y / crop.height * 100}%`,
+            objectFit: 'fill',
+        }
+        : {
+            width: '100%',
+            height: '100%',
+            objectFit: preserveAspectRatio ? 'contain' : 'fill',
+        }
 
     return (
         <div
@@ -39,11 +55,7 @@ export function ImageShapeComp({shape, isSelected, onClick, onDoubleClick}: Prop
             {src ? (
                 <img
                     src={`data:${mimeType};base64,${src}`}
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: preserveAspectRatio ? 'contain' : 'fill',
-                    }}
+                    style={imgStyle}
                     draggable={false}
                     alt=""
                 />
