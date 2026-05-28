@@ -192,11 +192,13 @@ export function CanvasContextMenu({
                 {
                     label: 'Duplicate',
                     icon: <Copy size={14}/>,
+                    shortcut: '⌘D',
                     onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: selectedIds}),
                 },
                 {
                     label: 'Group',
                     icon: <Group size={14}/>,
+                    shortcut: '⌘G',
                     onClick: () => dispatch({type: 'GROUP_SHAPES', ids: selectedIds}),
                 },
             ],
@@ -246,6 +248,7 @@ export function CanvasContextMenu({
                 {
                     label: 'Delete',
                     icon: <Trash2 size={14}/>,
+                    shortcut: '⌫',
                     danger: true,
                     onClick: () => {
                         dispatch({type: 'DELETE_SHAPES', ids: selectedIds})
@@ -268,6 +271,7 @@ export function CanvasContextMenu({
                     {
                         label: 'Duplicate',
                         icon: <Copy size={14}/>,
+                        shortcut: '⌘D',
                         onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [shapeId!]}),
                     },
                     ...(shape.type === 'text' ? [
@@ -304,6 +308,7 @@ export function CanvasContextMenu({
                         {
                             label: 'Ungroup',
                             icon: <Ungroup size={14}/>,
+                            shortcut: '⌘⇧G',
                             onClick: () => dispatch({type: 'UNGROUP_SHAPES', id: shapeId!}),
                         },
                         {
@@ -337,6 +342,7 @@ export function CanvasContextMenu({
                     {
                         label: 'Move Up',
                         icon: <ChevronUp size={14}/>,
+                        shortcut: '⌘]',
                         onClick: () => dispatch({
                             type: 'REORDER_SHAPE',
                             id: shapeId!,
@@ -346,6 +352,7 @@ export function CanvasContextMenu({
                     {
                         label: 'Move Down',
                         icon: <ChevronDown size={14}/>,
+                        shortcut: '⌘[',
                         onClick: () => dispatch({
                             type: 'REORDER_SHAPE',
                             id: shapeId!,
@@ -381,6 +388,7 @@ export function CanvasContextMenu({
                     {
                         label: 'Delete',
                         icon: <Trash2 size={14}/>,
+                        shortcut: '⌫',
                         danger: true,
                         onClick: () => {
                             dispatch({type: 'DELETE_SHAPES', ids: [shapeId!]})

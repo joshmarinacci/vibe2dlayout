@@ -41,6 +41,27 @@ export function SettingsModal() {
                 </div>
 
                 <div className={styles.body}>
+                    <h3 className={styles.sectionTitle}>Shortcuts</h3>
+
+                    <div className={styles.row}>
+                        <label className={styles.label}>
+                            Show shortcut indicator
+                            <span className={styles.hint}>Display a brief overlay when a keyboard shortcut is used</span>
+                        </label>
+                        <div className={styles.control}>
+                            <input
+                                type="checkbox"
+                                checked={state.settings.showShortcutIndicator}
+                                onChange={e =>
+                                    dispatch({
+                                        type: 'UPDATE_SETTINGS',
+                                        patch: {showShortcutIndicator: e.target.checked}
+                                    })
+                                }
+                            />
+                        </div>
+                    </div>
+
                     <h3 className={styles.sectionTitle}>Zoom</h3>
 
                     <div className={styles.row}>

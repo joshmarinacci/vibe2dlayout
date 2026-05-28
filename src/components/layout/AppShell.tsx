@@ -9,6 +9,7 @@ import {useCallback, useState} from 'react'
 import styles from './AppShell.module.css'
 import {ResizeHandle} from './ResizeHandle'
 import {SettingsModal} from './SettingsModal'
+import {ShortcutIndicator} from './ShortcutIndicator'
 import {ShortcutsModal} from './ShortcutsModal'
 import {StatusBar} from './StatusBar'
 
@@ -69,6 +70,7 @@ export function AppShell() {
             />
             <ShortcutsModal/>
             <SettingsModal/>
+            <ShortcutIndicator/>
         </div>
     )
 }

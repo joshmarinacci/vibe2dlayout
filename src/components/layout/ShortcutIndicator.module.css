@@ -1,0 +1,43 @@
+@keyframes fadeInOut {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(8px); }
+    12%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    75%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(0); }
+}
+
+.indicator {
+    position: fixed;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    border-radius: 24px;
+    font-size: 13px;
+    pointer-events: none;
+    z-index: 99999;
+    animation: fadeInOut 2.5s forwards ease-in-out;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+}
+
+.keys {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-family: monospace;
+    font-size: 12px;
+    font-style: normal;
+    line-height: 1.5;
+}
+
+.description {
+    font-size: 13px;
+    opacity: 0.9;
+}

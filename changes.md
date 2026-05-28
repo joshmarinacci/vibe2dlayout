@@ -1,4 +1,42 @@
 
+## 2026-05-28 — Add edit actions to Tauri native menu
+
+Duplicate (⌘D), Group (⌘G), Ungroup (⌘⇧G), Bring Forward (⌘]), Send Backward (⌘[), and Delete now appear in the native Edit menu in Tauri. Handlers in `useTauriMenu.ts` read the current selection via `stateRef` and dispatch the same actions as the keyboard shortcuts, also firing the shortcut indicator.
+
+- `src-tauri/src/lib.rs` — new `MenuItem` entries in the Edit submenu
+- `src/hooks/useTauriMenu.ts` — event listeners for `menu:duplicate`, `menu:group`, `menu:ungroup`, `menu:bring-forward`, `menu:send-backward`, `menu:delete`
+
+## 2026-05-28 — Keyboard shortcut display and floating indicator
+
+### Shortcut hints in menus
+- Shortcut labels now appear right-aligned in the canvas context menu (Duplicate ⌘D, Group ⌘G, Ungroup ⌘⇧G, Move Up ⌘], Move Down ⌘[, Delete ⌫)
+- Web-mode File toolbar dropdown now shows shortcut hints for New ⌘N, Open ⌘O, Save ⌘S, Save As ⌘⇧S
+- Tauri native menu bar already showed accelerators natively — no changes needed there
+
+### Floating shortcut indicator
+- New `ShortcutIndicator` component renders a pill-shaped overlay near the bottom of the canvas when any keyboard shortcut fires, showing the key combo and action name, then fades out after ~2.5 seconds
+- Can be toggled on/off in Settings → Shortcuts → "Show shortcut indicator" (default: on)
+
+### Shared shortcut definitions
+- New `src/utils/shortcutDefs.ts` — single source of truth for all shortcut labels; `ShortcutsModal` now imports from here
+- New `src/utils/shortcutEvents.ts` — lightweight pub/sub bus wiring `useDocumentShortcuts` to `ShortcutIndicator` without touching AppState
+
+### Files changed
+- `src/utils/shortcutDefs.ts` — new
+- `src/utils/shortcutEvents.ts` — new
+- `src/components/layout/ShortcutIndicator.tsx` — new
+- `src/components/layout/ShortcutIndicator.module.css` — new
+- `src/hooks/useDocumentShortcuts.ts` — emit events after each shortcut
+- `src/components/tree/ContextMenu.tsx` — `shortcut?` field on `ContextMenuItem`
+- `src/components/tree/ContextMenu.module.css` — `.shortcut` style
+- `src/components/canvas/CanvasContextMenu.tsx` — shortcut labels on 6 items
+- `src/components/toolbar/Toolbar.tsx` — shortcut hints in web File menu
+- `src/components/toolbar/Toolbar.module.css` — `.menuShortcut` style
+- `src/components/layout/AppShell.tsx` — mounts `<ShortcutIndicator/>`
+- `src/components/layout/ShortcutsModal.tsx` — imports from `shortcutDefs`
+- `src/store/types.ts` — `showShortcutIndicator` in `UserSettings`
+- `src/components/layout/SettingsModal.tsx` — settings toggle checkbox
+
 ## 2026-05-27 — Image support improvements
 
 ### Drag-to-add images

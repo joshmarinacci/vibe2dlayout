@@ -55,6 +55,15 @@
     flex-shrink: 0;
 }
 
+.shortcut {
+    margin-left: auto;
+    padding-left: 16px;
+    font-size: 11px;
+    opacity: 0.5;
+    font-family: monospace;
+    flex-shrink: 0;
+}
+
 .divider {
     height: 1px;
     background: var(--color-border-subtle);

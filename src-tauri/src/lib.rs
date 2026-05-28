@@ -62,6 +62,15 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
             &PredefinedMenuItem::copy(app, None)?,
             &PredefinedMenuItem::paste(app, None)?,
             &PredefinedMenuItem::select_all(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, "menu:duplicate",     "Duplicate",     true, Some("CmdOrCtrl+D"))?,
+            &MenuItem::with_id(app, "menu:group",         "Group",         true, Some("CmdOrCtrl+G"))?,
+            &MenuItem::with_id(app, "menu:ungroup",       "Ungroup",       true, Some("CmdOrCtrl+Shift+G"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, "menu:bring-forward", "Bring Forward", true, Some("CmdOrCtrl+]"))?,
+            &MenuItem::with_id(app, "menu:send-backward", "Send Backward", true, Some("CmdOrCtrl+["))?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, "menu:delete",        "Delete",        true, None::<&str>)?,
         ],
     )?;
 

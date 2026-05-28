@@ -243,24 +243,24 @@ export function Toolbar() {
                                 <ChevronDown size={10}/>
                             </button>
                             {showFileMenu && (
-                                <div className={styles.formMenu} style={{minWidth: 160}}>
+                                <div className={styles.formMenu} style={{minWidth: 180}}>
                                     <button className={styles.formMenuItem} onClick={handleNew}>
-                                        <File size={13}/><span>New</span>
+                                        <File size={13}/><span>New</span><span className={styles.menuShortcut}>⌘N</span>
                                     </button>
                                     <button className={styles.formMenuItem}
                                             onClick={() => openDocumentsModal('open')}>
-                                        <FolderOpen size={13}/><span>Open...</span>
+                                        <FolderOpen size={13}/><span>Open...</span><span className={styles.menuShortcut}>⌘O</span>
                                     </button>
                                     <div className={styles.formMenuDivider}/>
                                     <button className={styles.formMenuItem} onClick={() => {
                                         handleSave();
                                         setShowFileMenu(false)
                                     }}>
-                                        <Save size={13}/><span>Save</span>
+                                        <Save size={13}/><span>Save</span><span className={styles.menuShortcut}>⌘S</span>
                                     </button>
                                     <button className={styles.formMenuItem}
                                             onClick={() => openDocumentsModal('save-as')}>
-                                        <FilePlus2 size={13}/><span>Save As...</span>
+                                        <FilePlus2 size={13}/><span>Save As...</span><span className={styles.menuShortcut}>⌘⇧S</span>
                                     </button>
                                     <div className={styles.formMenuDivider}/>
                                     <button className={styles.formMenuItem} onClick={() => {

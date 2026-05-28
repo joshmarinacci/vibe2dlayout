@@ -6,6 +6,7 @@ import styles from './ContextMenu.module.css'
 export interface ContextMenuItem {
     label: string
     icon?: React.ReactNode
+    shortcut?: string
     onClick?: () => void
     danger?: boolean
     disabled?: boolean
@@ -41,7 +42,8 @@ function SubMenuItem({item, onClose}: { item: ContextMenuItem; onClose: () => vo
                 }}
             >
                 {item.icon && <span className={styles.icon}>{item.icon}</span>}
-                {item.label}
+                <span style={{flex: 1}}>{item.label}</span>
+                {item.shortcut && <span className={styles.shortcut}>{item.shortcut}</span>}
             </button>
         )
     }

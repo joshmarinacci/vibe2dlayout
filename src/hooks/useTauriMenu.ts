@@ -4,6 +4,7 @@ import type {AppState} from '@store/types'
 import {exportDocumentAsPdf} from '@utils/exportPdf'
 import {exportPageAsHtml} from '@utils/exportHtml'
 import {exportPageAsPng} from '@utils/exportPng'
+import {shortcutEvents} from '@utils/shortcutEvents'
 import {tauriOpenFile, tauriSaveAsFile, tauriSaveFile} from '@utils/tauriStorage'
 import {useEffect, useRef} from 'react'
 
@@ -106,6 +107,58 @@ export function useTauriMenu() {
 
             unlisten.push(await listen('menu:export-html', () => {
                 exportPageAsHtml(stateRef.current)
+            }))
+
+            unlisten.push(await listen('menu:duplicate', () => {
+                const ids = stateRef.current.selection.ids
+                if (ids.length > 0) {
+                    dispatch({type: 'DUPLICATE_SHAPES', ids})
+                    shortcutEvents.emit('⌘D', 'Duplicate selected')
+                }
+            }))
+
+            unlisten.push(await listen('menu:group', () => {
+                const ids = stateRef.current.selection.ids
+                if (ids.length > 1) {
+                    dispatch({type: 'GROUP_SHAPES', ids})
+                    shortcutEvents.emit('⌘G', 'Group selected')
+                }
+            }))
+
+            unlisten.push(await listen('menu:ungroup', () => {
+                const ids = stateRef.current.selection.ids
+                if (ids.length === 1) {
+                    const shape = stateRef.current.document.shapes[ids[0]]
+                    if (shape?.type === 'group') {
+                        dispatch({type: 'UNGROUP_SHAPES', id: ids[0]})
+                        shortcutEvents.emit('⌘⇧G', 'Ungroup')
+                    }
+                }
+            }))
+
+            unlisten.push(await listen('menu:bring-forward', () => {
+                const ids = stateRef.current.selection.ids
+                if (ids.length === 1) {
+                    dispatch({type: 'REORDER_SHAPE', id: ids[0], direction: 'up'})
+                    shortcutEvents.emit('⌘]', 'Bring forward')
+                }
+            }))
+
+            unlisten.push(await listen('menu:send-backward', () => {
+                const ids = stateRef.current.selection.ids
+                if (ids.length === 1) {
+                    dispatch({type: 'REORDER_SHAPE', id: ids[0], direction: 'down'})
+                    shortcutEvents.emit('⌘[', 'Send backward')
+                }
+            }))
+
+            unlisten.push(await listen('menu:delete', () => {
+                const ids = stateRef.current.selection.ids
+                if (ids.length > 0) {
+                    dispatch({type: 'DELETE_SHAPES', ids})
+                    dispatch({type: 'DESELECT_ALL'})
+                    shortcutEvents.emit('⌫', 'Delete selected')
+                }
             }))
         }
 

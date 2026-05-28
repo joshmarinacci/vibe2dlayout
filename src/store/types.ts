@@ -54,11 +54,13 @@ export type ToolMode =
 export interface UserSettings {
     pinchZoomSpeed: number   // multiplier applied to deltaY for pinch gesture, default 0.005
     wheelZoomStep: number    // fractional zoom step per mouse-wheel click, default 0.1 (= 10%)
+    showShortcutIndicator: boolean
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
     pinchZoomSpeed: 0.005,
     wheelZoomStep: 0.1,
+    showShortcutIndicator: true,
 }
 
 // ─── App State ─────────────────────────────────────────────────────────────
