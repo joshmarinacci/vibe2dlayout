@@ -1,4 +1,15 @@
 
+## 2026-05-28 — Fix multi-select transform inputs (arrow keys + scroll wheel)
+
+The X/Y/W/H inputs shown when multiple shapes are selected were raw `<input type="number">` elements with no arrow key or scroll wheel support. Fixed by:
+- Exporting `TField` from `TransformSection.tsx` and widening its `value` type to `number | null` (to handle mixed values across selected shapes)
+- Replacing the raw inputs in `PropertiesPanel.tsx` multi-select path with `TField`
+
+All numeric inputs in the properties panel now consistently support arrow keys and scroll wheel.
+
+- `src/components/properties/sections/TransformSection.tsx` — export `TField`, accept `value: number | null`
+- `src/components/properties/PropertiesPanel.tsx` — use `TField` for multi-select transform
+
 ## 2026-05-28 — Add edit actions to Tauri native menu
 
 Duplicate (⌘D), Group (⌘G), Ungroup (⌘⇧G), Bring Forward (⌘]), Send Backward (⌘[), and Delete now appear in the native Edit menu in Tauri. Handlers in `useTauriMenu.ts` read the current selection via `stateRef` and dispatch the same actions as the keyboard shortcuts, also firing the shortcut indicator.

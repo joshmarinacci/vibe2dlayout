@@ -37,7 +37,7 @@ import {PixelImageSection} from './sections/PixelImageSection'
 import {ShadowSection} from './sections/ShadowSection'
 import {StrokeSection} from './sections/StrokeSection'
 import {TextSection} from './sections/TextSection'
-import {TransformSection} from './sections/TransformSection'
+import {TField, TransformSection} from './sections/TransformSection'
 import {CornerRadiusControl} from "./inputs/CornerRadiusControl";
 
 function commonValue<T>(vals: T[]): T | null {
@@ -235,27 +235,10 @@ export function PropertiesPanel() {
                 {transformable.length > 0 && (
                     <CollapsibleSection title="Transform">
                         <div className={styles.transformGrid}>
-                            {(['x', 'y', 'width', 'height'] as (keyof BoundingBox)[]).map((key, i) => {
-                                const label = ['X', 'Y', 'W', 'H'][i]
-                                const val = [cx, cy, cw, ch][i]
-                                return (
-                                    <div key={key} className={styles.tfield}>
-                                        <span className={styles.tlabel}>{label}</span>
-                                        <input
-                                            type="number"
-                                            className={styles.tinput}
-                                            value={val !== null ? Math.round(val) : ''}
-                                            placeholder="—"
-                                            step={1}
-                                            min={key === 'width' || key === 'height' ? 1 : undefined}
-                                            onChange={e => {
-                                                const v = parseFloat(e.target.value)
-                                                if (!isNaN(v)) applyTransformField(key, v)
-                                            }}
-                                        />
-                                    </div>
-                                )
-                            })}
+                            <TField label="X" value={cx} onChange={v => applyTransformField('x', v)}/>
+                            <TField label="Y" value={cy} onChange={v => applyTransformField('y', v)}/>
+                            <TField label="W" value={cw} onChange={v => applyTransformField('width', v)} min={1}/>
+                            <TField label="H" value={ch} onChange={v => applyTransformField('height', v)} min={1}/>
                         </div>
                     </CollapsibleSection>
                 )}

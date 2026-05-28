@@ -14,22 +14,22 @@ interface WheelState {
     onChange: (v: number) => void
 }
 
-function TField({
+export function TField({
                     label, value, onChange, min,
                 }: {
     label: string
-    value: number
+    value: number | null
     onChange: (v: number) => void
     min?: number
 }) {
-    const [localText, setLocalText] = useState(String(Math.round(value)))
+    const [localText, setLocalText] = useState(value !== null ? String(Math.round(value)) : '')
     const [isFocused, setIsFocused] = useState(false)
     const wrapRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
     const wheelStateRef = useRef<WheelState>({localText, min, onChange})
 
     useEffect(() => {
-        if (!isFocused) setLocalText(String(Math.round(value)))
+        if (!isFocused) setLocalText(value !== null ? String(Math.round(value)) : '')
     }, [value, isFocused])
 
     wheelStateRef.current = {localText, min, onChange}
@@ -72,7 +72,7 @@ function TField({
                 onBlur={() => {
                     setIsFocused(false)
                     if (!localText.startsWith('@')) commit(localText)
-                    else setLocalText(String(Math.round(value)))
+                    else setLocalText(value !== null ? String(Math.round(value)) : '')
                 }}
                 onChange={e => {
                     const text = e.target.value
@@ -84,7 +84,7 @@ function TField({
                         ;
                         (e.target as HTMLInputElement).blur()
                     } else if (e.key === 'Escape') {
-                        setLocalText(String(Math.round(value)))
+                        setLocalText(value !== null ? String(Math.round(value)) : '')
                         ;(e.target as HTMLInputElement).blur()
                     } else if (e.key === 'ArrowUp' && !localText.startsWith('@')) {
                         e.preventDefault()
@@ -105,6 +105,7 @@ function TField({
                     }
                 }}
             />
+            <span className={styles.tlabel}>px</span>
         </div>
     )
 }
