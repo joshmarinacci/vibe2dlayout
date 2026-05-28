@@ -1,4 +1,12 @@
 
+## 2026-05-28 — New app icon for Limn
+
+Created `app-icon.svg`: a calligraphic "L" in warm cream (`#e8dfc8`) on a deep indigo rounded square (`#1c1b38`). Generated all required platform icon sizes via `npx tauri icon app-icon.svg`, replacing all files in `src-tauri/icons/`.
+
+## 2026-05-28 — Rename app to Limn
+
+Renamed the application from "Vibe 2D Layout" to "Limn" across all config and source files: `package.json`, `tauri.conf.json`, `Cargo.toml`, `index.html`, `Toolbar.tsx` (About modal), and `README.md`. The `.vibe2d` file extension and `vibe2d:` localStorage keys are unchanged to preserve compatibility with existing saved documents.
+
 ## 2026-05-28 — Fix multi-select transform inputs (arrow keys + scroll wheel)
 
 The X/Y/W/H inputs shown when multiple shapes are selected were raw `<input type="number">` elements with no arrow key or scroll wheel support. Fixed by:

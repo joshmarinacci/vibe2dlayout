@@ -689,7 +689,7 @@ export function Toolbar() {
                         style={{background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '24px 28px', minWidth: 260, boxShadow: '0 8px 32px rgba(0,0,0,0.2)'}}
                         onClick={e => e.stopPropagation()}
                     >
-                        <div style={{fontWeight: 'bold', fontSize: 15, marginBottom: 12}}>Vibe 2D Layout</div>
+                        <div style={{fontWeight: 'bold', fontSize: 15, marginBottom: 12}}>Limn</div>
                         <div style={{fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4}}>Version {__APP_VERSION__}</div>
                         <div style={{fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16}}>Built {__BUILD_TIME__}</div>
                         <button style={{fontSize: 12}} onClick={() => setShowAboutModal(false)}>Close</button>

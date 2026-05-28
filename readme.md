@@ -1,4 +1,4 @@
-# Vibe 2D Layout
+# Limn
 
 A visual drawing and layout program for 2D shapes, UI mockups, slide decks, and box diagrams.
 

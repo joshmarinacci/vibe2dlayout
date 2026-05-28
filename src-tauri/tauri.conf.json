@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Vibe 2D Layout",
+  "productName": "Limn",
   "version": "0.1.0",
   "identifier": "earth.josh.apps.vibe2dlayout",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Vibe 2D Layout",
+        "title": "Limn",
         "width": 1440,
         "height": 900,
         "resizable": true,

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background: deep ink indigo with slight warmth -->
+  <rect width="512" height="512" rx="108" ry="108" fill="#1c1b38"/>
+
+  <!--
+    Calligraphic "L": mimics a broad-nib pen held at 45°.
+    Thick strokes go top-left to bottom-right; thin strokes go top-right to bottom-left.
+    Vertical stem is thick; horizontal base foot is thin.
+    The stem tapers at the top (pen entering stroke) and the base has a slight flare.
+  -->
+
+  <!-- Vertical stem: thick calligraphic stroke, slight taper at top -->
+  <path d="
+    M 178 100
+    C 178 100, 200 104, 210 120
+    L 222 370
+    C 222 370, 220 395, 200 400
+    L 168 400
+    C 168 400, 148 395, 148 370
+    L 148 120
+    C 148 104, 164 100, 178 100
+    Z
+  " fill="#e8dfc8"/>
+
+  <!-- Horizontal base: thin calligraphic stroke extending right -->
+  <path d="
+    M 148 370
+    L 148 400
+    L 200 400
+    L 348 400
+    C 360 400, 368 392, 368 382
+    L 368 368
+    C 368 358, 360 350, 348 350
+    L 222 350
+    L 210 370
+    Z
+  " fill="#e8dfc8"/>
+
+  <!-- Subtle ink-wet sheen on stem -->
+  <path d="
+    M 178 100 C 185 100 200 104 207 115
+    L 207 200 L 178 195
+    Z
+  " fill="#ffffff" opacity="0.10"/>
+</svg>
