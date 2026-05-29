@@ -89,6 +89,11 @@ details.collapsible-section {
 }
 
 
+textarea {
+    border: none;
+    color: var(--color-text-primary);
+    background-color: transparent;
+}
 .number-input {
     display: flex;
     flex-direction: row;
@@ -98,14 +103,11 @@ details.collapsible-section {
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border);
     border-radius: 3px;
-    padding: 0 6px;
-    height: 24px;
     label {
         font-size: 10px;
         font-weight: 600;
-        color: var(--color-text-disabled);
+        color: var(--color-text-muted);
         flex-shrink: 0;
-        /*width: 14px;*/
         text-align: center;
         user-select: none;
     }
@@ -124,4 +126,22 @@ details.collapsible-section {
         border-color: var(--color-accent);
     }
 
+}
+button {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+}
+select {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 0.25rem 0.5rem;
+}
+label {
+    color: var(--color-text-secondary);
 }

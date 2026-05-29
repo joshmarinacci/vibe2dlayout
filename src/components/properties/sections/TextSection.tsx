@@ -347,17 +347,17 @@ export function TextSection({
                                 <option value='conic'>Conic</option>
                             </select>
                             {text.textGradient?.gradientType !== 'radial' && <>
-                                <label className={'s'}>Angle</label>
-                                <input className={'mid1span2'} type={'number'}
-                                       value={text.textGradient?.angle ?? 90} min={0} max={360}
-                                       onChange={e => text.textGradient && applyChange({
-                                           textGradient: {
-                                               ...text.textGradient,
-                                               angle: parseInt(e.target.value) || 0
-                                           }
-                                       })}
+                                <NumberInput
+                                    label={'Angle'}
+                                    value={text.textGradient?.angle ?? 90} min={0} max={360}
+                                    onChange={v => text.textGradient && applyChange({
+                                        textGradient: {
+                                            ...text.textGradient,
+                                            angle: v || 0
+                                        }
+                                    })}
+                                    unit={'°'}
                                 />
-                                <label className={'e'}>°</label>
                             </>}
                             <button className={'mid1span3'}
                                     onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}>Edit Gradients…
@@ -451,22 +451,22 @@ export function TextSection({
 
             <CollapsibleSection title={'Shadow'}>
                 {/* 7 — Effects: shadow */}
-                    <label className={'left align-right'}>Shadow</label>
-                    <input
-                        type="checkbox"
-                        className={'right'}
-                        checked={!!text.textShadow}
-                        onChange={e => applyChange({
-                            textShadow: e.target.checked
-                                ? {
-                                    offsetX: 2,
-                                    offsetY: 2,
-                                    blur: 4,
-                                    color: 'rgba(0,0,0,0.5)'
-                                }
-                                : null
-                        })}
-                    />
+                <label className={'left align-right'}>Shadow</label>
+                <input
+                    type="checkbox"
+                    className={'right'}
+                    checked={!!text.textShadow}
+                    onChange={e => applyChange({
+                        textShadow: e.target.checked
+                            ? {
+                                offsetX: 2,
+                                offsetY: 2,
+                                blur: 4,
+                                color: 'rgba(0,0,0,0.5)'
+                            }
+                            : null
+                    })}
+                />
                 {text.textShadow && (
                     <div style={{
                         paddingLeft: 8,
@@ -572,17 +572,17 @@ export function TextSection({
                                         <option value='conic'>Conic</option>
                                     </select>
                                     {text.textStrokeGradient?.gradientType !== 'radial' && <>
-                                        <label className={'s'}>Angle</label>
-                                        <input className={'mid1span2'} type={'number'}
-                                               value={text.textStrokeGradient?.angle ?? 90} min={0} max={360}
-                                               onChange={e => text.textStrokeGradient && applyChange({
-                                                   textStrokeGradient: {
-                                                       ...text.textStrokeGradient,
-                                                       angle: parseInt(e.target.value) || 0
-                                                   }
-                                               })}
+                                        <NumberInput
+                                            label={"Angle"}
+                                            value={text.textStrokeGradient?.angle ?? 90} min={0} max={360}
+                                            onChange={v => text.textStrokeGradient && applyChange({
+                                                textStrokeGradient: {
+                                                    ...text.textStrokeGradient,
+                                                    angle: v || 0
+                                                }
+                                            })}
+                                            unit={"°"}
                                         />
-                                        <label className={'e'}>°</label>
                                     </>}
                                     <button className={'mid1span3'}
                                             onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}>Edit Gradients…

@@ -1,5 +1,6 @@
 import type {GradientDef} from '@model/document'
 import React, {useEffect, useRef, useState} from 'react'
+import {ChevronDown} from "lucide-react";
 
 function gradientSwatchCSS(g: GradientDef): string {
     const stops = g.stops.map(s => `${s.color} ${Math.round(s.position * 100)}%`).join(', ')
@@ -56,7 +57,7 @@ export function GradientPicker({gradients, value, onChange, showCustom, classNam
                 ) : (
                     <span style={{flex: 1, textAlign: 'left', color: 'var(--color-text-muted)'}}>Custom…</span>
                 )}
-                <span style={{color: 'var(--color-text-muted)', fontSize: 9}}>▾</span>
+                <span style={{color: 'var(--color-text-muted)', fontSize: 9}}><ChevronDown size={12}/></span>
             </button>
             {open && (
                 <div style={{

@@ -7,6 +7,7 @@ import {ColorInput} from '../inputs/ColorInput'
 import {useAppDispatch, useAppState} from '@store/context'
 import '../propsheet.css'
 import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
+import {NumberInput} from "@components/properties/inputs/NumberInput.tsx";
 
 interface Props {
     fill: FillStyle
@@ -115,14 +116,16 @@ export function FillSection({fill, onChange, title}: Props) {
                                 paletteColorId: ref.paletteColorId,
                             })}
                         />
-                        <label className={'left align-right'}>Opacity</label>
-                        <input className={'right'}
-                               type={'number'}
-                               value={Math.round(fill.opacity * 100)}
-                               min={0} max={100}
-                               onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
+                        <NumberInput
+                            label={'Opacity'}
+                            className={'stretch'}
+                            value={Math.round(fill.opacity * 100)}
+                            min={0}
+                            max={100}
+                            step={1}
+                            unit={'%'}
+                            onChange={v => onChange({...fill, opacity: v / 100})}
                         />
-                        <label className={'gutter'}>%</label>
                     </section>
                 </TabbedPanelContent>
                 <TabbedPanelContent tab={'gradient'} {...tabProps}>
@@ -139,7 +142,10 @@ export function FillSection({fill, onChange, title}: Props) {
                         <select
                             className={'right'}
                             value={gradFill?.gradientType ?? 'linear'}
-                            onChange={e => gradFill && onChange({...gradFill, gradientType: e.target.value as GradientFill['gradientType']})}
+                            onChange={e => gradFill && onChange({
+                                ...gradFill,
+                                gradientType: e.target.value as GradientFill['gradientType']
+                            })}
                         >
                             <option value='linear'>Linear</option>
                             <option value='radial'>Radial</option>
@@ -147,19 +153,20 @@ export function FillSection({fill, onChange, title}: Props) {
                         </select>
                         {gradFill?.gradientType !== 'radial' && <>
                             <label className={'left align-right'}>Angle</label>
-                            <input
+                            <NumberInput
                                 className={'mid1span2'}
-                                type={'number'}
                                 value={gradFill?.angle ?? 90}
                                 min={0} max={360}
-                                onChange={e => gradFill && onChange({...gradFill, angle: parseInt(e.target.value) || 0})}
+                                onChange={v => gradFill && onChange({
+                                    ...gradFill,
+                                    angle: v || 0
+                                })}
                             />
-                            <label className={'e'}>°</label>
                         </>}
-                        <button
-                            className={'right'}
-                            onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}
-                        >Edit Gradients</button>
+                        <button className={'right'}
+                                onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}
+                        >Edit Gradients
+                        </button>
                     </section>
                 </TabbedPanelContent>
                 <TabbedPanelContent tab='sketch' {...tabProps}>
@@ -184,8 +191,9 @@ export function FillSection({fill, onChange, title}: Props) {
                             }}
                         />
                         <button className='right'
-                            onClick={() => dispatch({type: 'TOGGLE_SKETCH_STYLE_MODAL'})}
-                        >Edit Styles</button>
+                                onClick={() => dispatch({type: 'TOGGLE_SKETCH_STYLE_MODAL'})}
+                        >Edit Styles
+                        </button>
                     </section>
                 </TabbedPanelContent>
             </TabbedPanel>

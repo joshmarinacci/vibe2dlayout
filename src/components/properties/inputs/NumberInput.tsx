@@ -118,7 +118,7 @@ export function NumberInput({
                 max={max}
                 step={step}
             />
-            {unit && <span className={'unit'}>{unit}</span>}
+            {unit && <label>{unit}</label>}
         </div>
     )
 }

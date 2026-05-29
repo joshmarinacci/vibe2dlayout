@@ -123,11 +123,10 @@ export function StrokeSection({stroke, onChange}: Props) {
                             }}
                         />
                         <label className={'left align-right'}>Opacity</label>
-                        <input className={'right'}
-                               type={'number'}
-                               value={Math.round(stroke.opacity * 100)}
-                               min={0} max={100}
-                               onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
+                        <NumberInput className={'right'}
+                                     value={Math.round(stroke.opacity * 100)}
+                                     min={0} max={100}
+                                     onChange={v => onChange({...stroke, opacity: v / 100})}
                         />
                         <label className={'gutter'}>%</label>
                         <label className={'left align-right'}>Style</label>
@@ -178,30 +177,29 @@ export function StrokeSection({stroke, onChange}: Props) {
                         </select>
                         {gradStroke?.gradientType !== 'radial' && <>
                             <label className={'left align-right'}>Angle</label>
-                            <input
+                            <NumberInput
                                 className={'right'}
-                                type={'number'}
                                 value={gradStroke?.angle ?? 90}
                                 min={0} max={360}
-                                onChange={e => gradStroke && onChange({
+                                onChange={v => gradStroke && onChange({
                                     ...gradStroke,
-                                    angle: parseInt(e.target.value) || 0
+                                    angle: v || 0
                                 })}
+                                unit={'°'}
                             />
-                            <label className={'gutter'}>°</label>
                         </>}
-                        <label className={'left align-right'}>Opacity</label>
-                        <input className={'right'}
-                               type={'number'}
-                               value={Math.round(stroke.opacity * 100)}
-                               min={0} max={100}
-                               onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
+                        <NumberInput className={'right'}
+                                     label={'Opacity'}
+                                     value={Math.round(stroke.opacity * 100)}
+                                     min={0} max={100}
+                                     onChange={v => onChange({...stroke, opacity: v / 100})}
+                                     unit={'%'}
                         />
-                        <label className='gutter'>%</label>
                         <button
                             className={'center'}
                             onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}
-                        >Edit Gradients</button>
+                        >Edit Gradients
+                        </button>
                     </section>
                 </TabbedPanelContent>
 
@@ -214,14 +212,14 @@ export function StrokeSection({stroke, onChange}: Props) {
                                 if (sketchStroke) onChange({...sketchStroke, color: ref.color})
                             }}
                         />
-                        <label className={'left align-right'}>Opacity</label>
-                        <input className={'right'}
-                               type={'number'}
-                               value={Math.round(stroke.opacity * 100)}
-                               min={0} max={100}
-                               onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
+                        <NumberInput
+                            className={'right'}
+                            label={'Opacity'}
+                            value={Math.round(stroke.opacity * 100)}
+                            min={0} max={100}
+                            onChange={v => onChange({...stroke, opacity: v / 100})}
+                            unit={'%'}
                         />
-                        <label className={'gutter'}>%</label>
                     </section>
                 </TabbedPanelContent>
             </TabbedPanel>
