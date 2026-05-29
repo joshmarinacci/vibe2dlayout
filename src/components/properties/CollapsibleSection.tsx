@@ -8,7 +8,7 @@ interface Props {
 
 export function CollapsibleSection({title, children, defaultOpen = true}: Props) {
     return (
-        <details className={"collapsible-section"} open={defaultOpen}>
+        <details className={"collapsible-section stretch-full"} open={defaultOpen}>
             <summary>{title}</summary>
             <article>{children}</article>
         </details>

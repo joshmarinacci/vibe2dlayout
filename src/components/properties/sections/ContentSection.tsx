@@ -28,7 +28,7 @@ export function ContentSection({id, content, dispatch}: Props) {
         <CollapsibleSection title="Content">
             <textarea
                 ref={textareaRef}
-                className={'span-full-grid'}
+                className={'stretch-full'}
                 value={content}
                 rows={3}
                 onChange={e => {
