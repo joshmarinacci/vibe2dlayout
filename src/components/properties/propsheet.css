@@ -3,6 +3,8 @@ details.collapsible-section {
         padding: 0.5rem;
         background: var(--color-bg-app);
         user-select: none;
+        background: linear-gradient(#e8e8e8, #dddddd);
+        border: 1px solid var(--color-bg-app);
         &:hover {
             background: var(--color-bg-hover);
         }
@@ -133,6 +135,20 @@ button {
     color: var(--color-text-primary);
     border-radius: 4px;
     padding: 0.25rem 0.5rem;
+}
+button:hover {
+    background: var(--color-bg-hover);
+}
+button.toggle {
+    border: 1px solid transparent;
+    background: var(--color-bg-panel);
+    color: var(--color-text-secondary);
+    &.selected {
+        background: var(--color-selected);
+    }
+    &:hover {
+        background: var(--color-selected-hover);
+    }
 }
 select {
     background: var(--color-bg-surface);

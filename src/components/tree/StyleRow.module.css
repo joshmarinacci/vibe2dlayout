@@ -14,7 +14,7 @@
 }
 
 .selected {
-    background: var(--color-accent-subtle);
+    background: var(--color-selected);
     border-left-color: var(--color-accent);
 }
 

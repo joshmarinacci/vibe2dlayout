@@ -54,9 +54,9 @@ export function CornerRadiusControl({
             <button
                 onClick={togglePerCorner}
                 title={perCorner ? 'Use uniform radius' : 'Set per-corner radius'}
-                className={'gutter'}
+                className={'gutter toggle ' + (perCorner ? 'selected' : 'non-selected')}
             >
-                {perCorner?<UnlockIcon size={'16'}/>:<LockIcon size={'16'}/>}
+                {perCorner?<UnlockIcon size={'12'}/>:<LockIcon size={'12'}/>}
             </button>
             {perCorner && (
                 <>
