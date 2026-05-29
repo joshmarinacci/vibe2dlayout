@@ -77,7 +77,7 @@ export function NumberInput({
     }
 
     return (
-        <div className={'hbox ' + (className?className:'')}>
+        <div className={'number-input ' + (className?className:'')}>
             {label && <label>{label}</label>}
             <input
                 ref={inputRef}

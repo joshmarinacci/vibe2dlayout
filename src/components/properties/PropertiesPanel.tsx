@@ -234,7 +234,7 @@ export function PropertiesPanel() {
                 </CollapsibleSection>
                 {transformable.length > 0 && (
                     <CollapsibleSection title="Transform">
-                        <div className={styles.transformGrid}>
+                        <div>
                             <TField label="X" value={cx} onChange={v => applyTransformField('x', v)}/>
                             <TField label="Y" value={cy} onChange={v => applyTransformField('y', v)}/>
                             <TField label="W" value={cw} onChange={v => applyTransformField('width', v)} min={1}/>

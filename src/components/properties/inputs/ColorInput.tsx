@@ -28,7 +28,7 @@ export function ColorInput({
     const activePalette = palettes.find(p => p.id === activePaletteId) ?? palettes[0]
 
     return (
-        <>
+        <div className={'stretch'}>
             <span className={styles.label} style={{gridColumn:'1'}}>{label}</span>
             <div className={styles.inputRow} ref={wrapRef} style={{gridColumn: '1'}}>
                 <input
@@ -74,6 +74,6 @@ export function ColorInput({
                     )}
                 </>
             )}
-        </>
+        </div>
     )
 }

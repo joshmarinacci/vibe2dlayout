@@ -151,24 +151,6 @@
     font-weight: 600;
 }
 
-.grid2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px 8px;
-}
-
-/* Compact transform grid: X Y / W H / ° laid out as label+input pairs */
-.transformGrid {
-    display: grid;
-    grid-template-columns: repeat(2, 100px);
-    gap: 4px 6px;
-}
-
-/* The ° field spans both columns and is half-width, left-aligned */
-.transformGrid > :nth-child(9) {
-    grid-column: 1;
-}
-
 .tfield {
     display: flex;
     align-items: center;
@@ -204,6 +186,7 @@
     font-size: 12px;
     text-align: right;
     padding: 0;
+    width: 100%;
 }
 
 .lockedBanner {

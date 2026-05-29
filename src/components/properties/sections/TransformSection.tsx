@@ -15,12 +15,17 @@ interface WheelState {
 }
 
 export function TField({
-                    label, value, onChange, min,
-                }: {
-    label: string
-    value: number | null
-    onChange: (v: number) => void
-    min?: number
+                           label,
+                           value,
+                           onChange,
+                           min,
+                           className
+                       }: {
+    label: string,
+    value: number | null,
+    onChange: (v: number) => void,
+    min?: number,
+    className?: string
 }) {
     const [localText, setLocalText] = useState(value !== null ? String(Math.round(value)) : '')
     const [isFocused, setIsFocused] = useState(false)
@@ -59,7 +64,7 @@ export function TField({
     }
 
     return (
-        <div className={styles.tfield} ref={wrapRef} style={{position: 'relative'}}>
+        <div className={styles.tfield + (className?(' ' + className):'')} ref={wrapRef}>
             <span className={styles.tlabel}>{label}</span>
             <input
                 ref={inputRef}
@@ -116,35 +121,32 @@ export function TransformSection({transform, onChange}: Props) {
 
     return (
         <CollapsibleSection title="Transform">
-            <div className={styles.transformGrid}>
-                <TField label="X" value={Math.round(transform.x)} onChange={set('x')}/>
-                <TField label="Y" value={Math.round(transform.y)} onChange={set('y')}/>
-                <TField label="W" value={Math.round(transform.width)} onChange={set('width')} min={1}/>
-                <TField label="H" value={Math.round(transform.height)} onChange={set('height')} min={1} />
-                <TField label="SX" value={Math.round((transform.scaleX ?? 1) * 100)}
-                        onChange={v => onChange({...transform, scaleX: v / 100})} min={-500}/>
-                <TField label="SY" value={Math.round((transform.scaleY ?? 1) * 100)}
-                        onChange={v => onChange({...transform, scaleY: v / 100})} min={-500}/>
-                <TField label="KX" value={transform.skewX ?? 0} onChange={set('skewX')}/>
-                <TField label="KY" value={transform.skewY ?? 0} onChange={set('skewY')}/>
-                <TField label="°" value={transform.rotation} onChange={set('rotation')}/>
-            </div>
-            <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: 4}}>
-                <button
-                    title="Reset rotation, scale, and skew"
-                    style={{fontSize: 11, padding: '2px 6px', cursor: 'pointer'}}
-                    onClick={() => onChange({
-                        ...transform,
-                        rotation: 0,
-                        scaleX: 1,
-                        scaleY: 1,
-                        skewX: 0,
-                        skewY: 0
-                    })}
-                >
-                    Reset transform
-                </button>
-            </div>
+            <TField className={"left"} label="X" value={Math.round(transform.x)} onChange={set('x')}/>
+            <TField className={'right'} label="Y" value={Math.round(transform.y)} onChange={set('y')}/>
+            <TField className={'left'} label="W" value={Math.round(transform.width)} onChange={set('width')} min={1}/>
+            <TField className={'right'} label="H" value={Math.round(transform.height)} onChange={set('height')} min={1} />
+            <TField className={'left'} label="SX" value={Math.round((transform.scaleX ?? 1) * 100)}
+                    onChange={v => onChange({...transform, scaleX: v / 100})} min={-500}/>
+            <TField className={'right'} label="SY" value={Math.round((transform.scaleY ?? 1) * 100)}
+                    onChange={v => onChange({...transform, scaleY: v / 100})} min={-500}/>
+            <TField className={'left'} label="KX" value={transform.skewX ?? 0} onChange={set('skewX')}/>
+            <TField className={'right'} label="KY" value={transform.skewY ?? 0} onChange={set('skewY')}/>
+            <TField className={'left'} label="°" value={transform.rotation} onChange={set('rotation')}/>
+            <button
+                className={'center'}
+                title="Reset rotation, scale, and skew"
+                style={{fontSize: 11, padding: '2px 6px', cursor: 'pointer'}}
+                onClick={() => onChange({
+                    ...transform,
+                    rotation: 0,
+                    scaleX: 1,
+                    scaleY: 1,
+                    skewX: 0,
+                    skewY: 0
+                })}
+            >
+                Reset transform
+            </button>
         </CollapsibleSection>
     )
 }

@@ -102,7 +102,7 @@ export function FillSection({fill, onChange, title}: Props) {
                                     onChange={() => switchToSketch()}/>
                 </TabbedPanelTabs>
                 <TabbedPanelContent tab={'color'} {...tabProps}>
-                    <section className={'super'}>
+                    <section>
                         <ColorInput
                             value={{
                                 color: colorFill?.color ?? '#ffffff',
@@ -115,28 +115,19 @@ export function FillSection({fill, onChange, title}: Props) {
                                 paletteColorId: ref.paletteColorId,
                             })}
                         />
-                        <div className={'full center-v'}
-                             style={{display: 'grid', gridTemplateColumns: 'subgrid'}}>
-                            <label className={'s'}>Opacity</label>
-                            <input style={{gridColumn: 'mid1 / span 2', minWidth: '20px'}}
-                                   type={'range'}
-                                   value={Math.round(fill.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <input className={'e'}
-                                   type={'number'}
-                                   value={Math.round(fill.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <label className={'center-v'} style={{gridColumn: 'ge/span 1'}}>%</label>
-                        </div>
+                        <label className={'left align-right'}>Opacity</label>
+                        <input className={'right'}
+                               type={'number'}
+                               value={Math.round(fill.opacity * 100)}
+                               min={0} max={100}
+                               onChange={e => onChange({...fill, opacity: parseInt(e.target.value) / 100})}
+                        />
+                        <label className={'gutter'}>%</label>
                     </section>
                 </TabbedPanelContent>
                 <TabbedPanelContent tab={'gradient'} {...tabProps}>
-                    <section className={'super'}>
-                        <label className={'s'}>Stops</label>
+                    <section>
+                        <label className={'left align-right'}>Stops</label>
                         <GradientPicker
                             className={'mid1span3'}
                             gradients={docGradients}
@@ -144,9 +135,9 @@ export function FillSection({fill, onChange, title}: Props) {
                             onChange={handleGradientSelect}
                             showCustom={!gradFill?.gradientId}
                         />
-                        <label className={'s'}>Type</label>
+                        <label className={'left align-right'}>Type</label>
                         <select
-                            className={'mid1span3'}
+                            className={'right'}
                             value={gradFill?.gradientType ?? 'linear'}
                             onChange={e => gradFill && onChange({...gradFill, gradientType: e.target.value as GradientFill['gradientType']})}
                         >
@@ -155,7 +146,7 @@ export function FillSection({fill, onChange, title}: Props) {
                             <option value='conic'>Conic</option>
                         </select>
                         {gradFill?.gradientType !== 'radial' && <>
-                            <label className={'s'}>Angle</label>
+                            <label className={'left align-right'}>Angle</label>
                             <input
                                 className={'mid1span2'}
                                 type={'number'}
@@ -166,17 +157,16 @@ export function FillSection({fill, onChange, title}: Props) {
                             <label className={'e'}>°</label>
                         </>}
                         <button
-                            className={'mid1span3'}
+                            className={'right'}
                             onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}
-                        >Edit Gradients…
-                        </button>
+                        >Edit Gradients</button>
                     </section>
                 </TabbedPanelContent>
-                <TabbedPanelContent tab={'sketch'} {...tabProps}>
-                    <section className={'super'}>
-                        <label className={'s'}>Style</label>
+                <TabbedPanelContent tab='sketch' {...tabProps}>
+                    <section>
+                        <label className={'left align-right'}>Style</label>
                         <select
-                            className={'mid1span3'}
+                            className='right'
                             value={sketchFill?.sketchStyleId ?? ''}
                             onChange={e => handleSketchStyleSelect(e.target.value)}
                         >
@@ -184,7 +174,7 @@ export function FillSection({fill, onChange, title}: Props) {
                                 <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
                         </select>
-                        <label className={'s'}>Color</label>
+                        <label className='left'>Color</label>
                         <ColorInput
                             value={{color: sketchFill?.color ?? '#000000'}}
                             onChange={ref => {
@@ -193,11 +183,9 @@ export function FillSection({fill, onChange, title}: Props) {
                                 }
                             }}
                         />
-                        <button
-                            className={'mid1span3'}
+                        <button className='right'
                             onClick={() => dispatch({type: 'TOGGLE_SKETCH_STYLE_MODAL'})}
-                        >Edit Sketch Styles…
-                        </button>
+                        >Edit Styles</button>
                     </section>
                 </TabbedPanelContent>
             </TabbedPanel>

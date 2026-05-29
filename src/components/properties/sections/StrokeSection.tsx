@@ -99,43 +99,49 @@ export function StrokeSection({stroke, onChange}: Props) {
             <TabbedPanel>
                 <TabbedPanelTabs>
                     <TabbedPanelTab tab={'color'} title={'Color'} onChange={() => switchToColor()} {...tabProps}/>
-                    <TabbedPanelTab tab={'gradient'} title={'Gradient'} onChange={() => switchToGradient()} {...tabProps}/>
+                    <TabbedPanelTab tab={'gradient'} title={'Gradient'}
+                                    onChange={() => switchToGradient()} {...tabProps}/>
                     <TabbedPanelTab tab={'sketch'} title={'Sketch'} onChange={() => switchToSketch()} {...tabProps}/>
                 </TabbedPanelTabs>
 
                 <TabbedPanelContent tab={'color'} {...tabProps}>
-                    <section className={'super'}>
+                    <section>
                         <ColorInput
                             value={{
                                 color: colorStroke?.color ?? '#000000',
                                 paletteColorId: colorStroke?.paletteColorId,
                             }}
                             onChange={ref => {
-                                const base = colorStroke ?? {type: 'solid' as const, color: '#000000', width: stroke.width, dash: [], opacity: stroke.opacity}
+                                const base = colorStroke ?? {
+                                    type: 'solid' as const,
+                                    color: '#000000',
+                                    width: stroke.width,
+                                    dash: [],
+                                    opacity: stroke.opacity
+                                }
                                 onChange({...base, color: ref.color, paletteColorId: ref.paletteColorId})
                             }}
                         />
-                        <div className={'full center-v'} style={{display: 'grid', gridTemplateColumns: 'subgrid'}}>
-                            <label className={'s'}>Opacity</label>
-                            <input style={{gridColumn: 'mid1 / span 2', minWidth: '20px'}}
-                                   type={'range'}
-                                   value={Math.round(stroke.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <input className={'e'} type={'number'}
-                                   value={Math.round(stroke.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <label className={'center-v'} style={{gridColumn: 'ge/span 1'}}>%</label>
-                        </div>
-                        <label className={'s'}>Style</label>
+                        <label className={'left align-right'}>Opacity</label>
+                        <input className={'right'}
+                               type={'number'}
+                               value={Math.round(stroke.opacity * 100)}
+                               min={0} max={100}
+                               onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
+                        />
+                        <label className={'gutter'}>%</label>
+                        <label className={'left align-right'}>Style</label>
                         <select
-                            className={'mid1span3'}
+                            className={'right'}
                             value={colorStroke ? dashOptionFromStroke(colorStroke) : 'solid'}
                             onChange={e => {
-                                const base = colorStroke ?? {type: 'solid' as const, color: '#000000', width: stroke.width, dash: [], opacity: stroke.opacity}
+                                const base = colorStroke ?? {
+                                    type: 'solid' as const,
+                                    color: '#000000',
+                                    width: stroke.width,
+                                    dash: [],
+                                    opacity: stroke.opacity
+                                }
                                 onChange(applyDashOption(base, e.target.value as DashOption))
                             }}
                         >
@@ -148,82 +154,74 @@ export function StrokeSection({stroke, onChange}: Props) {
                 </TabbedPanelContent>
 
                 <TabbedPanelContent tab={'gradient'} {...tabProps}>
-                    <section className={'super'}>
-                        <label className={'s'}>Stops</label>
+                    <section>
+                        <label className={'left align-right'}>Stops</label>
                         <GradientPicker
-                            className={'mid1span3'}
+                            className={'right'}
                             gradients={docGradients}
                             value={gradStroke?.gradientId ?? ''}
                             onChange={handleGradientSelect}
                             showCustom={!gradStroke?.gradientId}
                         />
-                        <label className={'s'}>Type</label>
+                        <label className={'left align-right'}>Type</label>
                         <select
-                            className={'mid1span3'}
+                            className={'right'}
                             value={gradStroke?.gradientType ?? 'linear'}
-                            onChange={e => gradStroke && onChange({...gradStroke, gradientType: e.target.value as GradientFill['gradientType']})}
+                            onChange={e => gradStroke && onChange({
+                                ...gradStroke,
+                                gradientType: e.target.value as GradientFill['gradientType']
+                            })}
                         >
                             <option value='linear'>Linear</option>
                             <option value='radial'>Radial</option>
                             <option value='conic'>Conic</option>
                         </select>
                         {gradStroke?.gradientType !== 'radial' && <>
-                            <label className={'s'}>Angle</label>
+                            <label className={'left align-right'}>Angle</label>
                             <input
-                                className={'mid1span2'}
+                                className={'right'}
                                 type={'number'}
                                 value={gradStroke?.angle ?? 90}
                                 min={0} max={360}
-                                onChange={e => gradStroke && onChange({...gradStroke, angle: parseInt(e.target.value) || 0})}
+                                onChange={e => gradStroke && onChange({
+                                    ...gradStroke,
+                                    angle: parseInt(e.target.value) || 0
+                                })}
                             />
-                            <label className={'e'}>°</label>
+                            <label className={'gutter'}>°</label>
                         </>}
-                        <div className={'full center-v'} style={{display: 'grid', gridTemplateColumns: 'subgrid'}}>
-                            <label className={'s'}>Opacity</label>
-                            <input style={{gridColumn: 'mid1 / span 2', minWidth: '20px'}}
-                                   type={'range'}
-                                   value={Math.round(stroke.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <input className={'e'} type={'number'}
-                                   value={Math.round(stroke.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <label className={'center-v'} style={{gridColumn: 'ge/span 1'}}>%</label>
-                        </div>
+                        <label className={'left align-right'}>Opacity</label>
+                        <input className={'right'}
+                               type={'number'}
+                               value={Math.round(stroke.opacity * 100)}
+                               min={0} max={100}
+                               onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
+                        />
+                        <label className='gutter'>%</label>
                         <button
-                            className={'mid1span3'}
+                            className={'center'}
                             onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}
-                        >Edit Gradients…</button>
+                        >Edit Gradients</button>
                     </section>
                 </TabbedPanelContent>
 
                 <TabbedPanelContent tab={'sketch'} {...tabProps}>
-                    <section className={'super'}>
-                        <label className={'s'}>Color</label>
+                    <section>
+                        <label className={'left align-right'}>Color</label>
                         <ColorInput
                             value={{color: sketchStroke?.color ?? '#000000'}}
                             onChange={ref => {
                                 if (sketchStroke) onChange({...sketchStroke, color: ref.color})
                             }}
                         />
-                        <div className={'full center-v'} style={{display: 'grid', gridTemplateColumns: 'subgrid'}}>
-                            <label className={'s'}>Opacity</label>
-                            <input style={{gridColumn: 'mid1 / span 2', minWidth: '20px'}}
-                                   type={'range'}
-                                   value={Math.round(stroke.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <input className={'e'} type={'number'}
-                                   value={Math.round(stroke.opacity * 100)}
-                                   min={0} max={100}
-                                   onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
-                            />
-                            <label className={'center-v'} style={{gridColumn: 'ge/span 1'}}>%</label>
-                        </div>
+                        <label className={'left align-right'}>Opacity</label>
+                        <input className={'right'}
+                               type={'number'}
+                               value={Math.round(stroke.opacity * 100)}
+                               min={0} max={100}
+                               onChange={e => onChange({...stroke, opacity: parseInt(e.target.value) / 100})}
+                        />
+                        <label className={'gutter'}>%</label>
                     </section>
                 </TabbedPanelContent>
             </TabbedPanel>
@@ -234,6 +232,7 @@ export function StrokeSection({stroke, onChange}: Props) {
                 min={0} step={0.5}
                 onChange={v => onChange({...stroke, width: v})}
                 unit="px"
+                className={'left'}
             />
         </CollapsibleSection>
     )
