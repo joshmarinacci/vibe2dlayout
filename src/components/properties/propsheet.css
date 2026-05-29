@@ -26,16 +26,6 @@ details.collapsible-section {
         .align-right {
             justify-self: end;
         }
-        .number-input {
-            display: flex;
-            flex-direction: row;
-            align-items: baseline;
-            gap: 0.25rem;
-            padding: 0.25rem;
-            input {
-                flex: 1;
-            }
-        }
         .stretch {
             grid-column: 2 / span 2;
         }
@@ -94,6 +84,44 @@ details.collapsible-section {
             display: none;
         }
 
+    }
+
+}
+
+
+.number-input {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 0 6px;
+    height: 24px;
+    label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--color-text-disabled);
+        flex-shrink: 0;
+        /*width: 14px;*/
+        text-align: center;
+        user-select: none;
+    }
+    input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: var(--color-text-primary);
+        font-size: 12px;
+        text-align: right;
+        padding: 0;
+        width: 100%;
+    }
+    &:focus-within {
+        border-color: var(--color-accent);
     }
 
 }

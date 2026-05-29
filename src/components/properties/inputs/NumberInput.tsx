@@ -10,7 +10,6 @@ interface WheelState {
     max?: number
     onChange: (v: number) => void
 }
-import styles from './inputs.module.css'
 
 interface Props {
     label?: string
@@ -77,12 +76,11 @@ export function NumberInput({
     }
 
     return (
-        <div className={'number-input ' + (className?className:'')}>
+        <div className={'number-input ' + (className ? className : '')}>
             {label && <label>{label}</label>}
             <input
                 ref={inputRef}
                 type="text"
-                className={styles.numberInput}
                 value={localText}
                 style={{textAlign: 'right'}}
                 onFocus={() => setIsFocused(true)}
@@ -120,7 +118,7 @@ export function NumberInput({
                 max={max}
                 step={step}
             />
-            {unit && <span className={styles.unit}>{unit}</span>}
+            {unit && <span className={'unit'}>{unit}</span>}
         </div>
     )
 }

@@ -209,9 +209,10 @@ export function TextSection({
             />
 
             {/* size */}
-            <label className={'left'}>Size</label>
+            {/*<label className={'left'}>Size</label>*/}
             <NumberInput
-                className={'right'}
+                label="Size"
+                className={'stretch'}
                 value={text.fontSize}
                 min={FONT_SIZE_MIN}
                 max={FONT_SIZE_MAX}
@@ -412,8 +413,9 @@ export function TextSection({
                         </button>
                     ))}
                 </div>
-                <label className={'left align-right'}>Line H</label>
+                {/*<label className={'left align-right'}>Line H</label>*/}
                 <NumberInput
+                    label={'Line H'}
                     className={'right'}
                     value={text.lineHeight ?? 1.2}
                     min={0.5}
@@ -422,8 +424,9 @@ export function TextSection({
                     onChange={v => applyChange({lineHeight: v})}
                     unit={'%'}
                 />
-                <label className={'left align-right'}>Spacing</label>
+                {/*<label className={'left align-right'}>Spacing</label>*/}
                 <NumberInput
+                    label={'Spacing'}
                     className={'right'}
                     value={text.letterSpacing ?? 0}
                     min={-10}
