@@ -237,7 +237,7 @@ export function TextSection({
                 options={weightOptions}
                 onChange={v => applyChange({fontWeight: v as TextStyle['fontWeight']})}
             />
-            <div className={'stretch hbox'}>
+            <div className={'right hbox'}>
                 <button
                     className={`${inputStyles.iconBtn}${text.fontStyle === 'italic' ? ` ${inputStyles.iconBtnActive}` : ''}`}
                     title="Italic"
@@ -448,26 +448,22 @@ export function TextSection({
 
             <CollapsibleSection title={'Shadow'}>
                 {/* 7 — Effects: shadow */}
-                <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
-                    <div style={{flex: 1}} className={inputStyles.field}>
-                        <span className={inputStyles.label}>Shadow</span>
-                        <input
-                            type="checkbox"
-                            className={inputStyles.checkbox}
-                            checked={!!text.textShadow}
-                            onChange={e => applyChange({
-                                textShadow: e.target.checked
-                                    ? {
-                                        offsetX: 2,
-                                        offsetY: 2,
-                                        blur: 4,
-                                        color: 'rgba(0,0,0,0.5)'
-                                    }
-                                    : null
-                            })}
-                        />
-                    </div>
-                </div>
+                    <label className={'left align-right'}>Shadow</label>
+                    <input
+                        type="checkbox"
+                        className={'right'}
+                        checked={!!text.textShadow}
+                        onChange={e => applyChange({
+                            textShadow: e.target.checked
+                                ? {
+                                    offsetX: 2,
+                                    offsetY: 2,
+                                    blur: 4,
+                                    color: 'rgba(0,0,0,0.5)'
+                                }
+                                : null
+                        })}
+                    />
                 {text.textShadow && (
                     <div style={{
                         paddingLeft: 8,
@@ -516,7 +512,6 @@ export function TextSection({
             </CollapsibleSection>
 
             <CollapsibleSection title={'Stroke'}>
-
                 <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
                     <div style={{flex: 1}} className={inputStyles.field}>
                         <span className={inputStyles.label}>Stroke</span>
