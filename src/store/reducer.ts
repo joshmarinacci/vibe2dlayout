@@ -2,6 +2,7 @@ import type {CustomFont, TreeNode, VibeDocument} from '@model/document'
 import {findNode, findParent, getAllIds, insertNode, removeNode} from '@model/document'
 import {DEFAULT_GRID_SETTINGS} from '@model/grid'
 import type {ImageAsset} from '@model/imageAsset'
+import {EMPTY_LIBRARY} from '@model/library'
 import {DEFAULT_PALETTE} from '@model/palette'
 import type {GradientStop, ImageShape, Shape} from '@model/shapes'
 import type {Theme} from '@model/theme'
@@ -14,6 +15,7 @@ import {
   unionBoxes
 } from '@utils/geometry'
 import {generateId} from '@utils/idgen'
+import {saveLibrary} from '@utils/libraryStorage'
 import type {AppAction, AppState, DocumentAction, ViewTransform} from './types'
 import {DEFAULT_SETTINGS} from './types'
 
@@ -438,6 +440,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 images,
                 customFonts: (d.customFonts ?? []).map((f: unknown) =>
                     typeof f === 'string' ? {
+                        id: crypto.randomUUID(),
                         name: f,
                         metadataVersion: 0,
                         isVariable: null as null,
@@ -1034,6 +1037,10 @@ export const initialState: AppState = {
     showGradientModal: false,
     showSketchStyleModal: false,
     croppingShapeId: null,
+    selectedGradientId: null,
+    library: {...EMPTY_LIBRARY},
+    selectedLibraryItemId: null,
+    selectedLibraryItemType: null,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1120,6 +1127,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
                 selection: {
                     ...state.selection,
                     ids: action.additive
@@ -1134,6 +1144,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
                 selection: {ids: [], editingTextId: null}
             }
         case 'SELECT_ALL': {
@@ -1144,6 +1157,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
                 selection: {...state.selection, ids: allIds}
             }
         }
@@ -1197,6 +1213,18 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, pendingDocumentsModalMode: null}
         case 'TOGGLE_GRADIENT_MODAL':
             return {...state, showGradientModal: !state.showGradientModal}
+        case 'SELECT_GRADIENT':
+            return {
+                ...state,
+                selectedGradientId: action.gradientId,
+                selectedAssetId: null,
+                selectedPixelAssetId: null,
+                selectedFontName: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
+                documentSelected: false,
+                selection: {ids: [], editingTextId: null},
+            }
         case 'TOGGLE_SKETCH_STYLE_MODAL':
             return {...state, showSketchStyleModal: !state.showSketchStyleModal}
         case 'SET_FILE_PATH':
@@ -1224,6 +1252,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
                 selection: {ids: [], editingTextId: null},
             }
         case 'SELECT_IMAGE_ASSET':
@@ -1232,6 +1263,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedAssetId: action.assetId,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
                 documentSelected: false,
                 selection: {ids: [], editingTextId: null},
             }
@@ -1241,6 +1275,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedPixelAssetId: action.assetId,
                 selectedAssetId: null,
                 selectedFontName: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
                 documentSelected: false,
                 selection: {ids: [], editingTextId: null},
             }
@@ -1250,6 +1287,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedFontName: action.fontName,
                 selectedAssetId: null,
                 selectedPixelAssetId: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
                 documentSelected: false,
                 selection: {ids: [], editingTextId: null},
             }
@@ -1271,6 +1311,111 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                     ),
                 },
             }
+
+        // ── Library actions ────────────────────────────────────────────────
+        case 'LOAD_LIBRARY':
+            return {...state, library: action.library}
+
+        case 'SELECT_LIBRARY_ITEM':
+            return {
+                ...state,
+                selectedLibraryItemId: action.id,
+                selectedLibraryItemType: action.itemType,
+                selectedGradientId: null,
+                selection: {ids: [], editingTextId: null},
+                documentSelected: false,
+                selectedAssetId: null,
+                selectedPixelAssetId: null,
+                selectedFontName: null,
+            }
+
+        case 'DESELECT_LIBRARY_ITEM':
+            return {...state, selectedLibraryItemId: null, selectedLibraryItemType: null}
+
+        case 'ADD_LIBRARY_GRADIENT': {
+            const lib = {...state.library, gradients: [...state.library.gradients, action.gradient]}
+            saveLibrary(lib)
+            return {...state, library: lib, selectedLibraryItemId: action.gradient.id, selectedLibraryItemType: 'gradient'}
+        }
+
+        case 'UPDATE_LIBRARY_GRADIENT': {
+            const lib = {...state.library, gradients: state.library.gradients.map(g => g.id === action.gradient.id ? action.gradient : g)}
+            saveLibrary(lib)
+            return {...state, library: lib}
+        }
+
+        case 'DELETE_LIBRARY_GRADIENT': {
+            const lib = {...state.library, gradients: state.library.gradients.filter(g => g.id !== action.id)}
+            saveLibrary(lib)
+            const wasSelected = state.selectedLibraryItemId === action.id
+            return {
+                ...state,
+                library: lib,
+                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
+                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
+            }
+        }
+
+        case 'ADD_LIBRARY_IMAGE': {
+            const lib = {...state.library, images: [...state.library.images, action.image]}
+            saveLibrary(lib)
+            return {...state, library: lib, selectedLibraryItemId: action.image.id, selectedLibraryItemType: 'image'}
+        }
+
+        case 'UPDATE_LIBRARY_IMAGE': {
+            const lib = {...state.library, images: state.library.images.map(i => i.id === action.image.id ? action.image : i)}
+            saveLibrary(lib)
+            return {...state, library: lib}
+        }
+
+        case 'DELETE_LIBRARY_IMAGE': {
+            const lib = {...state.library, images: state.library.images.filter(i => i.id !== action.id)}
+            saveLibrary(lib)
+            const wasSelected = state.selectedLibraryItemId === action.id
+            return {
+                ...state,
+                library: lib,
+                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
+                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
+            }
+        }
+
+        case 'ADD_LIBRARY_FONT': {
+            const lib = {...state.library, fonts: [...state.library.fonts, action.font]}
+            saveLibrary(lib)
+            return {...state, library: lib, selectedLibraryItemId: action.font.id, selectedLibraryItemType: 'font'}
+        }
+
+        case 'UPDATE_LIBRARY_FONT': {
+            const lib = {...state.library, fonts: state.library.fonts.map(f => f.id === action.font.id ? action.font : f)}
+            saveLibrary(lib)
+            return {...state, library: lib}
+        }
+
+        case 'DELETE_LIBRARY_FONT': {
+            const lib = {...state.library, fonts: state.library.fonts.filter(f => f.id !== action.id)}
+            saveLibrary(lib)
+            const wasSelected = state.selectedLibraryItemId === action.id
+            return {
+                ...state,
+                library: lib,
+                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
+                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
+            }
+        }
+
+        case 'RENAME_LIBRARY_ITEM': {
+            let lib = state.library
+            if (action.itemType === 'gradient') {
+                lib = {...lib, gradients: lib.gradients.map(g => g.id === action.id ? {...g, name: action.name} : g)}
+            } else if (action.itemType === 'image') {
+                lib = {...lib, images: lib.images.map(i => i.id === action.id ? {...i, name: action.name} : i)}
+            } else if (action.itemType === 'font') {
+                lib = {...lib, fonts: lib.fonts.map(f => f.id === action.id ? {...f, name: action.name} : f)}
+            }
+            saveLibrary(lib)
+            return {...state, library: lib}
+        }
 
         // ── Undo/Redo (handled by history wrapper) ─────────────────────────
         case 'UNDO':

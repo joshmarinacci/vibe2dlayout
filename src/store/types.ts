@@ -3,6 +3,7 @@ import type {CustomFont, GradientDef, PageFolder, SketchStyleDef, VibeDocument} 
 import type {GridSettings} from '@model/grid'
 import type {CanvasGuide} from '@model/guide'
 import type {ImageAsset} from '@model/imageAsset'
+import type {Library} from '@model/library'
 import type {ColorPalette, PaletteColor} from '@model/palette'
 import type {PixelAsset} from '@model/pixelAsset'
 import type {SelectionState} from '@model/selection'
@@ -99,6 +100,10 @@ export interface AppState {
     showGradientModal: boolean
     showSketchStyleModal: boolean
     croppingShapeId: string | null
+    selectedGradientId: string | null
+    library: Library
+    selectedLibraryItemId: string | null
+    selectedLibraryItemType: 'gradient' | 'image' | 'font' | null
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -212,6 +217,7 @@ export type ViewAction =
     | { type: 'CLEAR_DOCUMENTS_MODAL_REQUEST' }
     | { type: 'TOGGLE_GRADIENT_MODAL' }
     | { type: 'TOGGLE_SKETCH_STYLE_MODAL' }
+    | { type: 'SELECT_GRADIENT'; gradientId: string | null }
     | { type: 'SET_FILE_PATH'; path: string | null }
     | { type: 'ENTER_CROP_MODE'; shapeId: string }
     | { type: 'EXIT_CROP_MODE' }
@@ -226,4 +232,20 @@ export type HistoryAction =
     | { type: 'UNDO' }
     | { type: 'REDO' }
 
-export type AppAction = DocumentAction | SelectionAction | ViewAction | DragAction | HistoryAction
+// Library mutations — NOT in undo history, auto-saved to localStorage/disk
+export type LibraryAction =
+    | { type: 'LOAD_LIBRARY'; library: Library }
+    | { type: 'ADD_LIBRARY_GRADIENT'; gradient: GradientDef }
+    | { type: 'UPDATE_LIBRARY_GRADIENT'; gradient: GradientDef }
+    | { type: 'DELETE_LIBRARY_GRADIENT'; id: string }
+    | { type: 'ADD_LIBRARY_IMAGE'; image: ImageAsset }
+    | { type: 'UPDATE_LIBRARY_IMAGE'; image: ImageAsset }
+    | { type: 'DELETE_LIBRARY_IMAGE'; id: string }
+    | { type: 'ADD_LIBRARY_FONT'; font: CustomFont }
+    | { type: 'UPDATE_LIBRARY_FONT'; font: CustomFont }
+    | { type: 'DELETE_LIBRARY_FONT'; id: string }
+    | { type: 'RENAME_LIBRARY_ITEM'; id: string; name: string; itemType: 'gradient' | 'image' | 'font' }
+    | { type: 'SELECT_LIBRARY_ITEM'; id: string; itemType: 'gradient' | 'image' | 'font' }
+    | { type: 'DESELECT_LIBRARY_ITEM' }
+
+export type AppAction = DocumentAction | SelectionAction | ViewAction | DragAction | HistoryAction | LibraryAction

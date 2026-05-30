@@ -50,6 +50,7 @@ export interface FontAxis {
 }
 
 export interface CustomFont {
+    id: string
     name: string
     metadataVersion?: number
     isVariable: boolean | null  // null = detection not yet run or failed (e.g. WOFF2-only)

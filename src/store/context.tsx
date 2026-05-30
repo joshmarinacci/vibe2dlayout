@@ -1,7 +1,8 @@
-import React, {createContext, useContext, useMemo, useReducer} from 'react'
+import React, {createContext, useContext, useEffect, useMemo, useReducer} from 'react'
 import {canRedo, canUndo, createInitialHistory, historyReducer} from './history'
 import {initialState} from './reducer'
 import type {AppAction, AppState} from './types'
+import {loadLibrary} from '@utils/libraryStorage'
 
 interface AppStateContextValue {
     state: AppState
@@ -18,6 +19,10 @@ export function AppProvider({children}: { children: React.ReactNode }) {
         initialState,
         createInitialHistory,
     )
+
+    useEffect(() => {
+        loadLibrary().then(library => dispatch({type: 'LOAD_LIBRARY', library}))
+    }, [])
 
     const contextValue = useMemo<AppStateContextValue>(() => ({
         state: history.present,

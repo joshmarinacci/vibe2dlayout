@@ -7,6 +7,7 @@ import rowStyles from './StyleRow.module.css'
 
 interface Props {
     gradients: GradientDef[]
+    selectedGradientId: string | null
     dispatch: Dispatch<AppAction>
 }
 
@@ -20,7 +21,7 @@ function swatchCSS(g: GradientDef): string {
     })
 }
 
-export function GradientsSection({gradients, dispatch}: Props) {
+export function GradientsSection({gradients, selectedGradientId, dispatch}: Props) {
     const [collapsed, setCollapsed] = useState(false)
 
     return (
@@ -39,8 +40,8 @@ export function GradientsSection({gradients, dispatch}: Props) {
             {!collapsed && gradients.map(g => (
                 <div
                     key={g.id}
-                    className={rowStyles.row}
-                    onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}
+                    className={`${rowStyles.row} ${g.id === selectedGradientId ? rowStyles.selected : ''}`}
+                    onClick={() => dispatch({type: 'SELECT_GRADIENT', gradientId: g.id})}
                     title={g.name}
                 >
                     <div

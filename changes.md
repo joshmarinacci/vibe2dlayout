@@ -1,4 +1,35 @@
 
+## 2026-05-29 — Gradient detail panel; library and CSS refinements
+
+- Clicking a document gradient in the Assets tree now selects it and shows an editable detail panel in the properties sheet: name, gradient preview strip, interactive stop bar (drag to reposition, click to add, drag down to delete), per-stop color picker and position input, and Delete Gradient button. Added `selectedGradientId` state and `SELECT_GRADIENT` action.
+- Fixed properties panel not clearing when switching from a library item to a document shape selection.
+- Library fonts now run the same variable-axis metadata detection as document fonts (`useLibraryFontMetadataEnrichment`); the library font properties panel shows Name, Type, and Variable Axes matching the document font panel, plus Add to Document and Delete from Library buttons.
+- Added `UPDATE_LIBRARY_FONT` action so detected font metadata is persisted in the library.
+- Consolidated library types: `LibraryGradient` → `GradientDef`, `LibraryImage` → `ImageAsset`, `LibraryFont` → `CustomFont` (no separate library-only types). Added `id` field to `CustomFont`; serialization migration adds a UUID to existing documents without one.
+- Added `--color-selected` CSS variable (light: `#dbeafe`, dark: `#1e3554`) to complement `--color-selected-hover`; tree rows use `--color-selected` for selected state.
+- `NumberInput` Shift+arrow now increments by `step × 10`, matching wheel behaviour.
+
+## 2026-05-29 — Cross-document Library
+
+Added a global, persistent Library feature — a store of reusable assets (gradients, images, Google Fonts) that lives outside any single document and survives across sessions.
+
+**New files:**
+- `src/model/library.ts` — `Library`, `LibraryGradient`, `LibraryImage`, `LibraryFont` types
+- `src/utils/libraryStorage.ts` — `loadLibrary`/`saveLibrary` with localStorage (web) and `appDataDir` (Tauri)
+- `src/components/tree/LibrarySection.tsx` — tree panel section with collapsible Gradients / Images / Fonts subsections, context menus, inline rename, file picker
+- `src/components/tree/LibrarySection.module.css`
+- `src/components/properties/sections/LibraryItemSection.tsx` — properties panel for selected library items
+
+**Modified files:**
+- `src/store/types.ts` — added `LibraryAction`, `AppState.library/selectedLibraryItemId/selectedLibraryItemType`
+- `src/store/reducer.ts` — library action handlers with auto-save; initialState extended
+- `src/store/context.tsx` — loads library from storage on app mount
+- `src/components/tree/TreePanel.tsx` — renders LibrarySection below Assets
+- `src/components/properties/PropertiesPanel.tsx` — shows LibraryItemSection when library item selected
+- `src/components/properties/PropertiesPanel.module.css` — added `.textInput` and `.danger` classes
+- `src/index.css` — added `--color-selected` variable (light: `#dbeafe`, dark: `#1e3554`)
+- `src/components/tree/StyleRow.module.css`, `DocumentRow.module.css` — use `--color-selected` instead of `--color-accent-subtle`
+
 ## 2026-05-28 — New app icon for Limn
 
 Created `app-icon.svg`: a calligraphic "L" in warm cream (`#e8dfc8`) on a deep indigo rounded square (`#1c1b38`). Generated all required platform icon sizes via `npx tauri icon app-icon.svg`, replacing all files in `src-tauri/icons/`.

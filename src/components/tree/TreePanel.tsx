@@ -9,6 +9,7 @@ import {AssetsSection} from './AssetsSection'
 import {DocumentRow} from './DocumentRow'
 import {FontsSection} from './FontsSection'
 import {GradientsSection} from './GradientsSection'
+import {LibrarySection} from './LibrarySection'
 import {PageFolderRow} from './PageFolderRow'
 import {PixelAssetsSection} from './PixelAssetsSection'
 import {SectionHeader} from './SectionHeader'
@@ -238,10 +239,20 @@ export function TreePanel() {
                 />
                 <GradientsSection
                     gradients={state.document.gradients ?? []}
+                    selectedGradientId={state.selectedGradientId}
                     dispatch={dispatch}
                 />
                 <SketchStylesSection
                     sketchStyles={state.document.sketchStyles ?? []}
+                    dispatch={dispatch}
+                />
+
+                <div className={styles.separator}/>
+                <SectionHeader label="Library"/>
+                <LibrarySection
+                    library={state.library}
+                    selectedId={state.selectedLibraryItemId}
+                    selectedType={state.selectedLibraryItemType}
                     dispatch={dispatch}
                 />
             </div>

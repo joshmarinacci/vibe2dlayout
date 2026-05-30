@@ -32,6 +32,8 @@ import {FontInfoSection} from './sections/FontInfoSection'
 import {IconSection} from './sections/IconSection'
 import {ImageAssetSection} from './sections/ImageAssetSection'
 import {ImageSection} from './sections/ImageSection'
+import {DocumentGradientSection} from './sections/DocumentGradientSection'
+import {LibraryItemSection} from './sections/LibraryItemSection'
 import {PageSection} from './sections/PageSection'
 import {PixelImageSection} from './sections/PixelImageSection'
 import {ShadowSection} from './sections/ShadowSection'
@@ -50,6 +52,39 @@ export function PropertiesPanel() {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
     const selected = selectSelectedShapes(state)
+
+    if (state.selectedGradientId !== null) {
+        const gradient = (state.document.gradients ?? []).find(g => g.id === state.selectedGradientId)
+        if (gradient) {
+            return (
+                <div className={styles.panel}>
+                    <div className={styles.header}>
+                        <span className={styles.shapeType}>gradient</span>
+                        <span className={styles.shapeName}>{gradient.name}</span>
+                    </div>
+                    <DocumentGradientSection gradient={gradient} dispatch={dispatch}/>
+                </div>
+            )
+        }
+    }
+
+    if (state.selectedLibraryItemId !== null && state.selectedLibraryItemType !== null) {
+        const typeLabel = state.selectedLibraryItemType
+        return (
+            <div className={styles.panel}>
+                <div className={styles.header}>
+                    <span className={styles.shapeType}>library</span>
+                    <span className={styles.shapeName}>{typeLabel}</span>
+                </div>
+                <LibraryItemSection
+                    library={state.library}
+                    itemId={state.selectedLibraryItemId}
+                    itemType={state.selectedLibraryItemType}
+                    dispatch={dispatch}
+                />
+            </div>
+        )
+    }
 
     if (state.selectedPixelAssetId !== null) {
         const pixelAsset = state.document.pixelAssets.find(a => a.id === state.selectedPixelAssetId)
