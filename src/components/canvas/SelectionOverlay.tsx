@@ -1,3 +1,4 @@
+import {ShapeSupervisor} from "../../model/ShapeSupervisor.ts";
 import type {Anchor, BoundingBox} from '@model/transform'
 import {useAppDispatch, useAppState} from '@store/context'
 import {screenToCanvas} from '@store/reducer'
@@ -195,15 +196,7 @@ function ResizeHandle({
             let ar = 1
             if (ids.length === 1) {
                 const shape = state.document.shapes[ids[0]]
-                if (shape?.type === 'image') {
-                    const asset = state.document.images.find(a => a.id === shape.assetId)
-                    if (asset?.width && asset?.height) {
-                        const crop = shape.crop
-                        const cropW = crop ? asset.width  * crop.width  : asset.width
-                        const cropH = crop ? asset.height * crop.height : asset.height
-                        ar = cropW / cropH
-                    }
-                }
+                ar = ShapeSupervisor.constraintedResizeAspectRatio(shape, state)
             }
             // Normalise both raw dimensions to "height units" and take the dominant one
             const normW = Math.abs(width) / ar

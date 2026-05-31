@@ -3,16 +3,13 @@ import type {FillStyle, Shape, StrokeStyle, TextStyle} from '@model/shapes'
 import {
     fillColor,
     type FilledShape,
-    hasFill,
-    hasStroke,
-    hasText,
-    hasTransform,
     type ImageShape,
     type ShapeWithText,
     strokeColor,
     type StrokedShape,
     type TransformedShape
 } from '@model/shapes'
+import {ShapeSupervisor} from "@model/ShapeSupervisor.ts";
 import {getActiveTheme} from '@model/theme'
 import type {BoundingBox} from '@model/transform'
 import {useAppDispatch, useAppState} from '@store/context'
@@ -458,7 +455,7 @@ function ShapeProperties({shape, dispatch, state}: {
 
     const common = []
 
-    if (hasText(shape)) {
+    if (ShapeSupervisor.hasText(shape)) {
         const texted: ShapeWithText = shape as ShapeWithText
         common.push(<TextSection
             text={texted.text}
@@ -467,15 +464,15 @@ function ShapeProperties({shape, dispatch, state}: {
             activeFont={activeFont}
         />)
     }
-    if (hasFill(shape)) {
+    if (ShapeSupervisor.hasFill(shape)) {
         const filled: FilledShape = shape as FilledShape
         common.push(<FillSection fill={filled.fill} onChange={patchFill}/>)
     }
-    if (hasStroke(shape)) {
+    if (ShapeSupervisor.hasStroke(shape)) {
         const stroked: StrokedShape = shape as StrokedShape
         common.push(<StrokeSection stroke={stroked.stroke} onChange={patchStroke}/>)
     }
-    if (hasTransform(shape)) {
+    if (ShapeSupervisor.hasTransform(shape)) {
         const transformed: TransformedShape = shape as TransformedShape
         common.push(<TransformSection transform={transformed.transform} onChange={patchTransform}/>)
     }

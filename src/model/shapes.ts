@@ -408,19 +408,3 @@ export const defaultText = (content = ''): TextStyle => ({
 export const defaultTransform = (x = 0, y = 0, w = 100, h = 60): BoundingBox => ({
     x, y, width: w, height: h, rotation: 0,
 })
-
-export function hasFill(shape: Shape): boolean {
-    return 'fill' in shape;
-}
-
-export function hasStroke(shape: Shape): boolean {
-    return 'stroke' in shape;
-}
-
-export function hasTransform(shape: Shape): boolean {
-    return 'transform' in shape;
-}
-
-export function hasText(shape: Shape): boolean {
-    return 'text' in shape
-}
