@@ -1,14 +1,20 @@
 import "./propsheet.css"
+import {usePropsheetState} from "@store/context.tsx";
+
 
 interface Props {
     title: string
     children: React.ReactNode
-    defaultOpen?: boolean
 }
 
-export function CollapsibleSection({title, children, defaultOpen = true}: Props) {
+export function CollapsibleSection({title, children}: Props) {
+    const ctx = usePropsheetState()
     return (
-        <details className={"collapsible-section stretch-full"} open={defaultOpen}>
+        <details className={"collapsible-section stretch-full"} open={ctx.isOpen(title)}
+                 onToggle={(e) => {
+                     ctx.setOpen(title,e.target.open)
+                 }}
+        >
             <summary>{title}</summary>
             <article>{children}</article>
         </details>

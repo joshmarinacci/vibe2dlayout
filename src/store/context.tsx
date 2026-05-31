@@ -9,9 +9,37 @@ interface AppStateContextValue {
     canUndo: boolean
     canRedo: boolean
 }
+export interface PropsheetState {
+    isOpen(name:string):boolean
+    setOpen(name: string, open: any): void;
+    dump(): void;
+}
 
 const AppStateContext = createContext<AppStateContextValue | null>(null)
 const AppDispatchContext = createContext<React.Dispatch<AppAction> | null>(null)
+const PropsheetStateContext = createContext<PropsheetState | null>(null)
+
+class PropsheetStateImpl implements PropsheetState {
+    states:Record<string,boolean>
+    constructor() {
+        this.states = {}
+    }
+
+    dump(): void {
+        console.log("propsheet state", this.states)
+    }
+    setOpen(name: string, open: boolean): void {
+        this.states[name] = open
+    }
+    isOpen(name: string): boolean {
+        if(name in this.states) {
+            return this.states[name]
+        } else {
+            return false
+        }
+    }
+
+}
 
 export function AppProvider({children}: { children: React.ReactNode }) {
     const [history, dispatch] = useReducer(
@@ -30,10 +58,14 @@ export function AppProvider({children}: { children: React.ReactNode }) {
         canRedo: canRedo(history),
     }), [history])
 
+    const propsheetState = useMemo<PropsheetState>(() => new PropsheetStateImpl(),[])
+
     return (
         <AppStateContext.Provider value={contextValue}>
             <AppDispatchContext.Provider value={dispatch}>
-                {children}
+                <PropsheetStateContext.Provider value={propsheetState}>
+                    {children}
+                </PropsheetStateContext.Provider>
             </AppDispatchContext.Provider>
         </AppStateContext.Provider>
     )
@@ -48,5 +80,11 @@ export function useAppState(): AppStateContextValue {
 export function useAppDispatch(): React.Dispatch<AppAction> {
     const ctx = useContext(AppDispatchContext)
     if (!ctx) throw new Error('useAppDispatch must be used within AppProvider')
+    return ctx
+}
+
+export function usePropsheetState(): PropsheetState {
+    const ctx = useContext(PropsheetStateContext)
+    if (!ctx) throw new Error('usePropsheetState must be used within AppProvider')
     return ctx
 }
