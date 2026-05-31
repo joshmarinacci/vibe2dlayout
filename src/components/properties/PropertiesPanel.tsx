@@ -1,5 +1,5 @@
 import type {GridStyle} from '@model/grid'
-import type {FillStyle, Shape, StrokeStyle, TextStyle} from '@model/shapes'
+import type {FillStyle, Shape, ShapeWithCorners, StrokeStyle, TextStyle} from '@model/shapes'
 import {
     fillColor,
     type FilledShape,
@@ -455,6 +455,26 @@ function ShapeProperties({shape, dispatch, state}: {
 
     const common = []
 
+    if (ShapeSupervisor.hasCornerRadius(shape)) {
+        const cornered = shape as ShapeWithCorners
+        common.push(<CollapsibleSection title="Corners">
+            <CornerRadiusControl
+                cornerRadius={cornered.cornerRadius}
+                cornerRadii={cornered.cornerRadii}
+                onChangeUniform={v => dispatch({
+                    type: 'PATCH_SHAPE',
+                    id: shape.id,
+                    patch: {cornerRadius: v}
+                })}
+                onChangeRadii={r => dispatch({
+                    type: 'PATCH_SHAPE',
+                    id: shape.id,
+                    patch: {cornerRadii: r}
+                })}
+            />
+        </CollapsibleSection>)
+
+    }
     if (ShapeSupervisor.hasText(shape)) {
         const texted: ShapeWithText = shape as ShapeWithText
         common.push(<TextSection
@@ -481,22 +501,6 @@ function ShapeProperties({shape, dispatch, state}: {
         case 'rect':
             return (
                 <>
-                    <CollapsibleSection title="Rectangle">
-                        <CornerRadiusControl
-                            cornerRadius={shape.cornerRadius}
-                            cornerRadii={shape.cornerRadii}
-                            onChangeUniform={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadius: v}
-                            })}
-                            onChangeRadii={r => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadii: r}
-                            })}
-                        />
-                    </CollapsibleSection>
                     {common}
                 </>
             )
@@ -628,22 +632,6 @@ function ShapeProperties({shape, dispatch, state}: {
                         patch: {icon: ic}
                     })}
                     />
-                    <CollapsibleSection title="Button">
-                        <CornerRadiusControl
-                            cornerRadius={shape.cornerRadius}
-                            cornerRadii={shape.cornerRadii}
-                            onChangeUniform={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadius: v}
-                            })}
-                            onChangeRadii={r => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadii: r}
-                            })}
-                        />
-                    </CollapsibleSection>
                     {common}
                 </>
             )
@@ -666,20 +654,6 @@ function ShapeProperties({shape, dispatch, state}: {
                     {shape.text && (<ContentSection id={shape.id} content={shape.text.content}
                                                     dispatch={dispatch}/>)}
                     <CollapsibleSection title="Panel">
-                        <CornerRadiusControl
-                            cornerRadius={shape.cornerRadius}
-                            cornerRadii={shape.cornerRadii}
-                            onChangeUniform={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadius: v}
-                            })}
-                            onChangeRadii={r => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadii: r}
-                            })}
-                        />
                         <ToggleInput
                             label="Clip"
                             value={shape.clipChildren}
@@ -711,20 +685,6 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     <CollapsibleSection title="Panel">
-                        <CornerRadiusControl
-                            cornerRadius={shape.cornerRadius}
-                            cornerRadii={shape.cornerRadii}
-                            onChangeUniform={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadius: v}
-                            })}
-                            onChangeRadii={r => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadii: r}
-                            })}
-                        />
                         <ToggleInput
                             label="Clip"
                             value={shape.clipChildren}
@@ -855,20 +815,6 @@ function ShapeProperties({shape, dispatch, state}: {
             return (
                 <>
                     <CollapsibleSection title="Frame">
-                        <CornerRadiusControl
-                            cornerRadius={shape.cornerRadius}
-                            cornerRadii={shape.cornerRadii}
-                            onChangeUniform={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadius: v}
-                            })}
-                            onChangeRadii={r => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadii: r}
-                            })}
-                        />
                         <ToggleInput
                             label="Clip"
                             value={shape.clipChildren}
@@ -1055,20 +1001,6 @@ function ShapeProperties({shape, dispatch, state}: {
             return (
                 <>
                     <CollapsibleSection title="Scroll Panel">
-                        <CornerRadiusControl
-                            cornerRadius={shape.cornerRadius}
-                            cornerRadii={shape.cornerRadii}
-                            onChangeUniform={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadius: v}
-                            })}
-                            onChangeRadii={r => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cornerRadii: r}
-                            })}
-                        />
                         <NumberInput
                             label="Scroll"
                             value={shape.scrollPosition}

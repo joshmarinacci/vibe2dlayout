@@ -32,6 +32,9 @@ class ShapeSupervisorImpl {
     hasText(shape: Shape): boolean {
         return 'text' in shape
     }
+    hasCornerRadius(shape:Shape):boolean {
+        return 'cornerRadius' in shape
+    }
 
 }
 

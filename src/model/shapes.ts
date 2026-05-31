@@ -164,12 +164,15 @@ export interface ShapeWithText {
     text: TextStyle
 }
 
-// ─── Concrete shape types ─────────────────────────────────────────────────
-
-export interface RectShape extends ShapeBase, FilledShape, StrokedShape, TransformedShape {
-    type: 'rect'
+export interface ShapeWithCorners {
     cornerRadius: number
     cornerRadii?: CornerRadii
+}
+
+// ─── Concrete shape types ─────────────────────────────────────────────────
+
+export interface RectShape extends ShapeBase, FilledShape, StrokedShape, TransformedShape, ShapeWithCorners {
+    type: 'rect'
 }
 
 export interface CircleShape extends ShapeBase, FilledShape, StrokedShape, TransformedShape {
