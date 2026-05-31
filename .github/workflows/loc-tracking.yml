@@ -1,0 +1,92 @@
+name: LOC Tracking
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: loc-tracking
+  cancel-in-progress: false
+
+jobs:
+  track-loc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install cloc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cloc
+
+      - name: Measure LOC
+        id: measure
+        run: |
+          set -euo pipefail
+          cloc --vcs git --json --quiet \
+            --exclude-dir=node_modules,dist,.git,target,build,coverage,docs,.github \
+            > cloc.json
+
+          code_lines="$(python3 -c "import json; print(json.load(open('cloc.json')).get('SUM', {}).get('code', 0))")"
+          blank_lines="$(python3 -c "import json; print(json.load(open('cloc.json')).get('SUM', {}).get('blank', 0))")"
+          comment_lines="$(python3 -c "import json; print(json.load(open('cloc.json')).get('SUM', {}).get('comment', 0))")"
+          file_count="$(python3 -c "import json; print(json.load(open('cloc.json')).get('SUM', {}).get('nFiles', 0))")"
+
+          {
+            echo "code_lines=${code_lines}"
+            echo "blank_lines=${blank_lines}"
+            echo "comment_lines=${comment_lines}"
+            echo "file_count=${file_count}"
+            echo "date_iso=$(date -u +%F)"
+            echo "timestamp_utc=$(date -u +%FT%TZ)"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Update metrics branch history
+        env:
+          CODE_LINES: ${{ steps.measure.outputs.code_lines }}
+          BLANK_LINES: ${{ steps.measure.outputs.blank_lines }}
+          COMMENT_LINES: ${{ steps.measure.outputs.comment_lines }}
+          FILE_COUNT: ${{ steps.measure.outputs.file_count }}
+          DATE_ISO: ${{ steps.measure.outputs.date_iso }}
+          TIMESTAMP_UTC: ${{ steps.measure.outputs.timestamp_utc }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin metrics >/dev/null 2>&1; then
+            git worktree add metrics-worktree origin/metrics
+          else
+            git worktree add -b metrics metrics-worktree
+          fi
+
+          mkdir -p metrics-worktree/docs
+          cp docs/index.html metrics-worktree/docs/index.html
+
+          history_file="metrics-worktree/docs/loc-history.csv"
+          if [ ! -f "${history_file}" ]; then
+            echo "date_iso,timestamp_utc,commit_sha,code_lines,file_count,blank_lines,comment_lines" > "${history_file}"
+          fi
+
+          if ! grep -q "${GITHUB_SHA}" "${history_file}"; then
+            echo "${DATE_ISO},${TIMESTAMP_UTC},${GITHUB_SHA},${CODE_LINES},${FILE_COUNT},${BLANK_LINES},${COMMENT_LINES}" >> "${history_file}"
+          fi
+
+          if ! git -C metrics-worktree diff --quiet; then
+            git -C metrics-worktree add docs/index.html docs/loc-history.csv
+            git -C metrics-worktree commit -m "chore(metrics): update LOC history for ${GITHUB_SHA::7}"
+            git -C metrics-worktree push origin HEAD:metrics
+          else
+            echo "No metrics changes to commit."
+          fi

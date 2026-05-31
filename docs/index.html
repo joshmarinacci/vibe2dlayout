@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LOC History</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg: #f6f5f1;
+        --surface: #ffffff;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --line: #d4d4d8;
+        --accent: #0f766e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, #e6fffa 0%, transparent 35%),
+          radial-gradient(circle at 90% 0%, #fef3c7 0%, transparent 40%),
+          var(--bg);
+      }
+
+      .card {
+        max-width: 980px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.5rem;
+      }
+
+      .meta {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 12px 0 20px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        background: #fcfcfd;
+      }
+
+      .error {
+        margin-top: 12px;
+        color: #b91c1c;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Lines of Code Over Time</h1>
+      <p class="meta">Source: <code>docs/loc-history.csv</code> in the <code>metrics</code> branch.</p>
+      <div class="stats" id="stats"></div>
+      <canvas id="locChart" width="960" height="420"></canvas>
+      <p class="error" id="error"></p>
+    </main>
+
+    <script>
+      function parseCsv(text) {
+        const rows = text.trim().split("\n");
+        if (rows.length < 2) return [];
+
+        const headers = rows[0].split(",");
+        return rows.slice(1).map((row) => {
+          const cells = row.split(",");
+          const entry = {};
+          headers.forEach((header, index) => {
+            entry[header] = cells[index];
+          });
+          return entry;
+        });
+      }
+
+      function toInt(value) {
+        const parsed = Number.parseInt(value, 10);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function formatNumber(num) {
+        return new Intl.NumberFormat("en-US").format(num);
+      }
+
+      async function render() {
+        const errorEl = document.getElementById("error");
+        try {
+          const response = await fetch("./loc-history.csv", { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Could not load loc-history.csv (${response.status})`);
+          }
+
+          const csv = await response.text();
+          const points = parseCsv(csv);
+          if (points.length === 0) {
+            throw new Error("No LOC history found yet.");
+          }
+
+          const labels = points.map((p) => p.date_iso);
+          const locData = points.map((p) => toInt(p.code_lines));
+          const filesData = points.map((p) => toInt(p.file_count));
+
+          const first = locData[0];
+          const last = locData[locData.length - 1];
+          const delta = last - first;
+
+          const latestTimestamp = points[points.length - 1].timestamp_utc;
+          const stats = [
+            `Latest LOC: ${formatNumber(last)}`,
+            `Net Change: ${delta >= 0 ? "+" : ""}${formatNumber(delta)}`,
+            `Samples: ${formatNumber(points.length)}`,
+            `Last Updated: ${latestTimestamp}`
+          ];
+          document.getElementById("stats").innerHTML = stats
+            .map((s) => `<span class="stat">${s}</span>`)
+            .join("");
+
+          const ctx = document.getElementById("locChart");
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "Code lines",
+                  data: locData,
+                  borderColor: "#0f766e",
+                  backgroundColor: "rgba(15, 118, 110, 0.15)",
+                  fill: true,
+                  tension: 0.2,
+                  pointRadius: 3
+                },
+                {
+                  label: "File count",
+                  data: filesData,
+                  borderColor: "#b45309",
+                  backgroundColor: "rgba(180, 83, 9, 0.15)",
+                  fill: false,
+                  tension: 0.2,
+                  pointRadius: 2,
+                  yAxisID: "y1"
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              interaction: {
+                mode: "index",
+                intersect: false
+              },
+              scales: {
+                y: {
+                  title: {
+                    display: true,
+                    text: "Code lines"
+                  }
+                },
+                y1: {
+                  position: "right",
+                  grid: {
+                    drawOnChartArea: false
+                  },
+                  title: {
+                    display: true,
+                    text: "Files"
+                  }
+                }
+              }
+            }
+          });
+        } catch (error) {
+          errorEl.textContent = error.message;
+        }
+      }
+
+      render();
+    </script>
+  </body>
+</html>
