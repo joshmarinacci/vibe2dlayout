@@ -79,3 +79,9 @@ Documents are saved as `.vibe2d` JSON files. Images are embedded as base64 data 
 - **`src/utils/`** — Geometry helpers, connector routing, serialization, shape factory
 - **`src/hooks/`** — Canvas pointer handling, pan/zoom, keyboard shortcuts
 - **`tests/`** — Vitest unit tests for model, store, and utilities
+
+## Power Ups
+
+Power Ups are built-in document plugins that can add document settings, shape features, toolbar actions, and file menu actions.
+
+See [docs/power-ups.md](docs/power-ups.md) for architecture, persistence format, and built-in power ups (Physics, XML Export, PNG Export).

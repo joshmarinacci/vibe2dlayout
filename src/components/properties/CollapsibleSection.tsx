@@ -12,7 +12,7 @@ export function CollapsibleSection({title, children}: Props) {
     return (
         <details className={"collapsible-section stretch-full"} open={ctx.isOpen(title)}
                  onToggle={(e) => {
-                     ctx.setOpen(title,e.target.open)
+                     ctx.setOpen(title, (e.currentTarget as HTMLDetailsElement).open)
                  }}
         >
             <summary>{title}</summary>

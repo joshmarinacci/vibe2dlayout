@@ -24,6 +24,8 @@ const DOCUMENT_ACTION_TYPES = new Set<string>([
     'ADD_GUIDE', 'DELETE_GUIDE', 'MOVE_GUIDE',
     'ADD_CUSTOM_FONT', 'DELETE_CUSTOM_FONT', 'UPDATE_CUSTOM_FONT_META',
     'ADD_PIXEL_ASSET', 'UPDATE_PIXEL_ASSET', 'DELETE_PIXEL_ASSET',
+    'ADD_DOCUMENT_POWER_UP', 'REMOVE_DOCUMENT_POWER_UP', 'UPDATE_DOCUMENT_POWER_UP_SETTINGS',
+    'ADD_SHAPE_POWER_UP_FEATURE', 'REMOVE_SHAPE_POWER_UP_FEATURE', 'UPDATE_SHAPE_POWER_UP_FEATURE_SETTINGS',
 ])
 
 function isDocumentAction(action: AppAction): action is DocumentAction {
@@ -57,7 +59,7 @@ export function historyReducer(state: HistoryState, action: AppAction): HistoryS
         const nextPresent = appReducer(state.present, action)
         return {
             past: [],
-            present: {...nextPresent, isDirty: false},
+            present: {...nextPresent, isDirty: false, physicsSimulationRunning: false},
             future: [],
         }
     }

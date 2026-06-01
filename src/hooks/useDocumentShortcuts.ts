@@ -1,3 +1,4 @@
+import {notifyPowerUpsDocumentSaved} from '@hooks/usePowerUpsRuntime'
 import {useAppDispatch, useAppState} from '@store/context'
 import {saveDoc} from '@utils/localStorageDB'
 import {shortcutEvents} from '@utils/shortcutEvents'
@@ -23,6 +24,7 @@ export function useDocumentShortcuts() {
                     try {
                         const entry = saveDoc(state.documentId, state.documentName, state.document)
                         dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
+                        notifyPowerUpsDocumentSaved(state, dispatch).catch(console.error)
                     } catch (err) {
                         console.error('Save failed:', err)
                     }

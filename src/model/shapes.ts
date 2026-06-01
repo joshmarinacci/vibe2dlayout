@@ -1,6 +1,7 @@
 import type {ConnectorEndpoint, ConnectorRoute} from './connector'
 import type {GridSettings} from './grid'
 import type {CanvasGuide} from './guide'
+import type {ShapePowerUpEntry} from './powerUps'
 import type {BoundingBox} from './transform'
 
 // ─── Shared style types ───────────────────────────────────────────────────
@@ -146,6 +147,7 @@ interface ShapeBase {
     locked: boolean
     visible: boolean
     boxShadow?: BoxShadow[]
+    powerUps?: ShapePowerUpEntry[]
 }
 
 export interface FilledShape {

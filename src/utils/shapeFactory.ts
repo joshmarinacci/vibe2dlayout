@@ -5,7 +5,7 @@ import {generateId} from './idgen'
 
 export function createShape(type: ShapeType, x = 50, y = 50, theme?: Theme): Shape {
     const id = generateId()
-    const base = {id, name: type, locked: false, visible: true}
+    const base = {id, name: type, locked: false, visible: true, powerUps: []}
 
     // Theme-derived defaults (fall back to original hand-drawn defaults)
     const fg = theme?.foreground ?? '#333333'

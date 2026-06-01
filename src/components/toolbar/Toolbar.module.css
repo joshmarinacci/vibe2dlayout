@@ -45,6 +45,18 @@
     color: #fff;
 }
 
+.btnDanger {
+    background: #c62828;
+    border-color: #8e0000;
+    color: #fff;
+}
+
+.btnDanger:hover:not(:disabled) {
+    background: #b71c1c;
+    border-color: #7f0000;
+    color: #fff;
+}
+
 .separator {
     width: 1px;
     height: 20px;

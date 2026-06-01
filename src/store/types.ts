@@ -104,6 +104,14 @@ export interface AppState {
     library: Library
     selectedLibraryItemId: string | null
     selectedLibraryItemType: 'gradient' | 'image' | 'font' | null
+    physicsSimulationRunning: boolean
+}
+
+export interface ShapeTransformUpdate {
+    id: string
+    x: number
+    y: number
+    rotation: number
 }
 
 // ─── Actions ───────────────────────────────────────────────────────────────
@@ -176,6 +184,18 @@ export type DocumentAction =
     | { type: 'ADD_SKETCH_STYLE'; style: SketchStyleDef }
     | { type: 'UPDATE_SKETCH_STYLE'; style: SketchStyleDef }
     | { type: 'DELETE_SKETCH_STYLE'; styleId: string }
+    | { type: 'ADD_DOCUMENT_POWER_UP'; powerUpId: string }
+    | { type: 'REMOVE_DOCUMENT_POWER_UP'; powerUpId: string }
+    | { type: 'UPDATE_DOCUMENT_POWER_UP_SETTINGS'; powerUpId: string; patch: Record<string, unknown> }
+    | { type: 'ADD_SHAPE_POWER_UP_FEATURE'; shapeId: string; powerUpId: string; featureId: string }
+    | { type: 'REMOVE_SHAPE_POWER_UP_FEATURE'; shapeId: string; powerUpId: string; featureId: string }
+    | {
+    type: 'UPDATE_SHAPE_POWER_UP_FEATURE_SETTINGS';
+    shapeId: string;
+    powerUpId: string;
+    featureId: string;
+    patch: Record<string, unknown>
+}
 
 export type AlignType =
     | 'left' | 'center-h' | 'right'
@@ -221,6 +241,8 @@ export type ViewAction =
     | { type: 'SET_FILE_PATH'; path: string | null }
     | { type: 'ENTER_CROP_MODE'; shapeId: string }
     | { type: 'EXIT_CROP_MODE' }
+    | { type: 'SET_PHYSICS_SIMULATION_RUNNING'; running: boolean }
+    | { type: 'APPLY_PHYSICS_TRANSFORMS'; updates: ShapeTransformUpdate[] }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

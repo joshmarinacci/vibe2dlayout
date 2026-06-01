@@ -7,7 +7,7 @@ describe('serialization round-trip', () => {
         const doc = initialState.document
         const json = toJSON(doc)
         const restored = fromJSON(json)
-        expect(restored.version).toBe(2)
+        expect(restored.version).toBe(3)
         expect(Object.keys(restored.shapes)).toEqual(Object.keys(doc.shapes))
         expect(restored.rootNodes).toHaveLength(doc.rootNodes.length)
     })

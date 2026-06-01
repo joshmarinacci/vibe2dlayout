@@ -1,5 +1,6 @@
 import type {GridStyle} from '@model/grid'
 import type {FillStyle, Shape, ShapeWithCorners, StrokeStyle, TextStyle} from '@model/shapes'
+import {getPowerUpDefinition, getRegisteredDocumentPowerUps} from '@powerups/registry'
 import {
     fillColor,
     type FilledShape,
@@ -33,6 +34,7 @@ import {DocumentGradientSection} from './sections/DocumentGradientSection'
 import {LibraryItemSection} from './sections/LibraryItemSection'
 import {PageSection} from './sections/PageSection'
 import {PixelImageSection} from './sections/PixelImageSection'
+import {DocumentPowerUpsSection, ShapePowerUpsSection, UnknownDocumentPowerUpsSection} from './sections/PowerUpsSection'
 import {ShadowSection} from './sections/ShadowSection'
 import {StrokeSection} from './sections/StrokeSection'
 import {TextSection} from './sections/TextSection'
@@ -162,6 +164,10 @@ export function PropertiesPanel() {
     }
 
     if (state.documentSelected) {
+        const registeredPowerUps = getRegisteredDocumentPowerUps(state.document)
+        const unknownPowerUps = (state.document.powerUps ?? [])
+            .filter(entry => !getPowerUpDefinition(entry.id))
+            .map(entry => ({id: entry.id, version: entry.version}))
         return (
             <div className={styles.panel}>
                 <div className={styles.header}>
@@ -175,6 +181,8 @@ export function PropertiesPanel() {
                     activeThemeName={getActiveTheme(state.document).name}
                     dispatch={dispatch}
                 />
+                <DocumentPowerUpsSection registeredPowerUps={registeredPowerUps} dispatch={dispatch}/>
+                <UnknownDocumentPowerUpsSection unknownEntries={unknownPowerUps} dispatch={dispatch}/>
             </div>
         )
     }
@@ -426,7 +434,7 @@ export function PropertiesPanel() {
                 />
             </div>
 
-            <div style={shape.locked ? {opacity: 0.5, pointerEvents: 'none'} : undefined}>
+                <div style={shape.locked ? {opacity: 0.5, pointerEvents: 'none'} : undefined}>
                 <ShapeProperties shape={shape} dispatch={dispatch} state={state}/>
             </div>
         </div>
@@ -438,6 +446,7 @@ function ShapeProperties({shape, dispatch, state}: {
     dispatch: ReturnType<typeof useAppDispatch>
     state: ReturnType<typeof useAppState>['state']
 }) {
+    const activePowerUps = getRegisteredDocumentPowerUps(state.document)
     const patchTransform = (t: BoundingBox) =>
         dispatch({type: 'SET_TRANSFORM', id: shape.id, transform: t})
     const patchFill = (f: FillStyle) =>
@@ -502,17 +511,24 @@ function ShapeProperties({shape, dispatch, state}: {
             return (
                 <>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
         case 'circle':
-            return (<>{common}</>)
+            return (
+                <>
+                    {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
+                </>
+            )
 
         case 'line':
             return (
                 <>
                     <StrokeSection stroke={shape.stroke} onChange={patchStroke}/>
                     <ConnectorSection shape={shape} dispatch={dispatch}/>
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -521,6 +537,7 @@ function ShapeProperties({shape, dispatch, state}: {
                 <>
                     <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -532,6 +549,7 @@ function ShapeProperties({shape, dispatch, state}: {
                 <>
                     <ImageSection shape={shape} asset={linkedAsset} dispatch={dispatch}/>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
         }
@@ -619,6 +637,7 @@ function ShapeProperties({shape, dispatch, state}: {
                             </>
                         )}
                     </CollapsibleSection>
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
         }
@@ -633,6 +652,7 @@ function ShapeProperties({shape, dispatch, state}: {
                     })}
                     />
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -645,6 +665,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         patch: {icon: ic}
                     })}/>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -665,6 +686,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -696,6 +718,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -732,6 +755,7 @@ function ShapeProperties({shape, dispatch, state}: {
                     })}
                     />
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -740,6 +764,7 @@ function ShapeProperties({shape, dispatch, state}: {
                 <>
                     <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -760,6 +785,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -779,6 +805,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -808,6 +835,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         patch: {thumbFill: f}
                     })}/>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -826,6 +854,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -865,6 +894,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -884,6 +914,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -904,6 +935,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -940,6 +972,7 @@ function ShapeProperties({shape, dispatch, state}: {
                     })}
                     />
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -958,6 +991,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -966,6 +1000,7 @@ function ShapeProperties({shape, dispatch, state}: {
                 <>
                     <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -974,6 +1009,7 @@ function ShapeProperties({shape, dispatch, state}: {
                 <>
                     <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -994,6 +1030,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -1014,6 +1051,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         />
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -1021,6 +1059,7 @@ function ShapeProperties({shape, dispatch, state}: {
             return (
                 <>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -1045,6 +1084,7 @@ function ShapeProperties({shape, dispatch, state}: {
                         </div>
                     </CollapsibleSection>
                     {common}
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
 
@@ -1053,9 +1093,9 @@ function ShapeProperties({shape, dispatch, state}: {
             return (
                 <>
                     <PixelImageSection shape={shape} asset={pixelAsset} dispatch={dispatch}/>
+                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
         }
     }
 }
-

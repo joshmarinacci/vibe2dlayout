@@ -2,6 +2,7 @@ import type {GridSettings} from './grid'
 import type {ImageAsset} from './imageAsset'
 import type {ColorPalette} from './palette'
 import type {PixelAsset} from './pixelAsset'
+import type {DocumentPowerUpEntry} from './powerUps'
 import type {GradientStop, Shape} from './shapes'
 import type {Theme} from './theme'
 
@@ -71,6 +72,7 @@ export interface VibeDocument {
     customFonts: CustomFont[]   // Google Font family names added by the user, with metadata
     gradients: GradientDef[]    // document-level gradient presets
     sketchStyles: SketchStyleDef[] // document-level sketch fill presets
+    powerUps: DocumentPowerUpEntry[] // enabled document power-ups and settings
 }
 
 // ─── Tree helpers ─────────────────────────────────────────────────────────

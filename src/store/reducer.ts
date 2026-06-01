@@ -4,7 +4,15 @@ import {DEFAULT_GRID_SETTINGS} from '@model/grid'
 import type {ImageAsset} from '@model/imageAsset'
 import {EMPTY_LIBRARY} from '@model/library'
 import {DEFAULT_PALETTE} from '@model/palette'
+import type {ShapePowerUpEntry} from '@model/powerUps'
 import type {GradientStop, ImageShape, Shape} from '@model/shapes'
+import {
+    createDefaultFeatureSettings,
+    createDocumentPowerUpEntry,
+    createDefaultShapePowerUpEntry,
+    getPowerUpDefinition,
+    migrateDocumentPowerUps,
+} from '@powerups/registry'
 import type {Theme} from '@model/theme'
 import {BUILT_IN_THEMES, getActiveTheme} from '@model/theme'
 import {computeAlignedTransforms} from '@utils/alignment'
@@ -103,6 +111,15 @@ function recomputeGroupBounds(groupId: string, doc: VibeDocument): VibeDocument 
     }
 
     return {...doc, shapes: newShapes}
+}
+
+function normalizeShapePowerUps(shape: Shape): ShapePowerUpEntry[] {
+    if (!shape.powerUps) return []
+    return shape.powerUps.map(entry => ({
+        id: entry.id,
+        version: typeof entry.version === 'number' ? entry.version : 1,
+        features: entry.features ?? {},
+    }))
 }
 
 // ─── Document reducer (pure) ───────────────────────────────────────────────
@@ -430,7 +447,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 images = newImages
                 shapes = patchedShapes
             }
-            return {
+            let normalizedDocument: VibeDocument = {
                 ...d,
                 shapes,
                 themes: d.themes ?? [...BUILT_IN_THEMES],
@@ -447,7 +464,22 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                         axes: []
                     } : f as CustomFont
                 ),
+                powerUps: (d.powerUps ?? []).map(entry => ({
+                    id: entry.id,
+                    version: typeof entry.version === 'number' ? entry.version : 1,
+                    settings: entry.settings ?? {},
+                })),
             }
+            normalizedDocument = {
+                ...normalizedDocument,
+                shapes: Object.fromEntries(
+                    Object.entries(normalizedDocument.shapes).map(([id, shape]) => [
+                        id,
+                        {...shape, powerUps: normalizeShapePowerUps(shape)} as Shape,
+                    ]),
+                ),
+            }
+            return migrateDocumentPowerUps(normalizedDocument)
         }
 
         case 'UPDATE_GRID_SETTINGS':
@@ -630,6 +662,127 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
             }
         case 'DELETE_SKETCH_STYLE':
             return {...doc, sketchStyles: (doc.sketchStyles ?? []).filter(s => s.id !== action.styleId)}
+
+        case 'ADD_DOCUMENT_POWER_UP': {
+            if ((doc.powerUps ?? []).some(p => p.id === action.powerUpId)) return doc
+            const entry = createDocumentPowerUpEntry(action.powerUpId)
+            if (!entry) return doc
+            return {...doc, powerUps: [...(doc.powerUps ?? []), entry]}
+        }
+
+        case 'REMOVE_DOCUMENT_POWER_UP': {
+            if (!(doc.powerUps ?? []).some(p => p.id === action.powerUpId)) return doc
+            const powerUps = (doc.powerUps ?? []).filter(p => p.id !== action.powerUpId)
+            const shapes = Object.fromEntries(
+                Object.entries(doc.shapes).map(([id, shape]) => {
+                    if (!shape.powerUps || shape.powerUps.length === 0) return [id, shape]
+                    const remaining = shape.powerUps.filter(entry => entry.id !== action.powerUpId)
+                    if (remaining.length === shape.powerUps.length) return [id, shape]
+                    return [id, {...shape, powerUps: remaining} as Shape]
+                }),
+            )
+            return {...doc, powerUps, shapes}
+        }
+
+        case 'UPDATE_DOCUMENT_POWER_UP_SETTINGS': {
+            const powerUps = (doc.powerUps ?? []).map(entry =>
+                entry.id === action.powerUpId
+                    ? {...entry, settings: {...entry.settings, ...action.patch}}
+                    : entry,
+            )
+            return {...doc, powerUps}
+        }
+
+        case 'ADD_SHAPE_POWER_UP_FEATURE': {
+            if (!(doc.powerUps ?? []).some(p => p.id === action.powerUpId)) return doc
+            const shape = doc.shapes[action.shapeId]
+            if (!shape) return doc
+            const definition = getPowerUpDefinition(action.powerUpId)
+            if (!definition) return doc
+            const feature = definition.nodeFeatures?.find(f => f.id === action.featureId)
+            if (!feature) return doc
+            if (feature.canAttachToShape && !feature.canAttachToShape(shape)) return doc
+
+            const shapePowerUps = normalizeShapePowerUps(shape)
+            const existingIdx = shapePowerUps.findIndex(entry => entry.id === action.powerUpId)
+            const featureDefaults = createDefaultFeatureSettings(action.powerUpId, action.featureId)
+            if (!featureDefaults) return doc
+
+            let nextShapePowerUps = shapePowerUps
+            if (existingIdx === -1) {
+                const defaults = createDefaultShapePowerUpEntry(action.powerUpId)
+                if (!defaults) return doc
+                nextShapePowerUps = [...shapePowerUps, defaults]
+            }
+
+            const idx = nextShapePowerUps.findIndex(entry => entry.id === action.powerUpId)
+            const entry = nextShapePowerUps[idx]
+            if (entry.features[action.featureId]) return doc
+            nextShapePowerUps = [...nextShapePowerUps]
+            nextShapePowerUps[idx] = {
+                ...entry,
+                version: definition.version,
+                features: {
+                    ...entry.features,
+                    [action.featureId]: featureDefaults,
+                },
+            }
+            return {
+                ...doc,
+                shapes: {
+                    ...doc.shapes,
+                    [shape.id]: {...shape, powerUps: nextShapePowerUps},
+                },
+            }
+        }
+
+        case 'REMOVE_SHAPE_POWER_UP_FEATURE': {
+            const shape = doc.shapes[action.shapeId]
+            if (!shape || !shape.powerUps || shape.powerUps.length === 0) return doc
+            const entry = shape.powerUps.find(p => p.id === action.powerUpId)
+            if (!entry || !(action.featureId in entry.features)) return doc
+            const remainingFeatures = {...entry.features}
+            delete remainingFeatures[action.featureId]
+            const nextEntries = Object.keys(remainingFeatures).length === 0
+                ? shape.powerUps.filter(p => p.id !== action.powerUpId)
+                : shape.powerUps.map(p => p.id === action.powerUpId ? {...p, features: remainingFeatures} : p)
+            return {
+                ...doc,
+                shapes: {
+                    ...doc.shapes,
+                    [shape.id]: {...shape, powerUps: nextEntries},
+                },
+            }
+        }
+
+        case 'UPDATE_SHAPE_POWER_UP_FEATURE_SETTINGS': {
+            const shape = doc.shapes[action.shapeId]
+            if (!shape || !shape.powerUps || shape.powerUps.length === 0) return doc
+            const entry = shape.powerUps.find(p => p.id === action.powerUpId)
+            if (!entry) return doc
+            const currentSettings = entry.features[action.featureId]
+            if (!currentSettings) return doc
+            const nextEntries = shape.powerUps.map(p => {
+                if (p.id !== action.powerUpId) return p
+                return {
+                    ...p,
+                    features: {
+                        ...p.features,
+                        [action.featureId]: {
+                            ...currentSettings,
+                            ...action.patch,
+                        },
+                    },
+                }
+            })
+            return {
+                ...doc,
+                shapes: {
+                    ...doc.shapes,
+                    [shape.id]: {...shape, powerUps: nextEntries},
+                },
+            }
+        }
 
         case 'ADD_THEME':
             return {...doc, themes: [...doc.themes, action.theme]}
@@ -971,7 +1124,7 @@ function applyGradientToShapes(
 export function createInitialDocument(): VibeDocument {
     const pageId = generateId()
     return {
-        version: 2,
+        version: 3,
         rootNodes: [{id: pageId, children: []}],
         shapes: {
             [pageId]: {
@@ -1006,6 +1159,7 @@ export function createInitialDocument(): VibeDocument {
             {id: generateId(), name: 'Cross Hatch', fillStyle: 'hatched', hachureAngle: 90, hachureGap: 4},
             {id: generateId(), name: 'No Fill',     fillStyle: 'none',    hachureAngle: 45, hachureGap: 4},
         ],
+        powerUps: [],
     }
 }
 
@@ -1041,6 +1195,7 @@ export const initialState: AppState = {
     library: {...EMPTY_LIBRARY},
     selectedLibraryItemId: null,
     selectedLibraryItemType: null,
+    physicsSimulationRunning: false,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1100,6 +1255,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'ADD_SKETCH_STYLE':
         case 'UPDATE_SKETCH_STYLE':
         case 'DELETE_SKETCH_STYLE':
+        case 'ADD_DOCUMENT_POWER_UP':
+        case 'REMOVE_DOCUMENT_POWER_UP':
+        case 'UPDATE_DOCUMENT_POWER_UP_SETTINGS':
+        case 'ADD_SHAPE_POWER_UP_FEATURE':
+        case 'REMOVE_SHAPE_POWER_UP_FEATURE':
+        case 'UPDATE_SHAPE_POWER_UP_FEATURE_SETTINGS':
         case 'MOVE_SHAPES_START':
             return {
                 ...state,
@@ -1301,6 +1462,46 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, croppingShapeId: action.shapeId}
         case 'EXIT_CROP_MODE':
             return {...state, croppingShapeId: null}
+        case 'SET_PHYSICS_SIMULATION_RUNNING':
+            return {...state, physicsSimulationRunning: action.running}
+        case 'APPLY_PHYSICS_TRANSFORMS': {
+            if (action.updates.length === 0) return state
+            const updatesById = new Map(action.updates.map(update => [update.id, update]))
+            let changed = false
+            const shapes = Object.fromEntries(
+                Object.entries(state.document.shapes).map(([id, shape]) => {
+                    const update = updatesById.get(id)
+                    if (!update) return [id, shape]
+                    if (!('transform' in shape)) return [id, shape]
+                    const previous = shape.transform
+                    if (
+                        previous.x === update.x &&
+                        previous.y === update.y &&
+                        previous.rotation === update.rotation
+                    ) {
+                        return [id, shape]
+                    }
+                    changed = true
+                    return [id, {
+                        ...shape,
+                        transform: {
+                            ...previous,
+                            x: update.x,
+                            y: update.y,
+                            rotation: update.rotation,
+                        },
+                    } as Shape]
+                }),
+            )
+            if (!changed) return state
+            return {
+                ...state,
+                document: {
+                    ...state.document,
+                    shapes,
+                },
+            }
+        }
         case 'SET_FOLDER_COLLAPSED':
             return {
                 ...state,

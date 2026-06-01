@@ -27,7 +27,7 @@ function migrateFill(raw: unknown): FillStyle {
     } as ColorFill
 }
 
-const CURRENT_VERSION = 2
+const CURRENT_VERSION = 3
 
 export function toJSON(doc: VibeDocument): string {
     return JSON.stringify({...doc, version: CURRENT_VERSION}, null, 2)
@@ -48,6 +48,9 @@ export function fromJSON(json: string): VibeDocument {
     if (docObj.version === 1) {
         docObj.palettes = [{...DEFAULT_PALETTE, colors: [...DEFAULT_PALETTE.colors]}]
         docObj.version = 2
+    }
+    if (docObj.version === 2) {
+        docObj.version = 3
     }
     // Migrate older docs missing pageFolders
     if (!Array.isArray(docObj.pageFolders)) {
@@ -101,6 +104,14 @@ export function fromJSON(json: string): VibeDocument {
     // Migrate older docs missing gradient/sketchStyle assets
     if (!Array.isArray(docObj.gradients)) docObj.gradients = []
     if (!Array.isArray(docObj.sketchStyles)) docObj.sketchStyles = []
+    if (!Array.isArray(docObj.powerUps)) docObj.powerUps = []
+    if (typeof docObj.shapes === 'object' && docObj.shapes !== null) {
+        for (const shape of Object.values(docObj.shapes as Record<string, unknown>)) {
+            if (typeof shape !== 'object' || shape === null) continue
+            const s = shape as Record<string, unknown>
+            if (!Array.isArray(s.powerUps)) s.powerUps = []
+        }
+    }
     return parsed as VibeDocument
 }
 

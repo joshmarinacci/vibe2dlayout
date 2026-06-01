@@ -5,7 +5,9 @@ import {SketchStyleEditorModal} from '@components/layout/SketchStyleEditorModal'
 import {ThemeEditorModal} from '@components/layout/ThemeEditorModal'
 import {PaletteEditorModal} from '@components/palette/PaletteEditorModal'
 import {useTheme} from '@hooks/useTheme'
+import {notifyPowerUpsDocumentSaved} from '@hooks/usePowerUpsRuntime'
 import type {VibeDocument} from '@model/document'
+import {getActivePowerUpMenuActions, getActivePowerUpToolbarActions, listAvailablePowerUps, runPowerUpMenuAction, runPowerUpToolbarAction} from '@powerups/registry'
 import {useAppDispatch, useAppState} from '@store/context'
 import {createInitialDocument} from '@store/reducer'
 import type {ToolMode} from '@store/types'
@@ -51,6 +53,7 @@ import {
     ScrollText,
     Settings,
     SlidersHorizontal,
+    StopCircle,
     Square,
     Star,
     StickyNote,
@@ -132,6 +135,7 @@ export function Toolbar() {
         subMenuCloseTimer.current = setTimeout(() => setComponentSubMenu(null), 300)
     }, [cancelSubMenuClose])
     const [showFileMenu, setShowFileMenu] = useState(false)
+    const [showPowerUpsMenu, setShowPowerUpsMenu] = useState(false)
     const [showAboutModal, setShowAboutModal] = useState(false)
     const [showDocumentsModal, setShowDocumentsModal] = useState(false)
     const [documentsModalMode, setDocumentsModalMode] = useState<'open' | 'save-as'>('open')
@@ -152,6 +156,7 @@ export function Toolbar() {
             if (shapesMenuRef.current?.contains(e.target as Node)) return
             if (componentMenuRef.current?.contains(e.target as Node)) return
             setShowFileMenu(false)
+            setShowPowerUpsMenu(false)
             setShowShapesMenu(false)
             setShowComponentMenu(false)
             setComponentSubMenu(null)
@@ -163,12 +168,17 @@ export function Toolbar() {
 
     const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode)
     const activeComponentTool = ALL_COMPONENT_TOOLS.find(t => t.mode === state.toolMode)
+    const powerUpToolbarActions = getActivePowerUpToolbarActions(state.document)
+    const powerUpMenuActions = getActivePowerUpMenuActions(state.document)
+    const availablePowerUps = listAvailablePowerUps()
+    const activePowerUpIds = new Set((state.document.powerUps ?? []).map(powerUp => powerUp.id))
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (IS_TAURI) return  // Tauri saves are handled by the native menu via useTauriMenu
         try {
             const entry = saveDoc(state.documentId, state.documentName, state.document)
             dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
+            await notifyPowerUpsDocumentSaved(state, dispatch)
         } catch (err) {
             alert('Save failed: ' + (err instanceof Error ? err.message : String(err)))
         }
@@ -198,6 +208,7 @@ export function Toolbar() {
         try {
             const entry = saveDoc(id, name, state.document)
             dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
+            notifyPowerUpsDocumentSaved(state, dispatch).catch(console.error)
             setShowDocumentsModal(false)
         } catch (err) {
             alert('Save failed: ' + (err instanceof Error ? err.message : String(err)))
@@ -209,12 +220,14 @@ export function Toolbar() {
         dispatch({type: 'LOAD_DOCUMENT', document: doc})
         dispatch({type: 'SET_ACTIVE_PAGE', pageId: doc.rootNodes[0]?.id ?? null})
         dispatch({type: 'SET_DOCUMENT_META', id: null, name: 'Untitled'})
+        setShowPowerUpsMenu(false)
         setShowFileMenu(false)
     }
 
     const openDocumentsModal = (mode: 'open' | 'save-as') => {
         setDocumentsModalMode(mode)
         setShowDocumentsModal(true)
+        setShowPowerUpsMenu(false)
         setShowFileMenu(false)
     }
 
@@ -236,7 +249,13 @@ export function Toolbar() {
                             <button
                                 className={`${styles.btn} ${styles.formBtn}`}
                                 title="File"
-                                onClick={() => setShowFileMenu(v => !v)}
+                                onClick={() => {
+                                    setShowFileMenu(v => {
+                                        const next = !v
+                                        if (!next) setShowPowerUpsMenu(false)
+                                        return next
+                                    })
+                                }}
                             >
                                 <FolderOpen size={14}/>
                                 <span style={{fontSize: 12}}>File</span>
@@ -287,6 +306,80 @@ export function Toolbar() {
                                     }}>
                                         <Grid size={13}/><span>Document Settings...</span>
                                     </button>
+                                    <div
+                                        className={styles.formMenuItem}
+                                        style={{justifyContent: 'space-between', position: 'relative'}}
+                                        onMouseEnter={() => setShowPowerUpsMenu(true)}
+                                        onMouseLeave={() => setShowPowerUpsMenu(false)}
+                                    >
+                                        <span>Power Ups</span>
+                                        <span style={{opacity: 0.5, fontSize: 10}}>›</span>
+                                        {showPowerUpsMenu && (
+                                            <div className={styles.formMenu}
+                                                 style={{position: 'absolute', left: '100%', top: 0, minWidth: 220}}>
+                                                <div className={styles.formMenuSection}>Add to Document</div>
+                                                {availablePowerUps.map(powerUp => (
+                                                    <button
+                                                        key={powerUp.id}
+                                                        className={styles.formMenuItem}
+                                                        disabled={activePowerUpIds.has(powerUp.id)}
+                                                        onClick={() => {
+                                                            dispatch({
+                                                                type: 'ADD_DOCUMENT_POWER_UP',
+                                                                powerUpId: powerUp.id
+                                                            })
+                                                            setShowPowerUpsMenu(false)
+                                                            setShowFileMenu(false)
+                                                        }}
+                                                    >
+                                                        <span>{powerUp.name}</span>
+                                                    </button>
+                                                ))}
+
+                                                <div className={styles.formMenuDivider}/>
+                                                <div className={styles.formMenuSection}>Remove from Document</div>
+                                                {availablePowerUps.map(powerUp => (
+                                                    <button
+                                                        key={`remove-${powerUp.id}`}
+                                                        className={styles.formMenuItem}
+                                                        disabled={!activePowerUpIds.has(powerUp.id)}
+                                                        onClick={() => {
+                                                            dispatch({
+                                                                type: 'REMOVE_DOCUMENT_POWER_UP',
+                                                                powerUpId: powerUp.id
+                                                            })
+                                                            setShowPowerUpsMenu(false)
+                                                            setShowFileMenu(false)
+                                                        }}
+                                                    >
+                                                        <span>Remove {powerUp.name}</span>
+                                                    </button>
+                                                ))}
+
+                                                {powerUpMenuActions.length > 0 && (
+                                                    <>
+                                                        <div className={styles.formMenuDivider}/>
+                                                        <div className={styles.formMenuSection}>Power Up Actions</div>
+                                                        {powerUpMenuActions.map(action => (
+                                                            <button
+                                                                key={action.id}
+                                                                className={styles.formMenuItem}
+                                                                disabled={action.isEnabled ? !action.isEnabled({state, dispatch}) : false}
+                                                                onClick={() => {
+                                                                    runPowerUpMenuAction(action, {state, dispatch})
+                                                                        .catch(console.error)
+                                                                    setShowPowerUpsMenu(false)
+                                                                    setShowFileMenu(false)
+                                                                }}
+                                                            >
+                                                                <span>{action.title}</span>
+                                                            </button>
+                                                        ))}
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className={styles.formMenuDivider}/>
                                     <button className={styles.formMenuItem} onClick={() => {
                                         handleImportJSON();
@@ -413,6 +506,34 @@ export function Toolbar() {
             </div>
 
             <div className={styles.separator}/>
+
+            {powerUpToolbarActions.length > 0 && (
+                <>
+                    <div className={styles.group}>
+                        {powerUpToolbarActions.map(action => {
+                            const isPhysicsAction = action.id === 'physics-simulate'
+                            const icon = isPhysicsAction && state.physicsSimulationRunning
+                                ? <StopCircle size={15}/>
+                                : action.icon
+                            const title = isPhysicsAction && state.physicsSimulationRunning
+                                ? 'Stop Physics'
+                                : action.title
+                            return (
+                            <button
+                                key={action.id}
+                                className={`${styles.btn} ${isPhysicsAction && state.physicsSimulationRunning ? styles.btnDanger : ''}`}
+                                title={title}
+                                disabled={action.isEnabled ? !action.isEnabled({state, dispatch}) : false}
+                                onClick={() => runPowerUpToolbarAction(action, {state, dispatch}).catch(console.error)}
+                            >
+                                {icon}
+                            </button>
+                            )
+                        })}
+                    </div>
+                    <div className={styles.separator}/>
+                </>
+            )}
 
             {/* Select + Pan | Shapes + other tools */}
             <div className={styles.group}>

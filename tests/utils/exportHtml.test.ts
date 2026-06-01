@@ -153,7 +153,7 @@ function makePage(id: string, children: TreeNode[], shapes: Record<string, Shape
         ...overrides,
     }
     const doc: VibeDocument = {
-        version: 2,
+        version: 3,
         rootNodes: [{id, children}],
         shapes: {[id]: page, ...shapes},
         palettes: [],
@@ -166,6 +166,7 @@ function makePage(id: string, children: TreeNode[], shapes: Record<string, Shape
         customFonts: [],
         gradients: [],
         sketchStyles: [],
+        powerUps: [],
     }
     return {doc, pageId: id}
 }

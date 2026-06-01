@@ -1,3 +1,5 @@
+import {notifyPowerUpsDocumentSaved} from '@hooks/usePowerUpsRuntime'
+import {getAllKnownPowerUpTauriMenuIds, getPowerUpByTauriMenuId, runPowerUpMenuAction} from '@powerups/registry'
 import {useAppDispatch, useAppState} from '@store/context'
 import {createInitialDocument} from '@store/reducer'
 import type {AppState} from '@store/types'
@@ -56,11 +58,13 @@ export function useTauriMenu() {
                     if (s.currentFilePath) {
                         await tauriSaveFile(s.currentFilePath, s.document)
                         dispatch({type: 'SET_DOCUMENT_META', id: null, name: s.documentName})
+                        await notifyPowerUpsDocumentSaved(stateRef.current, dispatch)
                     } else {
                         const result = await tauriSaveAsFile(s.document, s.documentName)
                         if (result) {
                             dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
                             dispatch({type: 'SET_FILE_PATH', path: result.filePath})
+                            await notifyPowerUpsDocumentSaved(stateRef.current, dispatch)
                         }
                     }
                 } catch (err) {
@@ -75,6 +79,7 @@ export function useTauriMenu() {
                     if (result) {
                         dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
                         dispatch({type: 'SET_FILE_PATH', path: result.filePath})
+                        await notifyPowerUpsDocumentSaved(stateRef.current, dispatch)
                     }
                 } catch (err) {
                     console.error('Save As failed:', err)
@@ -160,6 +165,38 @@ export function useTauriMenu() {
                     shortcutEvents.emit('⌫', 'Delete selected')
                 }
             }))
+
+            unlisten.push(await listen('menu:powerups:add:physics', () => {
+                dispatch({type: 'ADD_DOCUMENT_POWER_UP', powerUpId: 'powerup.physics'})
+            }))
+            unlisten.push(await listen('menu:powerups:add:xml-export', () => {
+                dispatch({type: 'ADD_DOCUMENT_POWER_UP', powerUpId: 'powerup.export.xml'})
+            }))
+            unlisten.push(await listen('menu:powerups:add:png-export', () => {
+                dispatch({type: 'ADD_DOCUMENT_POWER_UP', powerUpId: 'powerup.export.png'})
+            }))
+            unlisten.push(await listen('menu:powerups:remove:physics', () => {
+                dispatch({type: 'REMOVE_DOCUMENT_POWER_UP', powerUpId: 'powerup.physics'})
+            }))
+            unlisten.push(await listen('menu:powerups:remove:xml-export', () => {
+                dispatch({type: 'REMOVE_DOCUMENT_POWER_UP', powerUpId: 'powerup.export.xml'})
+            }))
+            unlisten.push(await listen('menu:powerups:remove:png-export', () => {
+                dispatch({type: 'REMOVE_DOCUMENT_POWER_UP', powerUpId: 'powerup.export.png'})
+            }))
+
+            for (const menuId of getAllKnownPowerUpTauriMenuIds()) {
+                unlisten.push(await listen(menuId, async () => {
+                    const currentState = stateRef.current
+                    const action = getPowerUpByTauriMenuId(currentState.document, menuId)
+                    if (!action) return
+                    try {
+                        await runPowerUpMenuAction(action, {state: currentState, dispatch})
+                    } catch (err) {
+                        console.error(`Power-up action failed for ${menuId}`, err)
+                    }
+                }))
+            }
         }
 
         setup().catch(console.error)

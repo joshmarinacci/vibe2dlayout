@@ -43,6 +43,37 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
             &MenuItem::with_id(app, "menu:edit-themes",       "Edit Themes...",       true, None::<&str>)?,
             &MenuItem::with_id(app, "menu:settings",          "Settings...",          true, Some("CmdOrCtrl+,"))?,
             &MenuItem::with_id(app, "menu:document-settings", "Document Settings...", true, None::<&str>)?,
+            &Submenu::with_items(
+                app,
+                "Power Ups",
+                true,
+                &[
+                    &Submenu::with_items(
+                        app,
+                        "Add",
+                        true,
+                        &[
+                            &MenuItem::with_id(app, "menu:powerups:add:physics", "Physics", true, None::<&str>)?,
+                            &MenuItem::with_id(app, "menu:powerups:add:xml-export", "XML Export", true, None::<&str>)?,
+                            &MenuItem::with_id(app, "menu:powerups:add:png-export", "PNG Export", true, None::<&str>)?,
+                        ],
+                    )?,
+                    &Submenu::with_items(
+                        app,
+                        "Remove",
+                        true,
+                        &[
+                            &MenuItem::with_id(app, "menu:powerups:remove:physics", "Physics", true, None::<&str>)?,
+                            &MenuItem::with_id(app, "menu:powerups:remove:xml-export", "XML Export", true, None::<&str>)?,
+                            &MenuItem::with_id(app, "menu:powerups:remove:png-export", "PNG Export", true, None::<&str>)?,
+                        ],
+                    )?,
+                    &PredefinedMenuItem::separator(app)?,
+                    &MenuItem::with_id(app, "menu:powerups:action:physics:simulate", "Run Physics", true, None::<&str>)?,
+                    &MenuItem::with_id(app, "menu:powerups:action:xml-export:export", "Export XML...", true, None::<&str>)?,
+                    &MenuItem::with_id(app, "menu:powerups:action:png-export:export", "Export PNG (Power Up)...", true, None::<&str>)?,
+                ],
+            )?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "menu:export-png",        "Export PNG...",        true, None::<&str>)?,
             &MenuItem::with_id(app, "menu:export-pdf",        "Export PDF...",        true, None::<&str>)?,

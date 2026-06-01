@@ -7,6 +7,11 @@ import html2canvas from 'html2canvas'
 import React from 'react'
 import {createRoot} from 'react-dom/client'
 
+export interface ExportPageAsPngOptions {
+    scale?: number
+    transparentBackground?: boolean
+}
+
 function findNode(nodes: TreeNode[], id: string): TreeNode | null {
     for (const n of nodes) {
         if (n.id === id) return n
@@ -97,7 +102,7 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
     }
 }
 
-export async function exportPageAsPng(state: AppState): Promise<void> {
+export async function exportPageAsPng(state: AppState, options?: ExportPageAsPngOptions): Promise<void> {
     const pageId = state.activePageId
     if (!pageId) throw new Error('No active page')
 
@@ -116,6 +121,9 @@ export async function exportPageAsPng(state: AppState): Promise<void> {
 
     // Create an off-screen container. position:fixed makes it a containing
     // block so that absolutely-positioned shape children position correctly.
+    const transparentBackground = options?.transparentBackground ?? false
+    const background = transparentBackground ? 'transparent' : page.background
+
     const container = document.createElement('div')
     container.style.cssText = `
     position: fixed;
@@ -123,7 +131,7 @@ export async function exportPageAsPng(state: AppState): Promise<void> {
     top: 0;
     width: ${width}px;
     height: ${height}px;
-    background: ${page.background};
+    background: ${background};
     overflow: hidden;
   `
     document.body.appendChild(container)
@@ -151,9 +159,9 @@ export async function exportPageAsPng(state: AppState): Promise<void> {
         const canvas = await html2canvas(container, {
             width,
             height,
-            scale: window.devicePixelRatio || 2,
+            scale: options?.scale ?? (window.devicePixelRatio || 2),
             useCORS: true,
-            backgroundColor: page.background,
+            backgroundColor: transparentBackground ? null : page.background,
             logging: false,
         })
 
