@@ -1,5 +1,6 @@
 import {computeBoundingBox} from '@components/canvas/SelectionOverlay'
 import {useAppState} from '@store/context'
+import {PanelLeftClose, PanelLeftOpen, PanelRightOpen, PanelRightClose} from "lucide-react";
 import styles from './StatusBar.module.css'
 
 interface Props {
@@ -33,7 +34,7 @@ export function StatusBar({leftCollapsed, rightCollapsed, onToggleLeft, onToggle
                 onClick={onToggleLeft}
                 title={leftCollapsed ? 'Show layer panel' : 'Hide layer panel'}
             >
-                {leftCollapsed ? '›' : '‹'}
+                {leftCollapsed ? <PanelLeftOpen size={16}/> :  <PanelLeftClose size={16}/>}
             </button>
 
             <span className={styles.label}>{label}{sizeLabel}</span>
@@ -43,7 +44,7 @@ export function StatusBar({leftCollapsed, rightCollapsed, onToggleLeft, onToggle
                 onClick={onToggleRight}
                 title={rightCollapsed ? 'Show properties panel' : 'Hide properties panel'}
             >
-                {rightCollapsed ? '‹' : '›'}
+                {rightCollapsed ? <PanelRightOpen size={16}/> : <PanelRightClose size={16}/> }
             </button>
         </div>
     )
