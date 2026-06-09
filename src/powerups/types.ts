@@ -1,7 +1,8 @@
 import type {DocumentPowerUpEntry, ShapePowerUpEntry} from '@model/powerUps'
 import type {Shape} from '@model/shapes'
+import type {Theme} from '@model/theme'
 import type {AppAction, AppState} from '@store/types'
-import type {Dispatch, ReactNode} from 'react'
+import type {Dispatch, MouseEvent, ReactNode} from 'react'
 
 export interface PowerUpDefinition {
     id: string
@@ -10,11 +11,41 @@ export interface PowerUpDefinition {
     createDefaultDocumentSettings: () => Record<string, unknown>
     documentSettingsRenderer?: (props: PowerUpDocumentSettingsRendererProps) => ReactNode
     nodeFeatures?: PowerUpNodeFeatureDefinition[]
+    shapeTypes?: PowerUpShapeTypeDefinition[]
     toolbarActions?: PowerUpToolbarActionDefinition[]
     menuActions?: PowerUpMenuActionDefinition[]
     lifecycle?: PowerUpLifecycleHooks
     migrateDocument?: (ctx: PowerUpDocumentMigrationContext) => DocumentPowerUpEntry
     migrateShape?: (ctx: PowerUpShapeMigrationContext) => ShapePowerUpEntry
+}
+
+export interface ShapeRenderProps {
+    shape: Shape
+    isSelected: boolean
+    isEditingText: boolean
+    handDrawn: boolean
+    dispatch: Dispatch<AppAction>
+    onClick: (e: MouseEvent) => void
+    onDoubleClick: (e: MouseEvent) => void
+    children: ReactNode | null
+}
+
+export interface ShapePropertiesProps {
+    shape: Shape
+    dispatch: Dispatch<AppAction>
+}
+
+export interface PowerUpShapeTypeDefinition {
+    type: string
+    name: string
+    toolMode: string
+    icon: ReactNode
+    category: 'shapes' | 'containers' | 'forms' | 'mockups'
+    isTextEditable?: boolean
+    isDrillable?: boolean
+    createDefault: (x: number, y: number, theme?: Theme) => Shape
+    renderShape: (props: ShapeRenderProps) => ReactNode
+    renderProperties?: (props: ShapePropertiesProps) => ReactNode
 }
 
 export interface PowerUpDocumentSettingsRendererProps {

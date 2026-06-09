@@ -8,6 +8,7 @@ import {useTheme} from '@hooks/useTheme'
 import {notifyPowerUpsDocumentSaved} from '@hooks/usePowerUpsRuntime'
 import type {VibeDocument} from '@model/document'
 import {getActivePowerUpMenuActions, getActivePowerUpToolbarActions, listAvailablePowerUps, runPowerUpMenuAction, runPowerUpToolbarAction} from '@powerups/registry'
+import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppDispatch, useAppState} from '@store/context'
 import {createInitialDocument} from '@store/reducer'
 import type {ToolMode} from '@store/types'
@@ -17,51 +18,33 @@ import {saveDoc} from '@utils/localStorageDB'
 import {downloadJSON, fromJSON, uploadJSON} from '@utils/serialization'
 import {createShape} from '@utils/shapeFactory'
 import {
-    AppWindow,
-    CheckSquare,
     ChevronDown,
     Circle,
-    CircleDot,
     Download,
     File,
     FileImage,
     FilePlus2,
     FileText,
     FolderOpen,
-    GanttChart,
     Grid,
     Grid2X2,
     Hand,
-    Hash,
     HelpCircle,
     Home,
     Image,
-    LayoutPanelLeft,
-    List,
-    ListOrdered,
     Magnet,
     Minus,
     Moon,
     MousePointer2,
-    NotebookTabs,
     Paintbrush,
     Palette,
-    PanelLeft,
     RectangleHorizontal,
     Redo2,
     Save,
-    ScrollText,
     Settings,
-    SlidersHorizontal,
     StopCircle,
     Square,
-    Star,
-    StickyNote,
     Sun,
-    Table2,
-    Tag,
-    TextCursorInput,
-    ToggleLeft,
     Type,
     Undo2,
     Upload,
@@ -72,7 +55,7 @@ import {useCallback, useEffect, useRef, useState} from 'react'
 import styles from './Toolbar.module.css'
 
 interface ToolButton {
-    mode: ToolMode
+    mode: string
     icon: React.ReactNode
     title: string
 }
@@ -87,37 +70,18 @@ const SHAPE_TOOLS: ToolButton[] = [
 ]
 const SHAPE_MODES = new Set(SHAPE_TOOLS.map(t => t.mode))
 
-const CONTAINER_CONTROLS: ToolButton[] = [
-    {mode: 'insert-panel', icon: <PanelLeft size={14}/>, title: 'Titled Panel'},
-    {mode: 'insert-tabbed-panel', icon: <NotebookTabs size={14}/>, title: 'Tabbed Panel'},
-    {mode: 'insert-frame', icon: <LayoutPanelLeft size={14}/>, title: 'Panel'},
-    {mode: 'insert-dialog', icon: <AppWindow size={14}/>, title: 'Dialog'},
-    {mode: 'insert-stickynote', icon: <StickyNote size={14}/>, title: 'Sticky Note'},
-    {mode: 'insert-scrollpanel', icon: <ScrollText size={14}/>, title: 'Scroll Panel'},
-]
-
-const FORM_CONTROLS: ToolButton[] = [
-    {mode: 'insert-button', icon: <RectangleHorizontal size={14}/>, title: 'Button'},
-    {mode: 'insert-icon', icon: <Star size={14}/>, title: 'Icon'},
-    {mode: 'insert-slider', icon: <SlidersHorizontal size={14}/>, title: 'Slider'},
-    {mode: 'insert-label', icon: <Tag size={14}/>, title: 'Label'},
-    {mode: 'insert-textfield', icon: <TextCursorInput size={14}/>, title: 'Text Field'},
-    {mode: 'insert-checkbox', icon: <CheckSquare size={14}/>, title: 'Checkbox'},
-    {mode: 'insert-toggle', icon: <ToggleLeft size={14}/>, title: 'Toggle'},
-    {mode: 'insert-radio', icon: <CircleDot size={14}/>, title: 'Radio Button'},
-    {mode: 'insert-select', icon: <List size={14}/>, title: 'Select'},
-    {mode: 'insert-progress', icon: <GanttChart size={14}/>, title: 'Progress Bar'},
-    {mode: 'insert-stepper', icon: <Hash size={14}/>, title: 'Number Stepper'},
-    {mode: 'insert-list', icon: <ListOrdered size={14}/>, title: 'List'},
-    {mode: 'insert-table', icon: <Table2 size={14}/>, title: 'Table'},
-]
-
-const ALL_COMPONENT_TOOLS = [...CONTAINER_CONTROLS, ...FORM_CONTROLS]
-const COMPONENT_MODES = new Set(ALL_COMPONENT_TOOLS.map(t => t.mode))
-
 export function Toolbar() {
     const {state, canUndo, canRedo} = useAppState()
     const dispatch = useAppDispatch()
+    const registeredShapes = useShapeRegistry()
+    const containerTools: ToolButton[] = registeredShapes
+        .filter(s => s.category === 'containers')
+        .map(s => ({mode: s.toolMode, icon: s.icon, title: s.name}))
+    const formTools: ToolButton[] = registeredShapes
+        .filter(s => s.category === 'forms')
+        .map(s => ({mode: s.toolMode, icon: s.icon, title: s.name}))
+    const allComponentTools = [...containerTools, ...formTools]
+    const componentModes = new Set(allComponentTools.map(t => t.mode))
     const [showShapesMenu, setShowShapesMenu] = useState(false)
     const [showComponentMenu, setShowComponentMenu] = useState(false)
     const [componentSubMenu, setComponentSubMenu] = useState<'containers' | 'forms' | null>(null)
@@ -167,7 +131,7 @@ export function Toolbar() {
 
 
     const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode)
-    const activeComponentTool = ALL_COMPONENT_TOOLS.find(t => t.mode === state.toolMode)
+    const activeComponentTool = allComponentTools.find(t => t.mode === state.toolMode)
     const powerUpToolbarActions = getActivePowerUpToolbarActions(state.document)
     const powerUpMenuActions = getActivePowerUpMenuActions(state.document)
     const availablePowerUps = listAvailablePowerUps()
@@ -602,10 +566,10 @@ export function Toolbar() {
                     title="Add Page"
                 ><FileText size={15}/></button>
 
-                {/* Components dropdown */}
-                <div ref={componentMenuRef} style={{position: 'relative'}}>
+                {/* Components dropdown — only shown when forms powerup is active */}
+                {allComponentTools.length > 0 && <div ref={componentMenuRef} style={{position: 'relative'}}>
                     <button
-                        className={`${styles.btn} ${styles.formBtn} ${COMPONENT_MODES.has(state.toolMode) ? styles.active : ''}`}
+                        className={`${styles.btn} ${styles.formBtn} ${componentModes.has(state.toolMode) ? styles.active : ''}`}
                         title="Components"
                         onClick={() => setShowComponentMenu(v => !v)}
                     >
@@ -613,89 +577,77 @@ export function Toolbar() {
                             <RectangleHorizontal size={14}/>}
                         <ChevronDown size={10}/>
                     </button>
-                    {showComponentMenu && (
+                    {showComponentMenu && allComponentTools.length > 0 && (
                         <div className={styles.formMenu} onMouseLeave={scheduleSubMenuClose}>
-                            {/* Containers sub-menu item */}
-                            <div
-                                className={styles.formMenuItem}
-                                style={{
-                                    justifyContent: 'space-between',
-                                    cursor: 'default',
-                                    position: 'relative'
-                                }}
-                                onMouseEnter={() => {
-                                    cancelSubMenuClose();
-                                    setComponentSubMenu('containers')
-                                }}
-                            >
-                                <span>Containers</span>
-                                <span style={{opacity: 0.5, fontSize: 10}}>›</span>
-                                {componentSubMenu === 'containers' && (
-                                    <div
-                                        className={styles.formMenu}
-                                        style={{position: 'absolute', left: '100%', top: 0}}
-                                        onMouseEnter={cancelSubMenuClose}
-                                        onMouseLeave={scheduleSubMenuClose}
-                                    >
-                                        {CONTAINER_CONTROLS.map(t => (
-                                            <button
-                                                key={t.mode}
-                                                className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
-                                                onClick={() => {
-                                                    dispatch({type: 'SET_TOOL_MODE', mode: t.mode});
-                                                    setShowComponentMenu(false);
-                                                    setComponentSubMenu(null)
-                                                }}
-                                            >
-                                                {t.icon}
-                                                <span>{t.title}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            {/* Form Controls sub-menu item */}
-                            <div
-                                className={styles.formMenuItem}
-                                style={{
-                                    justifyContent: 'space-between',
-                                    cursor: 'default',
-                                    position: 'relative'
-                                }}
-                                onMouseEnter={() => {
-                                    cancelSubMenuClose();
-                                    setComponentSubMenu('forms')
-                                }}
-                            >
-                                <span>Form Controls</span>
-                                <span style={{opacity: 0.5, fontSize: 10}}>›</span>
-                                {componentSubMenu === 'forms' && (
-                                    <div
-                                        className={styles.formMenu}
-                                        style={{position: 'absolute', left: '100%', top: 0}}
-                                        onMouseEnter={cancelSubMenuClose}
-                                        onMouseLeave={scheduleSubMenuClose}
-                                    >
-                                        {FORM_CONTROLS.map(t => (
-                                            <button
-                                                key={t.mode}
-                                                className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
-                                                onClick={() => {
-                                                    dispatch({type: 'SET_TOOL_MODE', mode: t.mode});
-                                                    setShowComponentMenu(false);
-                                                    setComponentSubMenu(null)
-                                                }}
-                                            >
-                                                {t.icon}
-                                                <span>{t.title}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            {containerTools.length > 0 && (
+                                <div
+                                    className={styles.formMenuItem}
+                                    style={{justifyContent: 'space-between', cursor: 'default', position: 'relative'}}
+                                    onMouseEnter={() => { cancelSubMenuClose(); setComponentSubMenu('containers') }}
+                                >
+                                    <span>Containers</span>
+                                    <span style={{opacity: 0.5, fontSize: 10}}>›</span>
+                                    {componentSubMenu === 'containers' && (
+                                        <div
+                                            className={styles.formMenu}
+                                            style={{position: 'absolute', left: '100%', top: 0}}
+                                            onMouseEnter={cancelSubMenuClose}
+                                            onMouseLeave={scheduleSubMenuClose}
+                                        >
+                                            {containerTools.map(t => (
+                                                <button
+                                                    key={t.mode}
+                                                    className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
+                                                    onClick={() => {
+                                                        dispatch({type: 'SET_TOOL_MODE', mode: t.mode as ToolMode});
+                                                        setShowComponentMenu(false);
+                                                        setComponentSubMenu(null)
+                                                    }}
+                                                >
+                                                    {t.icon}
+                                                    <span>{t.title}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {formTools.length > 0 && (
+                                <div
+                                    className={styles.formMenuItem}
+                                    style={{justifyContent: 'space-between', cursor: 'default', position: 'relative'}}
+                                    onMouseEnter={() => { cancelSubMenuClose(); setComponentSubMenu('forms') }}
+                                >
+                                    <span>Form Controls</span>
+                                    <span style={{opacity: 0.5, fontSize: 10}}>›</span>
+                                    {componentSubMenu === 'forms' && (
+                                        <div
+                                            className={styles.formMenu}
+                                            style={{position: 'absolute', left: '100%', top: 0}}
+                                            onMouseEnter={cancelSubMenuClose}
+                                            onMouseLeave={scheduleSubMenuClose}
+                                        >
+                                            {formTools.map(t => (
+                                                <button
+                                                    key={t.mode}
+                                                    className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
+                                                    onClick={() => {
+                                                        dispatch({type: 'SET_TOOL_MODE', mode: t.mode as ToolMode});
+                                                        setShowComponentMenu(false);
+                                                        setComponentSubMenu(null)
+                                                    }}
+                                                >
+                                                    {t.icon}
+                                                    <span>{t.title}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
+                </div>}
             </div>
 
             <div className={styles.separator}/>

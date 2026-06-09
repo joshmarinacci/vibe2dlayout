@@ -2,6 +2,7 @@ import type {TreeNode} from '@model/document'
 import {findAncestorPage} from '@model/document'
 import type {Shape, ShapeType} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
+import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppState} from '@store/context'
 import type {AppAction} from '@store/types'
 import {buildParentMap, getAbsoluteTransform, getContentOrigin} from '@utils/geometry'
@@ -82,31 +83,6 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
     {type: 'page', label: 'Page'},
 ]
 
-const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
-    {type: 'panel', label: 'Titled Panel'},
-    {type: 'frame', label: 'Panel'},
-    {type: 'dialog', label: 'Dialog'},
-]
-
-const FORM_CONTROL_TYPES: { type: ShapeType; label: string }[] = [
-    {type: 'button', label: 'Button'},
-    {type: 'icon', label: 'Icon'},
-    {type: 'slider', label: 'Slider'},
-    {type: 'label', label: 'Label'},
-    {type: 'textfield', label: 'Text Field'},
-    {type: 'checkbox', label: 'Checkbox'},
-    {type: 'toggle', label: 'Toggle'},
-    {type: 'radio', label: 'Radio Button'},
-    {type: 'select', label: 'Select'},
-    {type: 'progress', label: 'Progress Bar'},
-    {type: 'stepper', label: 'Number Stepper'},
-]
-
-const MOCKUP_TYPES: { type: ShapeType; label: string }[] = [
-    {type: 'imagemock', label: 'Image Mock'},
-    {type: 'chartmock', label: 'Chart Mock'},
-    {type: 'pixelimage', label: 'Pixel Image'},
-]
 
 interface DragPayload {
     id: string
@@ -140,6 +116,7 @@ export function TreeNodeComp({
                                  nodeIndex
                              }: Props) {
     const {state} = useAppState()
+    const registeredShapes = useShapeRegistry()
     const shape = shapes[node.id]
     if (!shape) return null
 
@@ -296,7 +273,7 @@ export function TreeNodeComp({
         setContextMenu({x: e.clientX, y: e.clientY})
     }
 
-    const addShapeTo = useCallback((parentId: string, type: ShapeType) => {
+    const addShapeTo = useCallback((parentId: string, type: string) => {
         const newShape = createShape(type, 50, 50, getActiveTheme(state.document))
         dispatch({type: 'ADD_SHAPE', parentId, shape: newShape})
         dispatch({type: 'SELECT_SHAPES', ids: [newShape.id], additive: false})
@@ -308,25 +285,22 @@ export function TreeNodeComp({
             label: opt.label,
             onClick: () => addShapeTo(node.id, opt.type),
         }))
-        const containerItems = CONTAINER_TYPES.map(opt => ({
-            label: opt.label,
-            onClick: () => addShapeTo(node.id, opt.type),
-        }))
-        const formItems = FORM_CONTROL_TYPES.map(opt => ({
-            label: opt.label,
-            onClick: () => addShapeTo(node.id, opt.type),
-        }))
-        const mockupItems = MOCKUP_TYPES.map(opt => ({
-            label: opt.label,
-            onClick: () => addShapeTo(node.id, opt.type),
-        }))
+        const containerItems = registeredShapes
+            .filter(s => s.category === 'containers')
+            .map(s => ({label: s.name, onClick: () => addShapeTo(node.id, s.type)}))
+        const formItems = registeredShapes
+            .filter(s => s.category === 'forms')
+            .map(s => ({label: s.name, onClick: () => addShapeTo(node.id, s.type)}))
+        const mockupItems = registeredShapes
+            .filter(s => s.category === 'mockups')
+            .map(s => ({label: s.name, onClick: () => addShapeTo(node.id, s.type)}))
         const addShapeGroups: ContextMenuGroup[] = [
             {
                 items: [
                     {label: 'Shapes', submenu: basicItems},
-                    {label: 'Containers', submenu: containerItems},
-                    {label: 'Form Controls', submenu: formItems},
-                    {label: 'Mockups', submenu: mockupItems},
+                    ...(containerItems.length > 0 ? [{label: 'Containers', submenu: containerItems}] : []),
+                    ...(formItems.length > 0 ? [{label: 'Form Controls', submenu: formItems}] : []),
+                    ...(mockupItems.length > 0 ? [{label: 'Mockups', submenu: mockupItems}] : []),
                 ],
             },
         ]

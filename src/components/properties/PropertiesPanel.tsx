@@ -1,6 +1,7 @@
 import type {GridStyle} from '@model/grid'
 import type {FillStyle, Shape, ShapeWithCorners, StrokeStyle, TextStyle} from '@model/shapes'
 import {getPowerUpDefinition, getRegisteredDocumentPowerUps} from '@powerups/registry'
+import {shapeRegistry} from '@powerups/shapeRegistry'
 import {
     fillColor,
     type FilledShape,
@@ -21,13 +22,11 @@ import {ColorInput} from './inputs/ColorInput'
 import {NumberInput} from './inputs/NumberInput'
 import {ToggleInput} from './inputs/ToggleInput'
 import styles from './PropertiesPanel.module.css'
-import {ButtonIconSection} from './sections/ButtonIconSection'
 import {ConnectorSection} from './sections/ConnectorSection'
 import {ContentSection} from './sections/ContentSection'
 import {DocumentSection} from './sections/DocumentSection'
 import {FillSection} from './sections/FillSection'
 import {FontInfoSection} from './sections/FontInfoSection'
-import {IconSection} from './sections/IconSection'
 import {ImageAssetSection} from './sections/ImageAssetSection'
 import {ImageSection} from './sections/ImageSection'
 import {DocumentGradientSection} from './sections/DocumentGradientSection'
@@ -642,452 +641,6 @@ function ShapeProperties({shape, dispatch, state}: {
             )
         }
 
-        case 'button':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <ButtonIconSection icon={shape.icon} onChange={ic => dispatch({
-                        type: 'PATCH_SHAPE', id: shape.id,
-                        patch: {icon: ic}
-                    })}
-                    />
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'icon':
-            return (
-                <>
-                    <IconSection icon={shape.icon} onChange={ic => dispatch({
-                        type: 'PATCH_SHAPE',
-                        id: shape.id,
-                        patch: {icon: ic}
-                    })}/>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'panel':
-            return (
-                <>
-                    {shape.text && (<ContentSection id={shape.id} content={shape.text.content}
-                                                    dispatch={dispatch}/>)}
-                    <CollapsibleSection title="Panel">
-                        <ToggleInput
-                            label="Clip"
-                            value={shape.clipChildren}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {clipChildren: v}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'tabbed-panel':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <CollapsibleSection title="Tabs">
-                        <NumberInput
-                            label="Active Tab"
-                            value={shape.activeTab + 1}
-                            min={1}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {activeTab: Math.max(0, Math.round(v) - 1)}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    <CollapsibleSection title="Panel">
-                        <ToggleInput
-                            label="Clip"
-                            value={shape.clipChildren}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {clipChildren: v}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'slider':
-            return (
-                <>
-                    <CollapsibleSection title="Slider">
-                        <NumberInput
-                            label="Value"
-                            value={Math.round(shape.value * 100)}
-                            min={0} max={100}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {value: v / 100}
-                            })}
-                            unit="%"
-                        />
-                        <NumberInput
-                            label="Ticks"
-                            value={shape.ticks ?? 0}
-                            min={0} max={20}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {ticks: Math.round(v)}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    <FillSection title={'Thumb Fill'} fill={shape.thumbFill} onChange={f => dispatch({
-                        type: 'PATCH_SHAPE',
-                        id: shape.id,
-                        patch: {thumbFill: f}
-                    })}
-                    />
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'label':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'textfield':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <CollapsibleSection title="Text Field">
-                        <input
-                            className={styles.nameInput}
-                            value={shape.placeholder}
-                            placeholder="Placeholder text"
-                            onChange={e => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {placeholder: e.target.value} as Partial<Shape>
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'checkbox':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <CollapsibleSection title="Checkbox">
-                        <ToggleInput
-                            label="Checked"
-                            value={shape.checked}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {checked: v}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'toggle':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <CollapsibleSection title="Toggle">
-                        <ToggleInput
-                            label="Checked"
-                            value={shape.checked}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {checked: v}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    <FillSection fill={shape.fill} onChange={f => dispatch({
-                        type: 'PATCH_SHAPE',
-                        id: shape.id,
-                        patch: {fill: f}
-                    })}/>
-                    <FillSection title="Thumb Fill" fill={shape.thumbFill} onChange={f => dispatch({
-                        type: 'PATCH_SHAPE',
-                        id: shape.id,
-                        patch: {thumbFill: f}
-                    })}/>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'frame':
-            return (
-                <>
-                    <CollapsibleSection title="Frame">
-                        <ToggleInput
-                            label="Clip"
-                            value={shape.clipChildren}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {clipChildren: v}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'dialog':
-            return (
-                <>
-                    <CollapsibleSection title="Dialog">
-                        <input
-                            className={styles.nameInput}
-                            value={shape.title}
-                            placeholder="Title"
-                            onChange={e => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {title: e.target.value} as Partial<Shape>
-                            })}
-                        />
-                        <input
-                            className={styles.nameInput}
-                            value={shape.okLabel}
-                            placeholder="OK label"
-                            onChange={e => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {okLabel: e.target.value} as Partial<Shape>
-                            })}
-                        />
-                        <input
-                            className={styles.nameInput}
-                            value={shape.cancelLabel}
-                            placeholder="Cancel label"
-                            onChange={e => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {cancelLabel: e.target.value} as Partial<Shape>
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'radio':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <CollapsibleSection title="Radio Button">
-                        <ToggleInput
-                            label="Checked"
-                            value={shape.checked}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {checked: v}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'select':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <CollapsibleSection title="Select">
-                        <input
-                            className={styles.nameInput}
-                            value={shape.placeholder}
-                            placeholder="Placeholder"
-                            onChange={e => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {placeholder: e.target.value} as Partial<Shape>
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'progress':
-            return (
-                <>
-                    <CollapsibleSection title="Progress Bar">
-                        <NumberInput
-                            label="Value"
-                            value={shape.value}
-                            min={0} max={100}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {value: v}
-                            })}
-                            unit="%"
-                        />
-                        <NumberInput
-                            label="Ticks"
-                            value={shape.ticks ?? 0}
-                            min={0} max={20}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {ticks: Math.round(v)}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    <FillSection title={"Progress Fill"} fill={shape.progressFill} onChange={f => dispatch({
-                        type: 'PATCH_SHAPE',
-                        id: shape.id,
-                        patch: {progressFill: f}
-                    })}
-                    />
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'stepper':
-            return (
-                <>
-                    <CollapsibleSection title="Number Stepper">
-                        <NumberInput
-                            label="Value"
-                            value={shape.value}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {value: v}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'table':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'stickynote':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'list':
-            return (
-                <>
-                    <ContentSection id={shape.id} content={shape.text.content} dispatch={dispatch}/>
-                    <CollapsibleSection title="List">
-                        <NumberInput
-                            label="Selected row"
-                            value={shape.selectedIndex}
-                            min={-1}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {selectedIndex: Math.round(v)}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'scrollpanel':
-            return (
-                <>
-                    <CollapsibleSection title="Scroll Panel">
-                        <NumberInput
-                            label="Scroll"
-                            value={shape.scrollPosition}
-                            min={0} max={1}
-                            step={0.05}
-                            onChange={v => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shape.id,
-                                patch: {scrollPosition: Math.max(0, Math.min(1, v))}
-                            })}
-                        />
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'imagemock':
-            return (
-                <>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
-        case 'chartmock':
-            return (
-                <>
-                    <CollapsibleSection title="Chart Mock">
-                        <div className={styles.row}>
-                            <label className={styles.label}>Type</label>
-                            <select
-                                value={shape.chartType}
-                                onChange={e => dispatch({
-                                    type: 'PATCH_SHAPE',
-                                    id: shape.id,
-                                    patch: {chartType: e.target.value as 'bar' | 'line'} as Partial<Shape>
-                                })}
-                                style={{fontSize: 12}}
-                            >
-                                <option value="bar">Bar</option>
-                                <option value="line">Line</option>
-                            </select>
-                        </div>
-                    </CollapsibleSection>
-                    {common}
-                    <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
-                </>
-            )
-
         case 'pixelimage': {
             const pixelAsset = state.document.pixelAssets.find(a => a.id === shape.assetId)
             return (
@@ -1096,6 +649,32 @@ function ShapeProperties({shape, dispatch, state}: {
                     <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
                 </>
             )
+        }
+
+        default: {
+            const regDef = shapeRegistry.get(shape.type)
+            if (regDef) {
+                // Secondary fills (thumbFill, progressFill) that can't be imported in formsBuiltIn
+                // due to circular dep via FillSection → context → reducer → registry → builtIns
+                const secondaryFill = 'thumbFill' in shape
+                    ? <FillSection key="thumb" title="Thumb Fill"
+                                   fill={(shape as {thumbFill: FillStyle}).thumbFill}
+                                   onChange={f => dispatch({type: 'PATCH_SHAPE', id: shape.id, patch: {thumbFill: f} as Partial<Shape>})}/>
+                    : 'progressFill' in shape
+                        ? <FillSection key="progress" title="Progress Fill"
+                                       fill={(shape as {progressFill: FillStyle}).progressFill}
+                                       onChange={f => dispatch({type: 'PATCH_SHAPE', id: shape.id, patch: {progressFill: f} as Partial<Shape>})}/>
+                        : null
+                return (
+                    <>
+                        {regDef.renderProperties?.({shape, dispatch})}
+                        {secondaryFill}
+                        {common}
+                        <ShapePowerUpsSection shape={shape} activePowerUps={activePowerUps} dispatch={dispatch}/>
+                    </>
+                )
+            }
+            return null
         }
     }
 }

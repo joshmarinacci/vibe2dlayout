@@ -1,6 +1,7 @@
 import {getUnfiledPageIds} from '@model/document'
 import type {ShapeType} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
+import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppDispatch, useAppState} from '@store/context'
 import {generateId} from '@utils/idgen'
 import {createShape} from '@utils/shapeFactory'
@@ -25,35 +26,14 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
     {type: 'image', label: 'Image'},
 ]
 
-const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
-    {type: 'group', label: 'Group'},
-    {type: 'panel', label: 'Titled Panel'},
-    {type: 'frame', label: 'Panel'},
-    {type: 'dialog', label: 'Dialog'},
-]
-
-const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
-    {type: 'button', label: 'Button'},
-    {type: 'slider', label: 'Slider'},
-    {type: 'label', label: 'Label'},
-    {type: 'textfield', label: 'Text Field'},
-    {type: 'checkbox', label: 'Checkbox'},
-    {type: 'toggle', label: 'Toggle'},
-    {type: 'radio', label: 'Radio Button'},
-    {type: 'select', label: 'Select'},
-    {type: 'progress', label: 'Progress Bar'},
-    {type: 'stepper', label: 'Number Stepper'},
-]
-
-const MOCKUP_TYPES: { type: ShapeType; label: string }[] = [
-    {type: 'imagemock', label: 'Image Mock'},
-    {type: 'chartmock', label: 'Chart Mock'},
-    {type: 'pixelimage', label: 'Pixel Image'},
-]
 
 export function TreePanel() {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
+    const registeredShapes = useShapeRegistry()
+    const containerTypes = registeredShapes.filter(s => s.category === 'containers')
+    const formControls = registeredShapes.filter(s => s.category === 'forms')
+    const mockupTypes = registeredShapes.filter(s => s.category === 'mockups')
     const [showAddMenu, setShowAddMenu] = useState(false)
     const addMenuRef = useRef<HTMLDivElement>(null)
 
@@ -70,7 +50,7 @@ export function TreePanel() {
 
     const {rootNodes, shapes, pageFolders} = state.document
 
-    const addShape = (type: ShapeType) => {
+    const addShape = (type: string) => {
         const shape = createShape(type, 50, 50, getActiveTheme(state.document))
         dispatch({type: 'ADD_SHAPE', parentId: state.activePageId, shape})
         dispatch({type: 'SELECT_SHAPES', ids: [shape.id], additive: false})
@@ -129,36 +109,42 @@ export function TreePanel() {
                                         </button>
                                     ))}
                                 </div>
-                                <div className={styles.addMenuDivider}/>
-                                <div className={styles.addMenuGroup}>
-                                    <div className={styles.addMenuLabel}>Containers</div>
-                                    {CONTAINER_TYPES.map(opt => (
-                                        <button key={opt.type} className={styles.addMenuItem}
-                                                onClick={() => addShape(opt.type)}>
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className={styles.addMenuDivider}/>
-                                <div className={styles.addMenuGroup}>
-                                    <div className={styles.addMenuLabel}>Form Controls</div>
-                                    {FORM_CONTROLS.map(opt => (
-                                        <button key={opt.type} className={styles.addMenuItem}
-                                                onClick={() => addShape(opt.type)}>
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className={styles.addMenuDivider}/>
-                                <div className={styles.addMenuGroup}>
-                                    <div className={styles.addMenuLabel}>Mockups</div>
-                                    {MOCKUP_TYPES.map(opt => (
-                                        <button key={opt.type} className={styles.addMenuItem}
-                                                onClick={() => addShape(opt.type)}>
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                {containerTypes.length > 0 && <>
+                                    <div className={styles.addMenuDivider}/>
+                                    <div className={styles.addMenuGroup}>
+                                        <div className={styles.addMenuLabel}>Containers</div>
+                                        {containerTypes.map(s => (
+                                            <button key={s.type} className={styles.addMenuItem}
+                                                    onClick={() => addShape(s.type)}>
+                                                {s.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>}
+                                {formControls.length > 0 && <>
+                                    <div className={styles.addMenuDivider}/>
+                                    <div className={styles.addMenuGroup}>
+                                        <div className={styles.addMenuLabel}>Form Controls</div>
+                                        {formControls.map(s => (
+                                            <button key={s.type} className={styles.addMenuItem}
+                                                    onClick={() => addShape(s.type)}>
+                                                {s.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>}
+                                {mockupTypes.length > 0 && <>
+                                    <div className={styles.addMenuDivider}/>
+                                    <div className={styles.addMenuGroup}>
+                                        <div className={styles.addMenuLabel}>Mockups</div>
+                                        {mockupTypes.map(s => (
+                                            <button key={s.type} className={styles.addMenuItem}
+                                                    onClick={() => addShape(s.type)}>
+                                                {s.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>}
                             </div>
                         )}
                     </div>

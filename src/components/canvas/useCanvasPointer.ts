@@ -2,6 +2,7 @@ import type {VibeDocument} from '@model/document'
 import {findNode, getAllIds} from '@model/document'
 import type {CanvasGuide} from '@model/guide'
 import {createEmptyPixelAsset} from '@model/pixelAsset'
+import {shapeRegistry} from '@powerups/shapeRegistry'
 import type {ShapeType} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
 import type {BoundingBox} from '@model/transform'
@@ -40,33 +41,18 @@ export interface CanvasContextMenuState {
     selectedIds: string[]
 }
 
-// Map tool mode to shape type
-const TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
+// Core (always-loaded) tool mode → shape type mappings
+const BASE_TOOL_SHAPE: Partial<Record<string, ShapeType>> = {
     'insert-rect': 'rect',
     'insert-circle': 'circle',
     'insert-text': 'text',
     'insert-image': 'image',
     'insert-line': 'line',
-    'insert-button': 'button',
-    'insert-icon': 'icon',
-    'insert-panel': 'panel',
-    'insert-slider': 'slider',
-    'insert-label': 'label',
-    'insert-textfield': 'textfield',
-    'insert-checkbox': 'checkbox',
-    'insert-toggle': 'toggle',
-    'insert-frame': 'frame',
-    'insert-dialog': 'dialog',
-    'insert-radio': 'radio',
-    'insert-select': 'select',
-    'insert-progress': 'progress',
-    'insert-stepper': 'stepper',
-    'insert-stickynote': 'stickynote',
-    'insert-list': 'list',
-    'insert-scrollpanel': 'scrollpanel',
-    'insert-table': 'table',
     'insert-group': 'group',
-    'insert-tabbed-panel': 'tabbed-panel',
+}
+
+function getToolShapeType(mode: string): string | undefined {
+    return BASE_TOOL_SHAPE[mode] ?? shapeRegistry.getByToolMode(mode)?.type
 }
 
 /**
@@ -265,7 +251,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
             return
         }
 
-        const shapeType = TOOL_SHAPE[state.toolMode]
+        const shapeType = getToolShapeType(state.toolMode)
         if (shapeType) {
             // Insert mode: ghost starts here
             return
@@ -385,7 +371,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
             return
         }
 
-        const shapeType = TOOL_SHAPE[state.toolMode]
+        const shapeType = getToolShapeType(state.toolMode)
         if (shapeType || state.toolMode === 'insert-pixelimage') {
             const {sx, sy} = dragStart.current
             const rect = containerRef.current!.getBoundingClientRect()
@@ -487,7 +473,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
         }
 
         const pos = getCanvasPos(e)
-        const shapeType = TOOL_SHAPE[state.toolMode]
+        const shapeType = getToolShapeType(state.toolMode)
         const activeTheme = getActiveTheme(state.document)
 
         if (shapeType && isDragging.current) {

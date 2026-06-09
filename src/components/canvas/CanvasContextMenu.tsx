@@ -2,6 +2,7 @@ import type {TreeNode} from '@model/document'
 import {createEmptyPixelAsset} from '@model/pixelAsset'
 import type {ImageShape, Shape, ShapeType} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
+import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppState} from '@store/context'
 import type {AlignType, AppAction} from '@store/types'
 import {exportGroupAsPng} from '@utils/exportPng'
@@ -64,35 +65,6 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
     {type: 'pixelimage', label: 'Pixel Image'},
 ]
 
-const CONTAINER_TYPES: { type: ShapeType; label: string }[] = [
-    {type: 'panel', label: 'Titled Panel'},
-    {type: 'tabbed-panel', label: 'Tabbed Panel'},
-    {type: 'frame', label: 'Panel'},
-    {type: 'dialog', label: 'Dialog'},
-    {type: 'stickynote', label: 'Sticky Note'},
-    {type: 'scrollpanel', label: 'Scroll Panel'},
-]
-
-const FORM_CONTROLS: { type: ShapeType; label: string }[] = [
-    {type: 'button', label: 'Button'},
-    {type: 'icon', label: 'Icon'},
-    {type: 'slider', label: 'Slider'},
-    {type: 'label', label: 'Label'},
-    {type: 'textfield', label: 'Text Field'},
-    {type: 'checkbox', label: 'Checkbox'},
-    {type: 'toggle', label: 'Toggle'},
-    {type: 'radio', label: 'Radio Button'},
-    {type: 'select', label: 'Select'},
-    {type: 'progress', label: 'Progress Bar'},
-    {type: 'stepper', label: 'Number Stepper'},
-    {type: 'list', label: 'List'},
-    {type: 'table', label: 'Table'},
-]
-
-const MOCKUP_SHAPES: { type: ShapeType; label: string }[] = [
-    {type: 'imagemock', label: 'Image Mock'},
-    {type: 'chartmock', label: 'Chart Mock'},
-]
 
 export function CanvasContextMenu({
                                       menuState,
@@ -104,6 +76,7 @@ export function CanvasContextMenu({
                                       onShowCssDialog
                                   }: Props) {
     const {state} = useAppState()
+    const registeredShapes = useShapeRegistry()
     const {screenX, screenY, canvasX, canvasY, shapeId, selectedIds} = menuState
     const shape = shapeId ? shapes[shapeId] : null
     const isMultiSelect = selectedIds.length > 1
@@ -115,7 +88,7 @@ export function CanvasContextMenu({
     const actualW = imageAsset?.width  ? (imageCrop ? Math.round(imageAsset.width  * imageCrop.width)  : imageAsset.width)  : null
     const actualH = imageAsset?.height ? (imageCrop ? Math.round(imageAsset.height * imageCrop.height) : imageAsset.height) : null
 
-    const addShape = (type: ShapeType, parentId: string | null) => {
+    const addShape = (type: string, parentId: string | null) => {
         let localX = canvasX
         let localY = canvasY
         if (parentId && parentId !== activePageId) {
@@ -148,34 +121,31 @@ export function CanvasContextMenu({
         onClick: () => addShape(opt.type, parentId),
     }))
 
-    const containerItems = CONTAINER_TYPES.map(opt => ({
-        label: opt.label,
-        onClick: () => addShape(opt.type, parentId),
-    }))
+    const containerItems = registeredShapes
+        .filter(s => s.category === 'containers')
+        .map(s => ({label: s.name, onClick: () => addShape(s.type, parentId)}))
 
-    const formItems = FORM_CONTROLS.map(opt => ({
-        label: opt.label,
-        onClick: () => addShape(opt.type, parentId),
-    }))
+    const formItems = registeredShapes
+        .filter(s => s.category === 'forms')
+        .map(s => ({label: s.name, onClick: () => addShape(s.type, parentId)}))
 
-    const mockupItems = MOCKUP_SHAPES.map(opt => ({
-        label: opt.label,
-        onClick: () => addShape(opt.type, parentId),
-    }))
+    const mockupItems = registeredShapes
+        .filter(s => s.category === 'mockups')
+        .map(s => ({label: s.name, onClick: () => addShape(s.type, parentId)}))
+
+    const formsSubParts = [
+        ...containerItems,
+        ...(containerItems.length > 0 && formItems.length > 0 ? [{label: '', divider: true as const}] : []),
+        ...formItems,
+        ...(mockupItems.length > 0 && (containerItems.length > 0 || formItems.length > 0) ? [{label: '', divider: true as const}] : []),
+        ...mockupItems,
+    ]
 
     const addShapeGroups: ContextMenuGroup[] = [
         {
             items: [
                 {label: 'Shapes', submenu: basicItems},
-                {
-                    label: 'Forms', submenu: [
-                        ...containerItems,
-                        {label: '', divider: true},
-                        ...formItems,
-                        {label: '', divider: true},
-                        ...mockupItems,
-                    ]
-                },
+                ...(formsSubParts.length > 0 ? [{label: 'Forms', submenu: formsSubParts}] : []),
             ],
         },
     ]

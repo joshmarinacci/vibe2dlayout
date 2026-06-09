@@ -10,8 +10,35 @@ import type {PowerUpDefinition} from './types'
 const PHYSICS_POWER_UP_ID = 'powerup.physics'
 const XML_EXPORT_POWER_UP_ID = 'powerup.export.xml'
 const PNG_EXPORT_POWER_UP_ID = 'powerup.export.png'
+const FORMS_POWER_UP_ID = 'powerup.forms'
+
+// Forms powerup uses a dynamic import in its lifecycle to avoid a circular dependency:
+// formsBuiltIn → CollapsibleSection → @store/context → reducer → registry → builtIns → formsBuiltIn
+const FORMS_POWER_UP_STUB: PowerUpDefinition = {
+    id: FORMS_POWER_UP_ID,
+    name: 'Forms',
+    version: 1,
+    createDefaultDocumentSettings: () => ({}),
+    lifecycle: {
+        onLoad: async () => {
+            const [{FORMS_POWER_UP}, {shapeRegistry}] = await Promise.all([
+                import('./formsBuiltIn'),
+                import('./shapeRegistry'),
+            ])
+            shapeRegistry.register(FORMS_POWER_UP.shapeTypes ?? [])
+        },
+        onUnload: async () => {
+            const [{FORMS_POWER_UP}, {shapeRegistry}] = await Promise.all([
+                import('./formsBuiltIn'),
+                import('./shapeRegistry'),
+            ])
+            shapeRegistry.unregister((FORMS_POWER_UP.shapeTypes ?? []).map(t => t.type))
+        },
+    },
+}
 
 export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
+    FORMS_POWER_UP_STUB,
     {
         id: PHYSICS_POWER_UP_ID,
         name: 'Physics',
@@ -193,4 +220,5 @@ export const BUILT_IN_POWER_UP_IDS = {
     PHYSICS_POWER_UP_ID,
     XML_EXPORT_POWER_UP_ID,
     PNG_EXPORT_POWER_UP_ID,
+    FORMS_POWER_UP_ID,
 }

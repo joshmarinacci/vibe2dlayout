@@ -1,4 +1,31 @@
 
+## 2026-06-09 13:40 — Move ImageMock and ChartMock to Forms powerup
+
+- Added `'mockups'` as a valid category to `PowerUpShapeTypeDefinition`.
+- Added `imagemock` and `chartmock` shape type definitions to `formsBuiltIn.tsx` (`category: 'mockups'`), including `createDefault` factories and `renderShape` implementations.
+- Removed hardcoded `imagemock`/`chartmock` cases from `ShapeRenderer.tsx`, `shapeFactory.ts`, and `PropertiesPanel.tsx`; they now go through the registry fallthrough.
+- All three context menus (`CanvasContextMenu`, `TreeNode`, `TreePanel`) now drive their "Mockups" section from the registry; the section is hidden when the Forms powerup is inactive.
+
+## 2026-06-09 12:30 — Context menus gated by Forms powerup
+
+- `CanvasContextMenu.tsx`: removed hardcoded `CONTAINER_TYPES`/`FORM_CONTROLS` arrays; "Forms" submenu (containers + form controls + mockups) now only appears when forms shapes are registered; falls back to just "Mockups" when powerup is inactive.
+- `TreeNode.tsx`: same — "Containers" and "Form Controls" context menu submenus are conditionally rendered from registry.
+- `TreePanel.tsx`: same — Containers and Form Controls sections in the "+" add menu are hidden when powerup is inactive.
+
+## 2026-06-09 — Move forms to a powerup
+
+- Added `PowerUpShapeTypeDefinition` interface to `src/powerups/types.ts` with `createDefault`, `renderShape`, `renderProperties`, category, and behavior flags (`isTextEditable`, `isDrillable`).
+- Created `src/powerups/shapeRegistry.ts`: a runtime registry that powerups write to on load/unload, with a `useShapeRegistry()` React hook for reactive updates.
+- Created `src/powerups/formsBuiltIn.tsx`: defines all 18 form shape types (buttons, checkboxes, panels, sliders, etc.) as a "Forms" powerup.
+- Added "Forms" stub entry to `BUILT_IN_POWER_UPS` in `builtIns.tsx` using a dynamic import in its lifecycle hooks to avoid a circular dependency (CollapsibleSection → @store/context → reducer → registry → builtIns → formsBuiltIn).
+- `ShapeRenderer.tsx`: removed hardcoded form shape cases and imports; added registry fallthrough in the `default` case; updated `TEXT_EDITABLE`/`DRILLABLE` sets to check registry for form shape behaviors.
+- `Toolbar.tsx`: removed hardcoded `FORM_CONTROLS`/`CONTAINER_CONTROLS` arrays; Components dropdown now reads from `useShapeRegistry()` and is hidden entirely when no forms powerup is active.
+- `store/types.ts`: widened `ToolMode` to accept `string & {}` for powerup-registered tool modes.
+- `useCanvasPointer.ts`: replaced static `TOOL_SHAPE` map with `getToolShapeType()` that merges core modes with registry entries.
+- `shapeFactory.ts`: added registry fallthrough in `createShape()`.
+- `PropertiesPanel.tsx`: removed all form shape cases from the switch; added registry fallthrough in `default` case; secondary fills (`thumbFill`, `progressFill`) handled inline.
+- `tests/setup.ts`: registers form shapes via dynamic import in `beforeAll` to avoid circular in test environment.
+
 ## 2026-05-29 — Gradient detail panel; library and CSS refinements
 
 - Clicking a document gradient in the Assets tree now selects it and shows an editable detail panel in the properties sheet: name, gradient preview strip, interactive stop bar (drag to reposition, click to add, drag down to delete), per-stop color picker and position input, and Delete Gradient button. Added `selectedGradientId` state and `SELECT_GRADIENT` action.
