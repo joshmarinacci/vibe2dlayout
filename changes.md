@@ -1,4 +1,32 @@
 
+## 2026-06-10 — Fix post-SVG-migration bugs
+
+- **Solid border on rect/circle**: `svgStroke` was applying `strokeDasharray` whenever the `dash` array was non-empty, but the CSS code only did so when `stroke.type === 'dashed'`. The default stroke has `type:'solid'` with `dash:[5,3]` (stored for when the user switches to dashed), so the fix is to guard: `stroke.type === 'dashed' && dash.length > 0`.
+- **Text not multiline**: `position:absolute; inset:0` inside `<foreignObject>` doesn't reliably constrain width for text wrapping in all browsers. Fixed by using explicit `width:${w}px; height:${h}px; box-sizing:border-box` on the root div and textarea inside the foreignObject.
+- **Variable font axes (Honk etc.)**: Added `transform: translateZ(0)` to the text display div when `fontVariationSettings` is present — this forces the browser to create a new GPU compositing layer and re-evaluate font axes, working around a known Chromium bug where `font-variation-settings` inside SVG `<foreignObject>` can become stale.
+- **ImageShape missing CSS rotation**: `transform: buildCSSTransform(transform)` was missing from the outer `<svg>` element, so rotated/scaled images weren't rotated visually.
+- **ImageShape clipping**: Replaced `<clipPath>` with a nested `<svg x=0 y=0 width={w} height={h} overflow="hidden">` which is simpler and correctly clips the image (including when crop is set) to the shape bounds.
+
+## 2026-06-10 — Migrate core shapes to SVG rendering
+
+Replaced DOM `<div>` rendering with SVG elements for all core primitive shapes:
+
+**New utility files (`src/utils/`):**
+- `fillSVG.tsx` — converts `FillStyle` to SVG `fill` attribute + inline `<linearGradient>`, `<radialGradient>`, or `<pattern>` defs
+- `strokeStyleSVG.tsx` — converts `StrokeStyle` to SVG `stroke` attributes + optional gradient defs; includes `cornerRadiiPath()` for per-corner SVG path
+- `shadowSVG.tsx` — converts `BoxShadow[]` to an SVG `<filter>` element using `<feDropShadow>`, `<feGaussianBlur>`, and `<feMerge>` for multiple/inset shadows
+- `svgTransform.ts` — converts `BoundingBox` rotation/scale/skew to an SVG `transform` attribute string
+
+**Shape changes:**
+- `RectShape.tsx` — DOM container div + SVG visual layer (`<rect>` or `<path>` for per-corner radii); eliminates the webkit-mask gradient stroke hack
+- `CircleShape.tsx` — DOM container div + SVG `<ellipse>` visual layer
+- `TextShape.tsx` — pure SVG island (`<svg>` with background `<rect>` + `<foreignObject>` containing textarea in edit mode and styled div in display mode)
+- `ImageShape.tsx` — pure SVG island using `<image>` + `<clipPath>` for cropping
+- `GroupShape.tsx` — DOM container div + SVG visual layer for dashed selection border and optional shadow
+- `PageShape.tsx` — DOM container div + SVG visual layer with native `<feDropShadow>` filter
+
+Form/mockup shapes (button, dialog, table, etc.) are unchanged.
+
 ## 2026-06-09 13:40 — Move ImageMock and ChartMock to Forms powerup
 
 - Added `'mockups'` as a valid category to `PowerUpShapeTypeDefinition`.

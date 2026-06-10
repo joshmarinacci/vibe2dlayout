@@ -1,6 +1,5 @@
 import type {PageShape} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
-import styles from './Shape.module.css'
 
 interface Props {
     shape: PageShape
@@ -10,28 +9,46 @@ interface Props {
     children?: React.ReactNode
 }
 
-export function PageShapeComp({shape, isSelected, onClick, onDoubleClick, children}: Props) {
+export function PageShapeComp({shape, onClick, onDoubleClick, children}: Props) {
     const {transform, background, clipChildren, fixedSize} = shape
     const {x, y, width, height} = transform
+    const w = fixedSize?.width ?? width
+    const h = fixedSize?.height ?? height
 
     return (
         <div
-            className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
             style={{
                 position: 'absolute',
                 left: x,
                 top: y,
-                width: fixedSize?.width ?? width,
-                height: fixedSize?.height ?? height,
+                width: w,
+                height: h,
                 transform: buildCSSTransform(transform),
                 transformOrigin: 'center center',
-                background,
                 overflow: clipChildren ? 'hidden' : 'visible',
-                boxShadow: '0 1px 8px rgba(0,0,0,0.15)',
+                cursor: 'move',
+                userSelect: 'none',
             }}
             onClick={onClick}
             onDoubleClick={onDoubleClick}
         >
+            {/* SVG visual layer: background + page drop shadow */}
+            <svg
+                style={{position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible'}}
+                aria-hidden="true"
+            >
+                <defs>
+                    <filter id={`page-shadow-${shape.id}`} x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx={0} dy={1} stdDeviation={4} floodColor="rgba(0,0,0,0.15)"/>
+                    </filter>
+                </defs>
+                <rect
+                    x={0} y={0} width={w} height={h}
+                    fill={background ?? 'white'}
+                    filter={`url(#page-shadow-${shape.id})`}
+                    pointerEvents="none"
+                />
+            </svg>
             {children}
         </div>
     )

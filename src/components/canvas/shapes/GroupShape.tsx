@@ -1,5 +1,6 @@
 import type {GroupShape} from '@model/shapes'
-import {boxShadowCSS} from '@utils/shadowCSS'
+import {buildCSSTransform} from '@model/transform'
+import {svgDropShadow} from '@utils/shadowSVG'
 
 interface Props {
     shape: GroupShape
@@ -10,31 +11,44 @@ interface Props {
 }
 
 export function GroupShapeComp({shape, isSelected, onClick, onDoubleClick, children}: Props) {
-    const {x, y, width, height} = shape.transform
+    const {x, y, width: w, height: h} = shape.transform
+    const shadow = svgDropShadow(shape.boxShadow, shape.id)
+
     return (
         <div
             style={{
                 position: 'absolute',
-                ...boxShadowCSS(shape),
                 left: x,
                 top: y,
-                width,
-                height,
+                width: w,
+                height: h,
+                transform: buildCSSTransform(shape.transform),
+                transformOrigin: 'center center',
+                cursor: 'move',
+                userSelect: 'none',
             }}
             onClick={onClick}
             onDoubleClick={onDoubleClick}
         >
+            {/* SVG visual layer: shadow + optional selection indicator */}
+            <svg
+                style={{position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible'}}
+                aria-hidden="true"
+            >
+                {shadow && (
+                    <defs>{shadow.filterEl}</defs>
+                )}
+                {shadow && (
+                    <rect x={0} y={0} width={w} height={h} fill="transparent"
+                          filter={`url(#shadow-${shape.id})`} pointerEvents="none"/>
+                )}
+                {isSelected && (
+                    <rect x={0} y={0} width={w} height={h}
+                          fill="none" stroke="#94a3b8" strokeWidth={1} strokeDasharray="4 3"
+                          pointerEvents="none"/>
+                )}
+            </svg>
             {children}
-            {isSelected && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        border: '1px dashed #94a3b8',
-                        pointerEvents: 'none',
-                    }}
-                />
-            )}
         </div>
     )
 }

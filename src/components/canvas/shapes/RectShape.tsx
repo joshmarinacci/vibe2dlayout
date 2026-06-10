@@ -1,9 +1,8 @@
-import type {GradientStroke, RectShape as RectShapeType} from '@model/shapes'
+import type {RectShape as RectShapeType} from '@model/shapes'
 import {buildCSSTransform} from '@model/transform'
-import {fillBackground} from '@utils/fillCSS'
-import {boxShadowCSS} from '@utils/shadowCSS'
-import {cornerRadiiCSS, strokeBorderCSS} from '@utils/strokeStyleCSS'
-import styles from './Shape.module.css'
+import {svgFill} from '@utils/fillSVG'
+import {svgDropShadow} from '@utils/shadowSVG'
+import {cornerRadiiPath, svgStroke} from '@utils/strokeStyleSVG'
 
 interface Props {
     shape: RectShapeType
@@ -13,62 +12,74 @@ interface Props {
     children?: React.ReactNode
 }
 
-function gradientStrokeCSS(gs: GradientStroke): string {
-    const stops = gs.stops.map(s => `${s.color} ${Math.round(s.position * 100)}%`).join(', ')
-    switch (gs.gradientType) {
-        case 'linear': return `linear-gradient(${gs.angle}deg, ${stops})`
-        case 'radial':  return `radial-gradient(circle, ${stops})`
-        case 'conic':   return `conic-gradient(from ${gs.angle}deg, ${stops})`
-    }
-}
-
-function GradientStrokeBorder({shape}: {shape: RectShapeType}) {
-    const gs = shape.stroke as GradientStroke
-    const borderRadius = cornerRadiiCSS(shape.cornerRadius, shape.cornerRadii)
-    const gradient = gradientStrokeCSS(gs)
-    return (
-        <div style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius,
-            border: `${gs.width}px solid transparent`,
-            background: `${gradient} border-box`,
-            WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
-            WebkitMaskComposite: 'destination-out',
-            maskComposite: 'exclude',
-            opacity: gs.opacity,
-            pointerEvents: 'none',
-            boxSizing: 'border-box',
-        }}/>
-    )
-}
-
-export function RectShape({shape, isSelected, onClick, onDoubleClick, children}: Props) {
+export function RectShape({shape, onClick, onDoubleClick, children}: Props) {
     const {transform, fill, stroke} = shape
-    const {x, y, width, height} = transform
+    const {x, y, width: w, height: h} = transform
+
+    const fillResult = svgFill(fill, shape.id)
+    const strokeResult = svgStroke(stroke, shape.id)
+    const shadow = svgDropShadow(shape.boxShadow, shape.id)
+
+    const hasDefs = fillResult.defs || strokeResult.defs || shadow
+    const filterAttr = shadow ? `url(#shadow-${shape.id})` : undefined
+
+    // Use path for per-corner radii, rect for uniform radius
+    const shapeEl = shape.cornerRadii ? (
+        <path
+            d={cornerRadiiPath(0, 0, w, h, shape.cornerRadii)}
+            fill={fillResult.fillAttr}
+            fillOpacity={fillResult.opacity}
+            stroke={strokeResult.stroke}
+            strokeWidth={strokeResult.strokeWidth}
+            strokeDasharray={strokeResult.strokeDasharray}
+            strokeOpacity={strokeResult.strokeOpacity}
+            filter={filterAttr}
+            pointerEvents="none"
+        />
+    ) : (
+        <rect
+            x={0} y={0} width={w} height={h}
+            rx={shape.cornerRadius ?? 0}
+            fill={fillResult.fillAttr}
+            fillOpacity={fillResult.opacity}
+            stroke={strokeResult.stroke}
+            strokeWidth={strokeResult.strokeWidth}
+            strokeDasharray={strokeResult.strokeDasharray}
+            strokeOpacity={strokeResult.strokeOpacity}
+            filter={filterAttr}
+            pointerEvents="none"
+        />
+    )
 
     return (
         <div
-            className={`${styles.shape} ${isSelected ? styles.selected : ''}`}
             style={{
                 position: 'absolute',
-                ...boxShadowCSS(shape),
                 left: x,
                 top: y,
-                width,
-                height,
+                width: w,
+                height: h,
                 transform: buildCSSTransform(transform),
                 transformOrigin: 'center center',
-                background: fillBackground(fill),
-                opacity: fill.opacity,
-                borderRadius: cornerRadiiCSS(shape.cornerRadius, shape.cornerRadii),
-                ...strokeBorderCSS(stroke),
-                boxSizing: 'border-box',
+                cursor: 'move',
+                userSelect: 'none',
             }}
             onClick={onClick}
             onDoubleClick={onDoubleClick}
         >
-            {stroke.type === 'gradient' && <GradientStrokeBorder shape={shape}/>}
+            <svg
+                style={{position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible'}}
+                aria-hidden="true"
+            >
+                {hasDefs && (
+                    <defs>
+                        {fillResult.defs}
+                        {strokeResult.defs}
+                        {shadow?.filterEl}
+                    </defs>
+                )}
+                {shapeEl}
+            </svg>
             {children}
         </div>
     )
