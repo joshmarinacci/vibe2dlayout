@@ -21,7 +21,7 @@ import {
 import {generateId} from '@utils/idgen'
 import {createShape} from '@utils/shapeFactory'
 import {getEffectiveGridSettings, snapToGrid} from '@utils/snapping'
-import type {RefObject} from 'react'
+import type {MutableRefObject, RefObject} from 'react'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {RULER_SIZE} from './CanvasRuler'
 
@@ -101,7 +101,10 @@ function findDropTarget(
     return best
 }
 
-export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>) {
+export function useCanvasPointer(
+    containerRef: RefObject<HTMLDivElement | null>,
+    multiTouchActiveRef?: MutableRefObject<boolean>
+) {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
 
@@ -238,6 +241,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
 
     const onPointerDown = useCallback((e: React.PointerEvent) => {
         if (e.button !== 0) return
+        if (multiTouchActiveRef?.current) return
         containerRef.current?.setPointerCapture(e.pointerId)
 
         const pos = getCanvasPos(e)
@@ -338,6 +342,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }, [state, dispatch, getCanvasPos, hitTestShapes, containerRef])
 
     const onPointerMove = useCallback((e: React.PointerEvent) => {
+        if (multiTouchActiveRef?.current) return
         if (!dragStart.current) return
 
         const pos = getCanvasPos(e)
@@ -457,6 +462,7 @@ export function useCanvasPointer(containerRef: RefObject<HTMLDivElement | null>)
     }, [state.toolMode, dispatch, getCanvasPos, containerRef, snapEnabled, snapAlignment, gridSize])
 
     const onPointerUp = useCallback((e: React.PointerEvent) => {
+        if (multiTouchActiveRef?.current) { dragStart.current = null; return }
         if (!dragStart.current) return
         containerRef.current?.releasePointerCapture(e.pointerId)
 

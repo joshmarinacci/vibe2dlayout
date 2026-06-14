@@ -5,7 +5,7 @@ import {TreePanel} from '@components/tree/TreePanel'
 import {useDynamicFonts} from '@hooks/useDynamicFonts'
 import {useFontMetadataEnrichment} from '@hooks/useFontMetadataEnrichment'
 import {useAppDispatch, useAppState} from '@store/context'
-import {useCallback, useState} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import styles from './AppShell.module.css'
 import {ResizeHandle} from './ResizeHandle'
 import {SettingsModal} from './SettingsModal'
@@ -24,6 +24,13 @@ export function AppShell() {
 
     const [leftWidth, setLeftWidth] = useState(220)
     const [rightWidth, setRightWidth] = useState(300)
+
+    useEffect(() => {
+        if (window.innerWidth < 768) {
+            if (state.leftPanelVisible) dispatch({type: 'TOGGLE_LEFT_PANEL'})
+            if (state.rightPanelVisible) dispatch({type: 'TOGGLE_RIGHT_PANEL'})
+        }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     const onResizeLeft = useCallback((delta: number) => {
         setLeftWidth(w => Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w + delta)))

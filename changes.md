@@ -1,4 +1,12 @@
 
+## 2026-06-13 — Mobile support (pinch-to-zoom, responsive toolbar, panel auto-collapse)
+
+- **Pinch-to-zoom + two-finger pan**: new `usePinchGestures` hook attaches native pointer listeners to the canvas, tracks two active pointers, and dispatches `ZOOM_TO` / `PAN_BY` with the touch centroid as zoom origin. Uses `queueMicrotask` to defer flag clearing so React's synthetic handlers don't accidentally commit a drag after a pinch ends.
+- **useCanvasPointer**: accepts optional `multiTouchActiveRef`; all three pointer handlers (`onPointerDown`, `onPointerMove`, `onPointerUp`) bail out while multi-touch is active to avoid conflating pinch with selection/drag.
+- **`touch-action: none`** added to the canvas element so iOS/Android don't intercept touch events for native scroll/zoom.
+- **Toolbar responsive collapse**: at ≤640px, the File/Edit/View/Powerups menu bar and document name are hidden via CSS media query; toolbar gets `overflow-x: auto` as a fallback.
+- **Panel auto-collapse**: panels start hidden on viewports narrower than 768px; `max-width: 100%` prevents them from overflowing the screen edge when resized.
+
 ## 2026-06-13 — Side panels as translucent canvas overlays
 
 - Canvas now spans the full browser width; the layer and properties panels float above it as translucent overlays

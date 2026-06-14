@@ -2,8 +2,8 @@ import {RULER_SIZE} from '@components/canvas/CanvasRuler'
 import {useAppDispatch, useAppState} from '@store/context'
 import {useCallback} from 'react'
 
-const MIN_ZOOM = 0.05
-const MAX_ZOOM = 20
+export const MIN_ZOOM = 0.05
+export const MAX_ZOOM = 20
 
 export function usePanZoom() {
     const {state} = useAppState()

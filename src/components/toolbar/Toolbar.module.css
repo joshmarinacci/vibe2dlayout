@@ -156,3 +156,15 @@
     outline: none;
     border-color: var(--color-accent);
 }
+
+@media (max-width: 640px) {
+    .toolbar {
+        overflow-x: auto;
+    }
+    .menuBar {
+        display: none;
+    }
+    .docName {
+        display: none;
+    }
+}

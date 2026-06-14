@@ -222,7 +222,7 @@ export function Toolbar() {
             {/* Menu bar — web only; Tauri uses the native menu bar */}
             {!IS_TAURI && (
                 <>
-                    <div className={styles.group}>
+                    <div className={`${styles.group} ${styles.menuBar}`}>
                         {/* File menu */}
                         <div ref={fileMenuRef} style={{position: 'relative'}}>
                             <button
@@ -534,6 +534,7 @@ export function Toolbar() {
                 />
             ) : (
                 <span
+                    className={styles.docName}
                     title="Click to rename"
                     onClick={() => {
                         setNameInputValue(state.documentName);

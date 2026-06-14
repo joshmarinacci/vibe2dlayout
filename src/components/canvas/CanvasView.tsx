@@ -18,12 +18,15 @@ import {SnapGuides} from './SnapGuides'
 import {TextCssDialog} from './TextCssDialog'
 import {useCanvasDrop} from './useCanvasDrop'
 import {useCanvasPointer} from './useCanvasPointer'
+import {usePinchGestures} from '@hooks/usePinchGestures'
 
 export function CanvasView() {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
     const {handleWheel} = usePanZoom()
     const containerRef = useRef<HTMLDivElement>(null)
+    const multiTouchActive = useRef(false)
+    usePinchGestures(containerRef, multiTouchActive)
 
     useDocumentShortcuts()
 
@@ -48,7 +51,7 @@ export function CanvasView() {
         spaceHeld,
         snapGuides,
         guidePreview
-    } = useCanvasPointer(containerRef)
+    } = useCanvasPointer(containerRef, multiTouchActive)
     const {onDragOver, onDrop} = useCanvasDrop(containerRef)
     const [cssDialog, setCssDialog] = useState<CssDialogState | null>(null)
 
