@@ -1,4 +1,15 @@
 
+## 2026-06-14 — Physics HTML export
+
+New **Powerups → Export Physics HTML...** menu item (web + Tauri) exports a self-contained `.html` file that runs a live Matter.js physics simulation in any browser.
+
+- The exported page embeds all shapes from the active page as absolutely-positioned divs with their fill/stroke/border-radius styles
+- Only shapes with physics bodies assigned participate in the simulation; others appear as static visuals
+- Uses the document's gravity (X/Y) and solver iteration settings, 100px boundary walls around the page, and the same dt-clamped RAF loop as the in-app runtime
+- Users can drag shapes with the mouse (Matter.js `MouseConstraint`) and use Pause/Resume/Reset controls
+- Loads Matter.js 0.20.0 from unpkg CDN (requires internet to open)
+- New `src/utils/exportPhysicsHtml.ts` reuses `fillBackground`, `strokeColor`, and `getAllIds` utilities
+
 ## 2026-06-13 — Mobile support (pinch-to-zoom, responsive toolbar, panel auto-collapse)
 
 - **Pinch-to-zoom + two-finger pan**: new `usePinchGestures` hook attaches native pointer listeners to the canvas, tracks two active pointers, and dispatches `ZOOM_TO` / `PAN_BY` with the touch centroid as zoom origin. Uses `queueMicrotask` to defer flag clearing so React's synthetic handlers don't accidentally commit a drag after a pinch ends.

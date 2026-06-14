@@ -2,6 +2,7 @@ import {NumberInput} from '@components/properties/inputs/NumberInput'
 import {ToggleInput} from '@components/properties/inputs/ToggleInput'
 import {CollapsibleSection} from '@components/properties/CollapsibleSection'
 import {stopPhysicsSimulation, togglePhysicsSimulation} from '@powerups/physicsRuntime'
+import {exportPhysicsHtml} from '@utils/exportPhysicsHtml'
 import {exportPageAsPng} from '@utils/exportPng'
 import {downloadDocumentXml} from '@utils/exportXml'
 import {Download, Play, ScrollText} from 'lucide-react'
@@ -112,6 +113,15 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 tauriMenuId: 'menu:powerups:action:physics:simulate',
                 run: (ctx) => {
                     togglePhysicsSimulation(ctx)
+                },
+            },
+            {
+                id: 'physics-export-html',
+                title: 'Export Physics HTML...',
+                tauriMenuId: 'menu:powerups:action:physics:export-html',
+                isEnabled: ({state}) => !!state.activePageId,
+                run: ({state}) => {
+                    exportPhysicsHtml(state, `${state.documentName || 'physics'}-simulation.html`)
                 },
             },
         ],

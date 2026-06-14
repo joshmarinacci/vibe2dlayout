@@ -5,6 +5,7 @@ import {createInitialDocument} from '@store/reducer'
 import type {AppState} from '@store/types'
 import {exportDocumentAsPdf} from '@utils/exportPdf'
 import {exportPageAsHtml} from '@utils/exportHtml'
+import {exportPhysicsHtml} from '@utils/exportPhysicsHtml'
 import {exportPageAsPng} from '@utils/exportPng'
 import {shortcutEvents} from '@utils/shortcutEvents'
 import {tauriOpenFile, tauriSaveAsFile, tauriSaveFile} from '@utils/tauriStorage'
@@ -192,6 +193,11 @@ export function useTauriMenu() {
                     dispatch({type: 'DESELECT_ALL'})
                     shortcutEvents.emit('⌫', 'Delete selected')
                 }
+            }))
+
+            unlisten.push(await listen('menu:powerups:action:physics:export-html', () => {
+                const s = stateRef.current
+                exportPhysicsHtml(s, `${s.documentName || 'physics'}-simulation.html`)
             }))
 
             unlisten.push(await listen('menu:powerups:add:physics', () => {

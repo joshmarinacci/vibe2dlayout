@@ -117,6 +117,7 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
             )?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "menu:powerups:action:physics:simulate",      "Run Physics",              true, None::<&str>)?,
+            &MenuItem::with_id(app, "menu:powerups:action:physics:export-html",  "Export Physics HTML...",   true, None::<&str>)?,
             &MenuItem::with_id(app, "menu:powerups:action:xml-export:export",     "Export XML...",            true, None::<&str>)?,
             &MenuItem::with_id(app, "menu:powerups:action:png-export:export",     "Export PNG (Power Up)...", true, None::<&str>)?,
         ],
