@@ -14,7 +14,7 @@ module.exports = {
       path: "/projects/draw-limn-deploy",
       "post-deploy": [
         "npm install",
-        "npm run build",,
+        "VITE_BASE_PATH=/draw/ npm run build",,
       ].join(" && ")
     }
   }
