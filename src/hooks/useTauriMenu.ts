@@ -86,6 +86,26 @@ export function useTauriMenu() {
                 }
             }))
 
+            unlisten.push(await listen('menu:toggle-grid', () => {
+                const s = stateRef.current
+                dispatch({
+                    type: 'UPDATE_GRID_SETTINGS',
+                    patch: {snapEnabled: !s.document.gridSettings.snapEnabled},
+                })
+            }))
+
+            unlisten.push(await listen('menu:toggle-snap', () => {
+                const s = stateRef.current
+                dispatch({
+                    type: 'UPDATE_GRID_SETTINGS',
+                    patch: {snapAlignment: !(s.document.gridSettings.snapAlignment ?? true)},
+                })
+            }))
+
+            unlisten.push(await listen('menu:toggle-theme', () => {
+                window.dispatchEvent(new CustomEvent('limn:toggle-theme'))
+            }))
+
             unlisten.push(await listen('menu:edit-palettes', () => {
                 dispatch({type: 'TOGGLE_PALETTE_MODAL'})
             }))

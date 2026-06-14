@@ -1,4 +1,13 @@
 
+## 2026-06-13 — Split menu bar into File, Edit, View, Powerups
+
+- Replaced the single "File" dropdown with four top-level menus: **File**, **Edit**, **View**, and **Powerups**
+- **File**: New, Open, Save, Save As, Import/Export JSON/PNG/PDF, About
+- **Edit**: Undo, Redo, Edit Palettes, Edit Themes, Settings, Document Settings
+- **View**: Show/Hide Grid, Enable/Disable Snap, Dark/Light Mode toggle
+- **Powerups**: Add/Remove powerups from document, Power Up Actions
+- Removed the nested Power Ups submenu; Powerups is now a peer menu in the bar
+
 ## 2026-06-10 — Fix post-SVG-migration bugs
 
 - **Solid border on rect/circle**: `svgStroke` was applying `strokeDasharray` whenever the `dash` array was non-empty, but the CSS code only did so when `stroke.type === 'dashed'`. The default stroke has `type:'solid'` with `dash:[5,3]` (stored for when the user switches to dashed), so the fix is to guard: `stroke.type === 'dashed' && dash.length > 0`.

@@ -99,6 +99,8 @@ export function Toolbar() {
         subMenuCloseTimer.current = setTimeout(() => setComponentSubMenu(null), 300)
     }, [cancelSubMenuClose])
     const [showFileMenu, setShowFileMenu] = useState(false)
+    const [showEditMenu, setShowEditMenu] = useState(false)
+    const [showViewMenu, setShowViewMenu] = useState(false)
     const [showPowerUpsMenu, setShowPowerUpsMenu] = useState(false)
     const [showAboutModal, setShowAboutModal] = useState(false)
     const [showDocumentsModal, setShowDocumentsModal] = useState(false)
@@ -108,18 +110,26 @@ export function Toolbar() {
 
     const [theme, toggleTheme] = useTheme()
     const fileMenuRef = useRef<HTMLDivElement>(null)
+    const editMenuRef = useRef<HTMLDivElement>(null)
+    const viewMenuRef = useRef<HTMLDivElement>(null)
+    const powerUpsMenuRef = useRef<HTMLDivElement>(null)
     const shapesMenuRef = useRef<HTMLDivElement>(null)
     const componentMenuRef = useRef<HTMLDivElement>(null)
 
     // Close any open menu when clicking outside (but not inside the menu itself)
-    const anyMenuOpen = showFileMenu || showShapesMenu || showComponentMenu
+    const anyMenuOpen = showFileMenu || showEditMenu || showViewMenu || showPowerUpsMenu || showShapesMenu || showComponentMenu
     useEffect(() => {
         if (!anyMenuOpen) return
         const handler = (e: PointerEvent) => {
             if (fileMenuRef.current?.contains(e.target as Node)) return
+            if (editMenuRef.current?.contains(e.target as Node)) return
+            if (viewMenuRef.current?.contains(e.target as Node)) return
+            if (powerUpsMenuRef.current?.contains(e.target as Node)) return
             if (shapesMenuRef.current?.contains(e.target as Node)) return
             if (componentMenuRef.current?.contains(e.target as Node)) return
             setShowFileMenu(false)
+            setShowEditMenu(false)
+            setShowViewMenu(false)
             setShowPowerUpsMenu(false)
             setShowShapesMenu(false)
             setShowComponentMenu(false)
@@ -184,15 +194,19 @@ export function Toolbar() {
         dispatch({type: 'LOAD_DOCUMENT', document: doc})
         dispatch({type: 'SET_ACTIVE_PAGE', pageId: doc.rootNodes[0]?.id ?? null})
         dispatch({type: 'SET_DOCUMENT_META', id: null, name: 'Untitled'})
-        setShowPowerUpsMenu(false)
         setShowFileMenu(false)
+        setShowEditMenu(false)
+        setShowViewMenu(false)
+        setShowPowerUpsMenu(false)
     }
 
     const openDocumentsModal = (mode: 'open' | 'save-as') => {
         setDocumentsModalMode(mode)
         setShowDocumentsModal(true)
-        setShowPowerUpsMenu(false)
         setShowFileMenu(false)
+        setShowEditMenu(false)
+        setShowViewMenu(false)
+        setShowPowerUpsMenu(false)
     }
 
     useEffect(() => {
@@ -205,23 +219,22 @@ export function Toolbar() {
     return (
         <div className={styles.toolbar}>
 
-            {/* File menu — web only; Tauri uses the native menu bar */}
+            {/* Menu bar — web only; Tauri uses the native menu bar */}
             {!IS_TAURI && (
                 <>
                     <div className={styles.group}>
+                        {/* File menu */}
                         <div ref={fileMenuRef} style={{position: 'relative'}}>
                             <button
                                 className={`${styles.btn} ${styles.formBtn}`}
                                 title="File"
                                 onClick={() => {
-                                    setShowFileMenu(v => {
-                                        const next = !v
-                                        if (!next) setShowPowerUpsMenu(false)
-                                        return next
-                                    })
+                                    setShowFileMenu(v => !v)
+                                    setShowEditMenu(false)
+                                    setShowViewMenu(false)
+                                    setShowPowerUpsMenu(false)
                                 }}
                             >
-                                <FolderOpen size={14}/>
                                 <span style={{fontSize: 12}}>File</span>
                                 <ChevronDown size={10}/>
                             </button>
@@ -245,105 +258,6 @@ export function Toolbar() {
                                             onClick={() => openDocumentsModal('save-as')}>
                                         <FilePlus2 size={13}/><span>Save As...</span><span className={styles.menuShortcut}>⌘⇧S</span>
                                     </button>
-                                    <div className={styles.formMenuDivider}/>
-                                    <button className={styles.formMenuItem} onClick={() => {
-                                        dispatch({type: 'TOGGLE_PALETTE_MODAL'});
-                                        setShowFileMenu(false)
-                                    }}>
-                                        <Palette size={13}/><span>Edit Palettes...</span>
-                                    </button>
-                                    <button className={styles.formMenuItem} onClick={() => {
-                                        dispatch({type: 'TOGGLE_THEME_MODAL'});
-                                        setShowFileMenu(false)
-                                    }}>
-                                        <Paintbrush size={13}/><span>Edit Themes...</span>
-                                    </button>
-                                    <button className={styles.formMenuItem} onClick={() => {
-                                        dispatch({type: 'TOGGLE_SETTINGS_MODAL'});
-                                        setShowFileMenu(false)
-                                    }}>
-                                        <Settings size={13}/><span>Settings...</span>
-                                    </button>
-                                    <button className={styles.formMenuItem} onClick={() => {
-                                        dispatch({type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL'});
-                                        setShowFileMenu(false)
-                                    }}>
-                                        <Grid size={13}/><span>Document Settings...</span>
-                                    </button>
-                                    <div
-                                        className={styles.formMenuItem}
-                                        style={{justifyContent: 'space-between', position: 'relative'}}
-                                        onMouseEnter={() => setShowPowerUpsMenu(true)}
-                                        onMouseLeave={() => setShowPowerUpsMenu(false)}
-                                    >
-                                        <span>Power Ups</span>
-                                        <span style={{opacity: 0.5, fontSize: 10}}>›</span>
-                                        {showPowerUpsMenu && (
-                                            <div className={styles.formMenu}
-                                                 style={{position: 'absolute', left: '100%', top: 0, minWidth: 220}}>
-                                                <div className={styles.formMenuSection}>Add to Document</div>
-                                                {availablePowerUps.map(powerUp => (
-                                                    <button
-                                                        key={powerUp.id}
-                                                        className={styles.formMenuItem}
-                                                        disabled={activePowerUpIds.has(powerUp.id)}
-                                                        onClick={() => {
-                                                            dispatch({
-                                                                type: 'ADD_DOCUMENT_POWER_UP',
-                                                                powerUpId: powerUp.id
-                                                            })
-                                                            setShowPowerUpsMenu(false)
-                                                            setShowFileMenu(false)
-                                                        }}
-                                                    >
-                                                        <span>{powerUp.name}</span>
-                                                    </button>
-                                                ))}
-
-                                                <div className={styles.formMenuDivider}/>
-                                                <div className={styles.formMenuSection}>Remove from Document</div>
-                                                {availablePowerUps.map(powerUp => (
-                                                    <button
-                                                        key={`remove-${powerUp.id}`}
-                                                        className={styles.formMenuItem}
-                                                        disabled={!activePowerUpIds.has(powerUp.id)}
-                                                        onClick={() => {
-                                                            dispatch({
-                                                                type: 'REMOVE_DOCUMENT_POWER_UP',
-                                                                powerUpId: powerUp.id
-                                                            })
-                                                            setShowPowerUpsMenu(false)
-                                                            setShowFileMenu(false)
-                                                        }}
-                                                    >
-                                                        <span>Remove {powerUp.name}</span>
-                                                    </button>
-                                                ))}
-
-                                                {powerUpMenuActions.length > 0 && (
-                                                    <>
-                                                        <div className={styles.formMenuDivider}/>
-                                                        <div className={styles.formMenuSection}>Power Up Actions</div>
-                                                        {powerUpMenuActions.map(action => (
-                                                            <button
-                                                                key={action.id}
-                                                                className={styles.formMenuItem}
-                                                                disabled={action.isEnabled ? !action.isEnabled({state, dispatch}) : false}
-                                                                onClick={() => {
-                                                                    runPowerUpMenuAction(action, {state, dispatch})
-                                                                        .catch(console.error)
-                                                                    setShowPowerUpsMenu(false)
-                                                                    setShowFileMenu(false)
-                                                                }}
-                                                            >
-                                                                <span>{action.title}</span>
-                                                            </button>
-                                                        ))}
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
                                     <div className={styles.formMenuDivider}/>
                                     <button className={styles.formMenuItem} onClick={() => {
                                         handleImportJSON();
@@ -376,6 +290,196 @@ export function Toolbar() {
                                     }}>
                                         <HelpCircle size={13}/><span>About...</span>
                                     </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Edit menu */}
+                        <div ref={editMenuRef} style={{position: 'relative'}}>
+                            <button
+                                className={`${styles.btn} ${styles.formBtn}`}
+                                title="Edit"
+                                onClick={() => {
+                                    setShowEditMenu(v => !v)
+                                    setShowFileMenu(false)
+                                    setShowViewMenu(false)
+                                    setShowPowerUpsMenu(false)
+                                }}
+                            >
+                                <span style={{fontSize: 12}}>Edit</span>
+                                <ChevronDown size={10}/>
+                            </button>
+                            {showEditMenu && (
+                                <div className={styles.formMenu} style={{minWidth: 200}}>
+                                    <button className={styles.formMenuItem}
+                                            disabled={!canUndo}
+                                            onClick={() => {
+                                                dispatch({type: 'UNDO'});
+                                                setShowEditMenu(false)
+                                            }}>
+                                        <Undo2 size={13}/><span>Undo</span><span className={styles.menuShortcut}>⌘Z</span>
+                                    </button>
+                                    <button className={styles.formMenuItem}
+                                            disabled={!canRedo}
+                                            onClick={() => {
+                                                dispatch({type: 'REDO'});
+                                                setShowEditMenu(false)
+                                            }}>
+                                        <Redo2 size={13}/><span>Redo</span><span className={styles.menuShortcut}>⌘⇧Z</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_PALETTE_MODAL'});
+                                        setShowEditMenu(false)
+                                    }}>
+                                        <Palette size={13}/><span>Edit Palettes...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_THEME_MODAL'});
+                                        setShowEditMenu(false)
+                                    }}>
+                                        <Paintbrush size={13}/><span>Edit Themes...</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_SETTINGS_MODAL'});
+                                        setShowEditMenu(false)
+                                    }}>
+                                        <Settings size={13}/><span>Settings...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL'});
+                                        setShowEditMenu(false)
+                                    }}>
+                                        <Grid size={13}/><span>Document Settings...</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* View menu */}
+                        <div ref={viewMenuRef} style={{position: 'relative'}}>
+                            <button
+                                className={`${styles.btn} ${styles.formBtn}`}
+                                title="View"
+                                onClick={() => {
+                                    setShowViewMenu(v => !v)
+                                    setShowFileMenu(false)
+                                    setShowEditMenu(false)
+                                    setShowPowerUpsMenu(false)
+                                }}
+                            >
+                                <span style={{fontSize: 12}}>View</span>
+                                <ChevronDown size={10}/>
+                            </button>
+                            {showViewMenu && (
+                                <div className={styles.formMenu} style={{minWidth: 200}}>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({
+                                            type: 'UPDATE_GRID_SETTINGS',
+                                            patch: {snapEnabled: !state.document.gridSettings.snapEnabled}
+                                        });
+                                        setShowViewMenu(false)
+                                    }}>
+                                        <Grid size={13}/>
+                                        <span>{state.document.gridSettings.snapEnabled ? 'Hide Grid' : 'Show Grid'}</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({
+                                            type: 'UPDATE_GRID_SETTINGS',
+                                            patch: {snapAlignment: !(state.document.gridSettings.snapAlignment ?? true)}
+                                        });
+                                        setShowViewMenu(false)
+                                    }}>
+                                        <Magnet size={13}/>
+                                        <span>{(state.document.gridSettings.snapAlignment ?? true) ? 'Disable Snap' : 'Enable Snap'}</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        toggleTheme();
+                                        setShowViewMenu(false)
+                                    }}>
+                                        {theme === 'dark' ? <Sun size={13}/> : <Moon size={13}/>}
+                                        <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Powerups menu */}
+                        <div ref={powerUpsMenuRef} style={{position: 'relative'}}>
+                            <button
+                                className={`${styles.btn} ${styles.formBtn}`}
+                                title="Powerups"
+                                onClick={() => {
+                                    setShowPowerUpsMenu(v => !v)
+                                    setShowFileMenu(false)
+                                    setShowEditMenu(false)
+                                    setShowViewMenu(false)
+                                }}
+                            >
+                                <span style={{fontSize: 12}}>Powerups</span>
+                                <ChevronDown size={10}/>
+                            </button>
+                            {showPowerUpsMenu && (
+                                <div className={styles.formMenu} style={{minWidth: 220}}>
+                                    <div className={styles.formMenuSection}>Add to Document</div>
+                                    {availablePowerUps.map(powerUp => (
+                                        <button
+                                            key={powerUp.id}
+                                            className={styles.formMenuItem}
+                                            disabled={activePowerUpIds.has(powerUp.id)}
+                                            onClick={() => {
+                                                dispatch({
+                                                    type: 'ADD_DOCUMENT_POWER_UP',
+                                                    powerUpId: powerUp.id
+                                                })
+                                                setShowPowerUpsMenu(false)
+                                            }}
+                                        >
+                                            <span>{powerUp.name}</span>
+                                        </button>
+                                    ))}
+
+                                    <div className={styles.formMenuDivider}/>
+                                    <div className={styles.formMenuSection}>Remove from Document</div>
+                                    {availablePowerUps.map(powerUp => (
+                                        <button
+                                            key={`remove-${powerUp.id}`}
+                                            className={styles.formMenuItem}
+                                            disabled={!activePowerUpIds.has(powerUp.id)}
+                                            onClick={() => {
+                                                dispatch({
+                                                    type: 'REMOVE_DOCUMENT_POWER_UP',
+                                                    powerUpId: powerUp.id
+                                                })
+                                                setShowPowerUpsMenu(false)
+                                            }}
+                                        >
+                                            <span>Remove {powerUp.name}</span>
+                                        </button>
+                                    ))}
+
+                                    {powerUpMenuActions.length > 0 && (
+                                        <>
+                                            <div className={styles.formMenuDivider}/>
+                                            <div className={styles.formMenuSection}>Power Up Actions</div>
+                                            {powerUpMenuActions.map(action => (
+                                                <button
+                                                    key={action.id}
+                                                    className={styles.formMenuItem}
+                                                    disabled={action.isEnabled ? !action.isEnabled({state, dispatch}) : false}
+                                                    onClick={() => {
+                                                        runPowerUpMenuAction(action, {state, dispatch})
+                                                            .catch(console.error)
+                                                        setShowPowerUpsMenu(false)
+                                                    }}
+                                                >
+                                                    <span>{action.title}</span>
+                                                </button>
+                                            ))}
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>

@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 
 type Theme = 'light' | 'dark'
 
@@ -48,6 +48,15 @@ export function useTheme(): [Theme, () => void] {
             return null
         })
     }
+
+    // Allow external callers (e.g. Tauri native menu) to trigger a toggle via a window event
+    const toggleRef = useRef(toggle)
+    toggleRef.current = toggle
+    useEffect(() => {
+        const handler = () => toggleRef.current()
+        window.addEventListener('limn:toggle-theme', handler)
+        return () => window.removeEventListener('limn:toggle-theme', handler)
+    }, [])
 
     return [theme, toggle]
 }
