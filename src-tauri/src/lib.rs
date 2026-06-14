@@ -80,10 +80,13 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         "View",
         true,
         &[
-            &MenuItem::with_id(app, "menu:toggle-grid", "Toggle Grid Snap",      true, None::<&str>)?,
-            &MenuItem::with_id(app, "menu:toggle-snap", "Toggle Alignment Snap", true, None::<&str>)?,
+            &MenuItem::with_id(app, "menu:toggle-left-panel",  "Toggle Layer Panel",      true, None::<&str>)?,
+            &MenuItem::with_id(app, "menu:toggle-right-panel", "Toggle Properties Panel", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "menu:toggle-theme", "Toggle Dark Mode",     true, None::<&str>)?,
+            &MenuItem::with_id(app, "menu:toggle-grid",  "Toggle Grid Snap",      true, None::<&str>)?,
+            &MenuItem::with_id(app, "menu:toggle-snap",  "Toggle Alignment Snap", true, None::<&str>)?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, "menu:toggle-theme", "Toggle Dark Mode",      true, None::<&str>)?,
         ],
     )?;
 

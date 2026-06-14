@@ -375,6 +375,19 @@ export function Toolbar() {
                             {showViewMenu && (
                                 <div className={styles.formMenu} style={{minWidth: 200}}>
                                     <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_LEFT_PANEL'});
+                                        setShowViewMenu(false)
+                                    }}>
+                                        <span>{state.leftPanelVisible ? 'Hide Layer Panel' : 'Show Layer Panel'}</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_RIGHT_PANEL'});
+                                        setShowViewMenu(false)
+                                    }}>
+                                        <span>{state.rightPanelVisible ? 'Hide Properties Panel' : 'Show Properties Panel'}</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
                                         dispatch({
                                             type: 'UPDATE_GRID_SETTINGS',
                                             patch: {snapEnabled: !state.document.gridSettings.snapEnabled}

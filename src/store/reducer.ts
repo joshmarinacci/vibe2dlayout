@@ -1196,6 +1196,8 @@ export const initialState: AppState = {
     selectedLibraryItemId: null,
     selectedLibraryItemType: null,
     physicsSimulationRunning: false,
+    leftPanelVisible: true,
+    rightPanelVisible: true,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1392,6 +1394,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, currentFilePath: action.path}
         case 'UPDATE_SETTINGS':
             return {...state, settings: {...state.settings, ...action.patch}}
+        case 'TOGGLE_LEFT_PANEL':
+            return {...state, leftPanelVisible: !state.leftPanelVisible}
+        case 'TOGGLE_RIGHT_PANEL':
+            return {...state, rightPanelVisible: !state.rightPanelVisible}
         case 'SET_DOCUMENT_META':
             return {...state, documentId: action.id, documentName: action.name, isDirty: false}
         case 'ENTER_DRILL_MODE':

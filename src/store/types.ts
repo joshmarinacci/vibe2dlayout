@@ -38,12 +38,14 @@ export interface UserSettings {
     pinchZoomSpeed: number   // multiplier applied to deltaY for pinch gesture, default 0.005
     wheelZoomStep: number    // fractional zoom step per mouse-wheel click, default 0.1 (= 10%)
     showShortcutIndicator: boolean
+    panelOpacity: number     // 0.0–1.0 opacity for overlay side panels, default 0.92
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
     pinchZoomSpeed: 0.005,
     wheelZoomStep: 0.1,
     showShortcutIndicator: true,
+    panelOpacity: 0.92,
 }
 
 // ─── App State ─────────────────────────────────────────────────────────────
@@ -87,6 +89,8 @@ export interface AppState {
     selectedLibraryItemId: string | null
     selectedLibraryItemType: 'gradient' | 'image' | 'font' | null
     physicsSimulationRunning: boolean
+    leftPanelVisible: boolean
+    rightPanelVisible: boolean
 }
 
 export interface ShapeTransformUpdate {
@@ -225,6 +229,8 @@ export type ViewAction =
     | { type: 'EXIT_CROP_MODE' }
     | { type: 'SET_PHYSICS_SIMULATION_RUNNING'; running: boolean }
     | { type: 'APPLY_PHYSICS_TRANSFORMS'; updates: ShapeTransformUpdate[] }
+    | { type: 'TOGGLE_LEFT_PANEL' }
+    | { type: 'TOGGLE_RIGHT_PANEL' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

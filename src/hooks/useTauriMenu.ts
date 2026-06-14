@@ -86,6 +86,14 @@ export function useTauriMenu() {
                 }
             }))
 
+            unlisten.push(await listen('menu:toggle-left-panel', () => {
+                dispatch({type: 'TOGGLE_LEFT_PANEL'})
+            }))
+
+            unlisten.push(await listen('menu:toggle-right-panel', () => {
+                dispatch({type: 'TOGGLE_RIGHT_PANEL'})
+            }))
+
             unlisten.push(await listen('menu:toggle-grid', () => {
                 const s = stateRef.current
                 dispatch({

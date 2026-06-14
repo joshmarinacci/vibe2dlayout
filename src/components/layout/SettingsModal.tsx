@@ -19,7 +19,7 @@ export function SettingsModal() {
 
     if (!state.showSettingsModal) return null
 
-    const {pinchZoomSpeed, wheelZoomStep} = state.settings
+    const {pinchZoomSpeed, wheelZoomStep, panelOpacity} = state.settings
 
     // pinchZoomSpeed stored as e.g. 0.005; display as 1–20 integer
     const pinchSlider = Math.round(pinchZoomSpeed * 1000)
@@ -41,6 +41,34 @@ export function SettingsModal() {
                 </div>
 
                 <div className={styles.body}>
+                    <h3 className={styles.sectionTitle}>Panels</h3>
+
+                    <div className={styles.row}>
+                        <label className={styles.label}>
+                            Side panel opacity
+                            <span className={styles.hint}>How opaque the layer and properties panels are when overlaid on the canvas</span>
+                        </label>
+                        <div className={styles.control}>
+                            <span className={styles.rangeLabel}>10%</span>
+                            <input
+                                type="range"
+                                min={10}
+                                max={100}
+                                step={5}
+                                value={Math.round((panelOpacity ?? 0.92) * 100)}
+                                onChange={e =>
+                                    dispatch({
+                                        type: 'UPDATE_SETTINGS',
+                                        patch: {panelOpacity: Number(e.target.value) / 100}
+                                    })
+                                }
+                                className={styles.slider}
+                            />
+                            <span className={styles.rangeLabel}>100%</span>
+                            <span className={styles.value}>{Math.round((panelOpacity ?? 0.92) * 100)}%</span>
+                        </div>
+                    </div>
+
                     <h3 className={styles.sectionTitle}>Shortcuts</h3>
 
                     <div className={styles.row}>

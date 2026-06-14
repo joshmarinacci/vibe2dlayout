@@ -1,17 +1,11 @@
 import {computeBoundingBox} from '@components/canvas/SelectionOverlay'
-import {useAppState} from '@store/context'
-import {PanelLeftClose, PanelLeftOpen, PanelRightOpen, PanelRightClose} from "lucide-react";
+import {useAppDispatch, useAppState} from '@store/context'
+import {PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen} from 'lucide-react'
 import styles from './StatusBar.module.css'
 
-interface Props {
-    leftCollapsed: boolean
-    rightCollapsed: boolean
-    onToggleLeft: () => void
-    onToggleRight: () => void
-}
-
-export function StatusBar({leftCollapsed, rightCollapsed, onToggleLeft, onToggleRight}: Props) {
+export function StatusBar() {
     const {state} = useAppState()
+    const dispatch = useAppDispatch()
     const {ids} = state.selection
 
     let label = ''
@@ -31,20 +25,20 @@ export function StatusBar({leftCollapsed, rightCollapsed, onToggleLeft, onToggle
         <div className={styles.statusBar}>
             <button
                 className={styles.toggleBtn}
-                onClick={onToggleLeft}
-                title={leftCollapsed ? 'Show layer panel' : 'Hide layer panel'}
+                onClick={() => dispatch({type: 'TOGGLE_LEFT_PANEL'})}
+                title={state.leftPanelVisible ? 'Hide layer panel' : 'Show layer panel'}
             >
-                {leftCollapsed ? <PanelLeftOpen size={16}/> :  <PanelLeftClose size={16}/>}
+                {state.leftPanelVisible ? <PanelLeftClose size={16}/> : <PanelLeftOpen size={16}/>}
             </button>
 
             <span className={styles.label}>{label}{sizeLabel}</span>
 
             <button
                 className={styles.toggleBtn}
-                onClick={onToggleRight}
-                title={rightCollapsed ? 'Show properties panel' : 'Hide properties panel'}
+                onClick={() => dispatch({type: 'TOGGLE_RIGHT_PANEL'})}
+                title={state.rightPanelVisible ? 'Hide properties panel' : 'Show properties panel'}
             >
-                {rightCollapsed ? <PanelRightOpen size={16}/> : <PanelRightClose size={16}/> }
+                {state.rightPanelVisible ? <PanelRightClose size={16}/> : <PanelRightOpen size={16}/>}
             </button>
         </div>
     )

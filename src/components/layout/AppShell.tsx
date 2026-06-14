@@ -24,8 +24,6 @@ export function AppShell() {
 
     const [leftWidth, setLeftWidth] = useState(220)
     const [rightWidth, setRightWidth] = useState(300)
-    const [leftCollapsed, setLeftCollapsed] = useState(false)
-    const [rightCollapsed, setRightCollapsed] = useState(false)
 
     const onResizeLeft = useCallback((delta: number) => {
         setLeftWidth(w => Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w + delta)))
@@ -35,39 +33,36 @@ export function AppShell() {
         setRightWidth(w => Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w + delta)))
     }, [])
 
+    const panelOpacity = state.settings.panelOpacity ?? 0.92
+    const panelStyle = {'--panel-opacity': panelOpacity} as React.CSSProperties
+
     return (
         <div className={styles.shell}>
             <div className={styles.toolbar}>
                 <Toolbar/>
             </div>
             <div className={styles.body}>
-                {!leftCollapsed && (
-                    <>
-                        <div className={styles.sidebar} style={{flex: `0 0 ${leftWidth}px`}}>
-                            <TreePanel/>
-                        </div>
-                        <ResizeHandle onResize={onResizeLeft} side="left"/>
-                    </>
-                )}
                 <div className={styles.canvas}>
                     <CanvasView/>
                 </div>
-                {/*<SelectionPanel/>*/}
-                {!rightCollapsed && (
-                    <>
+                {state.leftPanelVisible && (
+                    <div className={styles.sidebarOverlay} style={{...panelStyle, width: leftWidth}}>
+                        <div className={styles.panelContent}>
+                            <TreePanel/>
+                        </div>
+                        <ResizeHandle onResize={onResizeLeft} side="left"/>
+                    </div>
+                )}
+                {state.rightPanelVisible && (
+                    <div className={styles.propertiesOverlay} style={{...panelStyle, width: rightWidth}}>
                         <ResizeHandle onResize={onResizeRight} side="right"/>
-                        <div className={styles.properties} style={{flex: `0 0 ${rightWidth}px`}}>
+                        <div className={styles.panelContent}>
                             <PropertiesPanel/>
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
-            <StatusBar
-                leftCollapsed={leftCollapsed}
-                rightCollapsed={rightCollapsed}
-                onToggleLeft={() => setLeftCollapsed(c => !c)}
-                onToggleRight={() => setRightCollapsed(c => !c)}
-            />
+            <StatusBar/>
             <ShortcutsModal/>
             <SettingsModal/>
             <ShortcutIndicator/>

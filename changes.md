@@ -1,4 +1,14 @@
 
+## 2026-06-13 — Side panels as translucent canvas overlays
+
+- Canvas now spans the full browser width; the layer and properties panels float above it as translucent overlays
+- Panels use `backdrop-filter: blur` and a semi-transparent version of the panel background color
+- Panel opacity is configurable via Settings → Panels → "Side panel opacity" slider (10–100%, default 92%)
+- Panel visibility state moved from local component state into Redux (`leftPanelVisible` / `rightPanelVisible`)
+- View menu gains "Show/Hide Layer Panel" and "Show/Hide Properties Panel" items (web and Tauri)
+- Status bar toggle buttons continue to work unchanged
+- Panels remain resizable (150–500 px) via drag handles at their inner edges
+
 ## 2026-06-13 — Split menu bar into File, Edit, View, Powerups
 
 - Replaced the single "File" dropdown with four top-level menus: **File**, **Edit**, **View**, and **Powerups**
