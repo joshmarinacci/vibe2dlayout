@@ -2,14 +2,112 @@ import type {Library} from '@model/library'
 import type {AppAction} from '@store/types'
 import {gradientCSS} from '@utils/fillCSS'
 import type {Dispatch} from 'react'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import styles from '../PropertiesPanel.module.css'
 
 interface Props {
     library: Library
     itemId: string
-    itemType: 'gradient' | 'image' | 'font'
+    itemType: 'gradient' | 'image' | 'font' | 'dimension'
     dispatch: Dispatch<AppAction>
+}
+
+function LibraryDimensionSection({
+    dim,
+    dispatch,
+}: {
+    dim: NonNullable<Library['dimensions'][number]>
+    dispatch: Dispatch<AppAction>
+}) {
+    const [nameText, setNameText] = useState<string>(dim.name)
+    const [widthText, setWidthText] = useState<string>(String(dim.width))
+    const [heightText, setHeightText] = useState<string>(String(dim.height))
+
+    useEffect(() => {
+        setNameText(dim.name)
+        setWidthText(String(dim.width))
+        setHeightText(String(dim.height))
+    }, [dim.id, dim.name, dim.width, dim.height])
+
+    const commit = () => {
+        const width = Number(widthText)
+        const height = Number(heightText)
+        if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return
+        dispatch({
+            type: 'UPDATE_LIBRARY_DIMENSION',
+            dimension: {
+                ...dim,
+                name: nameText.trim() || dim.name,
+                width: Math.round(width),
+                height: Math.round(height),
+            },
+        })
+    }
+
+    return (
+        <>
+            <div className={styles.section}>
+                <div className={styles.row}>
+                    <span className={styles.label}>Name</span>
+                    <input
+                        className={styles.textInput}
+                        value={nameText}
+                        onChange={e => setNameText(e.target.value)}
+                        onBlur={commit}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                            if (e.key === 'Escape') setNameText(dim.name)
+                        }}
+                    />
+                </div>
+                <div className={styles.row}>
+                    <span className={styles.label}>Width</span>
+                    <input
+                        className={styles.textInput}
+                        value={widthText}
+                        onChange={e => setWidthText(e.target.value)}
+                        onBlur={commit}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                            if (e.key === 'Escape') setWidthText(String(dim.width))
+                        }}
+                    />
+                </div>
+                <div className={styles.row}>
+                    <span className={styles.label}>Height</span>
+                    <input
+                        className={styles.textInput}
+                        value={heightText}
+                        onChange={e => setHeightText(e.target.value)}
+                        onBlur={commit}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                            if (e.key === 'Escape') setHeightText(String(dim.height))
+                        }}
+                    />
+                </div>
+            </div>
+
+            <div className={styles.section}>
+                <div className={styles.row}>
+                    <button
+                        className={styles.actionBtn}
+                        onClick={() => dispatch({type: 'ADD_DIMENSION_ASSET', asset: {id: crypto.randomUUID(), name: dim.name, width: dim.width, height: dim.height}})}
+                    >
+                        Add to Document
+                    </button>
+                </div>
+                <div className={styles.row}>
+                    <button
+                        className={`${styles.actionBtn} ${styles.danger}`}
+                        onClick={() => dispatch({type: 'DELETE_LIBRARY_DIMENSION', id: dim.id})}
+                    >
+                        Delete from Library
+                    </button>
+                </div>
+            </div>
+        </>
+    )
 }
 
 export function LibraryItemSection({library, itemId, itemType, dispatch}: Props) {
@@ -134,6 +232,12 @@ export function LibraryItemSection({library, itemId, itemType, dispatch}: Props)
                 </div>
             </>
         )
+    }
+
+    if (itemType === 'dimension') {
+        const dim = library.dimensions.find(x => x.id === itemId)
+        if (!dim) return null
+        return <LibraryDimensionSection dim={dim} dispatch={dispatch}/>
     }
 
     if (itemType === 'font') {

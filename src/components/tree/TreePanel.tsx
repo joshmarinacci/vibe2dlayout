@@ -7,6 +7,7 @@ import {generateId} from '@utils/idgen'
 import {createShape} from '@utils/shapeFactory'
 import {useEffect, useRef, useState} from 'react'
 import {AssetsSection} from './AssetsSection'
+import {DimensionsSection} from './DimensionsSection'
 import {DocumentRow} from './DocumentRow'
 import {FontsSection} from './FontsSection'
 import {GradientsSection} from './GradientsSection'
@@ -212,6 +213,12 @@ export function TreePanel() {
                     dispatch={dispatch}
                     shapes={state.document.shapes}
                 />
+                <DimensionsSection
+                    assets={state.document.dimensions}
+                    selectedDimensionAssetId={state.selectedDimensionAssetId}
+                    dispatch={dispatch}
+                    shapes={state.document.shapes}
+                />
                 <PixelAssetsSection
                     assets={state.document.pixelAssets}
                     selectedPixelAssetId={state.selectedPixelAssetId}
@@ -239,6 +246,7 @@ export function TreePanel() {
                     library={state.library}
                     selectedId={state.selectedLibraryItemId}
                     selectedType={state.selectedLibraryItemType}
+                    shapes={state.document.shapes}
                     dispatch={dispatch}
                 />
             </div>

@@ -1,4 +1,5 @@
 import type {GridSettings} from './grid'
+import type {DimensionAsset} from './dimensionAsset'
 import type {ImageAsset} from './imageAsset'
 import type {ColorPalette} from './palette'
 import type {PixelAsset} from './pixelAsset'
@@ -68,6 +69,7 @@ export interface VibeDocument {
     gridSettings: GridSettings  // document-level grid / snap settings
     pageFolders: PageFolder[]   // organizational folders for pages (UI-only, no canvas presence)
     images: ImageAsset[]        // document-level image asset registry
+    dimensions: DimensionAsset[] // document-level page dimension presets
     pixelAssets: PixelAsset[]   // pixel image asset registry
     customFonts: CustomFont[]   // Google Font family names added by the user, with metadata
     gradients: GradientDef[]    // document-level gradient presets

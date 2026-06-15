@@ -1,4 +1,5 @@
 import type {VibeDocument} from '@model/document'
+import {DEFAULT_PAGE_DIMENSION_ID, findBuiltInPageDimension} from '@model/pageDimensions'
 import {DEFAULT_PALETTE} from '@model/palette'
 import {defaultFill} from '@model/shapes'
 import type {ColorFill, FillStyle, GradientFill} from '@model/shapes'
@@ -27,7 +28,46 @@ function migrateFill(raw: unknown): FillStyle {
     } as ColorFill
 }
 
-const CURRENT_VERSION = 3
+const CURRENT_VERSION = 4
+
+function migratePageSize(shape: Record<string, unknown>): void {
+    if (shape.type !== 'page') return
+    if (shape.pageSize === undefined || shape.pageSize === null) {
+        if (typeof shape.fixedSize === 'object' && shape.fixedSize !== null) {
+            const fixed = shape.fixedSize as Record<string, unknown>
+            shape.pageSize = {
+                kind: 'custom',
+                width: (fixed.width as number) ?? 800,
+                height: (fixed.height as number) ?? 600,
+            }
+        } else {
+            shape.pageSize = null
+        }
+        return
+    }
+    const pageSize = shape.pageSize as Record<string, unknown>
+    if (pageSize.kind === 'preset') {
+        const preset = findBuiltInPageDimension(pageSize.presetId as string)
+        if (preset) {
+            shape.fixedSize = {width: preset.width, height: preset.height}
+        }
+        return
+    }
+    if (pageSize.kind === 'custom') {
+        shape.fixedSize = {
+            width: (pageSize.width as number) ?? 800,
+            height: (pageSize.height as number) ?? 600,
+        }
+        return
+    }
+    if (pageSize.kind === 'asset') {
+        if (typeof shape.fixedSize === 'object' && shape.fixedSize !== null) return
+        const fallback = findBuiltInPageDimension(DEFAULT_PAGE_DIMENSION_ID)
+        if (fallback) {
+            shape.fixedSize = {width: fallback.width, height: fallback.height}
+        }
+    }
+}
 
 export function toJSON(doc: VibeDocument): string {
     return JSON.stringify({...doc, version: CURRENT_VERSION}, null, 2)
@@ -52,6 +92,9 @@ export function fromJSON(json: string): VibeDocument {
     if (docObj.version === 2) {
         docObj.version = 3
     }
+    if (docObj.version === 3) {
+        docObj.version = 4
+    }
     // Migrate older docs missing pageFolders
     if (!Array.isArray(docObj.pageFolders)) {
         docObj.pageFolders = []
@@ -63,6 +106,9 @@ export function fromJSON(json: string): VibeDocument {
     // Migrate older docs missing images
     if (!Array.isArray(docObj.images)) {
         docObj.images = []
+    }
+    if (!Array.isArray(docObj.dimensions)) {
+        docObj.dimensions = []
     }
     // Migrate older docs missing pixelAssets
     if (!Array.isArray(docObj.pixelAssets)) {
@@ -95,6 +141,7 @@ export function fromJSON(json: string): VibeDocument {
             } else if (!Array.isArray(s.boxShadow)) {
                 s.boxShadow = [s.boxShadow]
             }
+            migratePageSize(s)
             // Migrate FillStyle to discriminated union
             if ('fill' in s) s.fill = migrateFill(s.fill)
             if ('thumbFill' in s) s.thumbFill = migrateFill(s.thumbFill)

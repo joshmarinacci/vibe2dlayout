@@ -43,6 +43,8 @@ describe('getEffectiveGridSettings', () => {
             locked: false,
             background: '#fff',
             transform: {x: 0, y: 0, width: 1200, height: 800, rotation: 0},
+            fixedSize: {width: 1200, height: 800},
+            pageSize: {kind: 'custom', width: 1200, height: 800},
         } as Shape,
     }
 

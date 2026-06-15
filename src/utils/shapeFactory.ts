@@ -1,4 +1,5 @@
 import {shapeRegistry} from '@powerups/shapeRegistry'
+import {DEFAULT_PAGE_DIMENSION_ID, findBuiltInPageDimension} from '@model/pageDimensions'
 import type {ColorFill, Shape, ShapeType} from '@model/shapes'
 import {defaultStroke, defaultText, defaultTransform,} from '@model/shapes'
 import type {Theme} from '@model/theme'
@@ -68,14 +69,17 @@ export function createShape(type: ShapeType | string, x = 50, y = 50, theme?: Th
                 preserveAspectRatio: true,
                 opacity: 1,
             }
-        case 'page':
+        case 'page': {
+            const preset = findBuiltInPageDimension(DEFAULT_PAGE_DIMENSION_ID)!
             return {
                 ...base, type: 'page',
-                transform: defaultTransform(0, 0, 800, 600),
-                fixedSize: null,
+                transform: defaultTransform(0, 0, preset.width, preset.height),
+                fixedSize: {width: preset.width, height: preset.height},
+                pageSize: {kind: 'preset', presetId: preset.id},
                 background: '#f8f8f8',
                 clipChildren: false,
             }
+        }
         case 'group':
             return {
                 ...base, name: 'Group', type: 'group',

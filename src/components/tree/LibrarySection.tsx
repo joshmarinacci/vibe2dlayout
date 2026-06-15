@@ -5,8 +5,12 @@ import type {AppAction} from '@store/types'
 import {gradientCSS} from '@utils/fillCSS'
 import {generateId} from '@utils/idgen'
 import {useLibraryFontMetadataEnrichment} from '@hooks/useLibraryFontMetadataEnrichment'
-import {type Dispatch, useRef, useState} from 'react'
+import type {Dispatch, ReactNode, RefObject} from 'react'
 import {createPortal} from 'react-dom'
+import {useRef, useState} from 'react'
+import type {Shape} from '@model/shapes'
+import {DimensionRow} from './DimensionRow'
+import {DimensionAddDialog} from './DimensionAddDialog'
 import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
 import styles from './LibrarySection.module.css'
 
@@ -15,7 +19,8 @@ const MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image
 interface Props {
     library: Library
     selectedId: string | null
-    selectedType: 'gradient' | 'image' | 'font' | null
+    selectedType: 'gradient' | 'image' | 'font' | 'dimension' | null
+    shapes: Record<string, Shape>
     dispatch: Dispatch<AppAction>
 }
 
@@ -23,7 +28,7 @@ interface CtxState {
     x: number
     y: number
     id: string
-    itemType: 'gradient' | 'image' | 'font'
+    itemType: 'gradient' | 'image' | 'font' | 'dimension'
 }
 
 function swatchCSS(g: GradientDef): string {
@@ -42,6 +47,7 @@ function SubSection({
     onToggle,
     onAdd,
     addTitle,
+    addButtonRef,
     children,
 }: {
     title: string
@@ -49,7 +55,8 @@ function SubSection({
     onToggle: () => void
     onAdd?: () => void
     addTitle?: string
-    children: React.ReactNode
+    addButtonRef?: RefObject<HTMLButtonElement>
+    children: ReactNode
 }) {
     return (
         <div>
@@ -59,7 +66,7 @@ function SubSection({
                     <span className={styles.subLabel}>{title}</span>
                 </div>
                 {onAdd && (
-                    <button className={styles.addBtn} onClick={onAdd} title={addTitle}>+</button>
+                    <button ref={addButtonRef} className={styles.addBtn} onClick={onAdd} title={addTitle}>+</button>
                 )}
             </div>
             {!collapsed && children}
@@ -67,20 +74,23 @@ function SubSection({
     )
 }
 
-export function LibrarySection({library, selectedId, selectedType, dispatch}: Props) {
+export function LibrarySection({library, selectedId, selectedType, shapes, dispatch}: Props) {
     useLibraryFontMetadataEnrichment(library.fonts, dispatch)
 
     const [gradientsCollapsed, setGradientsCollapsed] = useState(false)
     const [imagesCollapsed, setImagesCollapsed] = useState(false)
+    const [dimensionsCollapsed, setDimensionsCollapsed] = useState(false)
     const [fontsCollapsed, setFontsCollapsed] = useState(false)
     const [ctxMenu, setCtxMenu] = useState<CtxState | null>(null)
     const [renamingId, setRenamingId] = useState<string | null>(null)
     const [renameText, setRenameText] = useState('')
     const [showFontInput, setShowFontInput] = useState(false)
     const [fontInputText, setFontInputText] = useState('')
+    const [showDimensionInput, setShowDimensionInput] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const dimensionAddButtonRef = useRef<HTMLButtonElement>(null)
 
-    const openContextMenu = (e: React.MouseEvent, id: string, itemType: 'gradient' | 'image' | 'font') => {
+    const openContextMenu = (e: React.MouseEvent, id: string, itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
         e.preventDefault()
         e.stopPropagation()
         setCtxMenu({x: e.clientX, y: e.clientY, id, itemType})
@@ -91,29 +101,37 @@ export function LibrarySection({library, selectedId, selectedType, dispatch}: Pr
         setRenameText(currentName)
     }
 
-    const commitRename = (itemType: 'gradient' | 'image' | 'font') => {
+    const commitRename = (itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
         if (renamingId && renameText.trim()) {
-            dispatch({type: 'RENAME_LIBRARY_ITEM', id: renamingId, name: renameText.trim(), itemType})
+            if (itemType === 'dimension') {
+                dispatch({type: 'RENAME_LIBRARY_ITEM', id: renamingId, name: renameText.trim(), itemType})
+            } else {
+                dispatch({type: 'RENAME_LIBRARY_ITEM', id: renamingId, name: renameText.trim(), itemType})
+            }
         }
         setRenamingId(null)
     }
 
-    const addToDocument = (id: string, itemType: 'gradient' | 'image' | 'font') => {
+    const addToDocument = (id: string, itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
         if (itemType === 'gradient') {
             const g = library.gradients.find(x => x.id === id)
             if (g) dispatch({type: 'ADD_GRADIENT', gradient: {id: generateId(), name: g.name, stops: [...g.stops]}})
         } else if (itemType === 'image') {
             const img = library.images.find(x => x.id === id)
             if (img) dispatch({type: 'ADD_IMAGE_ASSET', asset: {id: generateId(), name: img.name, src: img.src, mimeType: img.mimeType, width: img.width, height: img.height}})
+        } else if (itemType === 'dimension') {
+            const dim = library.dimensions.find(x => x.id === id)
+            if (dim) dispatch({type: 'ADD_DIMENSION_ASSET', asset: {id: generateId(), name: dim.name, width: dim.width, height: dim.height}})
         } else if (itemType === 'font') {
             const f = library.fonts.find(x => x.id === id)
             if (f) dispatch({type: 'ADD_CUSTOM_FONT', font: {id: crypto.randomUUID(), name: f.name, isVariable: f.isVariable, axes: [...f.axes], metadataVersion: f.metadataVersion}})
         }
     }
 
-    const deleteItem = (id: string, itemType: 'gradient' | 'image' | 'font') => {
+    const deleteItem = (id: string, itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
         if (itemType === 'gradient') dispatch({type: 'DELETE_LIBRARY_GRADIENT', id})
         else if (itemType === 'image') dispatch({type: 'DELETE_LIBRARY_IMAGE', id})
+        else if (itemType === 'dimension') dispatch({type: 'DELETE_LIBRARY_DIMENSION', id})
         else if (itemType === 'font') dispatch({type: 'DELETE_LIBRARY_FONT', id})
     }
 
@@ -124,6 +142,7 @@ export function LibrarySection({library, selectedId, selectedType, dispatch}: Pr
                 const item =
                     ctxMenu.itemType === 'gradient' ? library.gradients.find(g => g.id === ctxMenu.id) :
                     ctxMenu.itemType === 'image' ? library.images.find(i => i.id === ctxMenu.id) :
+                    ctxMenu.itemType === 'dimension' ? library.dimensions.find(d => d.id === ctxMenu.id) :
                     library.fonts.find(f => f.id === ctxMenu.id)
                 if (item) startRename(ctxMenu.id, item.name)
             }},
@@ -174,7 +193,7 @@ export function LibrarySection({library, selectedId, selectedType, dispatch}: Pr
         setFontInputText('')
     }
 
-    const selectItem = (id: string, itemType: 'gradient' | 'image' | 'font') => {
+    const selectItem = (id: string, itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
         dispatch({type: 'SELECT_LIBRARY_ITEM', id, itemType})
     }
 
@@ -264,6 +283,41 @@ export function LibrarySection({library, selectedId, selectedType, dispatch}: Pr
                     </div>
                 ))}
                 {library.images.length === 0 && <div className={styles.empty}>No images</div>}
+            </SubSection>
+
+            {/* Dimensions subsection */}
+            <SubSection
+                title="Dimensions"
+                collapsed={dimensionsCollapsed}
+                onToggle={() => setDimensionsCollapsed(v => !v)}
+                onAdd={() => setShowDimensionInput(v => !v)}
+                addButtonRef={dimensionAddButtonRef}
+                addTitle="Add dimension"
+            >
+                <DimensionAddDialog
+                    open={showDimensionInput}
+                    anchorRef={dimensionAddButtonRef}
+                    title="Dimension"
+                    onCancel={() => setShowDimensionInput(false)}
+                    onCreate={asset => dispatch({type: 'ADD_LIBRARY_DIMENSION', dimension: asset})}
+                />
+                {library.dimensions.map(dim => (
+                    <DimensionRow
+                        key={dim.id}
+                        asset={dim}
+                        isSelected={dim.id === selectedId && selectedType === 'dimension'}
+                        scope="library"
+                        dispatch={dispatch}
+                        usageCount={Object.values(shapes).filter(s => s.type === 'page' && (s as {
+                            pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                        }).pageSize?.kind === 'asset' && (s as {
+                            pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                        }).pageSize?.scope === 'library' && (s as {
+                            pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                        }).pageSize?.assetId === dim.id).length}
+                    />
+                ))}
+                {library.dimensions.length === 0 && !showDimensionInput && <div className={styles.empty}>No dimensions</div>}
             </SubSection>
 
             {/* Fonts subsection */}

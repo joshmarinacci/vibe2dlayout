@@ -1,4 +1,11 @@
 
+## 2026-06-15 — Page dimensions with presets, assets, and custom sizes
+
+- Page settings now support a unified size picker with built-in presets, document `Dimension` assets, library `Dimension` assets, and custom width/height entry
+- Added reusable `Dimension` creation dialog in both the document assets and library sections so both flows look and behave the same
+- Document and library dimension assets can be selected directly in the page properties panel, and the page resolves to a concrete size for export/layout
+- Legacy documents upgrade old fixed-size pages to custom page sizes automatically when loaded
+
 ## 2026-06-14 — Physics HTML export
 
 New **Powerups → Export Physics HTML...** menu item (web + Tauri) exports a self-contained `.html` file that runs a live Matter.js physics simulation in any browser.

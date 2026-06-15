@@ -2,6 +2,7 @@ import type {ConnectorEndpoint, ConnectorRoute} from './connector'
 import type {GridSettings} from './grid'
 import type {CanvasGuide} from './guide'
 import type {ShapePowerUpEntry} from './powerUps'
+import type {PageSizeSpec} from './pageDimensions'
 import type {BoundingBox} from './transform'
 
 // ─── Shared style types ───────────────────────────────────────────────────
@@ -220,6 +221,7 @@ export interface ImageShape extends ShapeBase, TransformedShape {
 export interface PageShape extends ShapeBase, TransformedShape {
     type: 'page'
     fixedSize: { width: number; height: number } | null  // null = infinite
+    pageSize: PageSizeSpec | null
     background: string  // CSS color
     backgroundPaletteColorId?: string
     clipChildren: boolean

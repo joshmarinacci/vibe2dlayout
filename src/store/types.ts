@@ -1,5 +1,6 @@
 import type {ConnectorEndpoint} from '@model/connector'
 import type {CustomFont, GradientDef, PageFolder, SketchStyleDef, VibeDocument} from '@model/document'
+import type {DimensionAsset} from '@model/dimensionAsset'
 import type {GridSettings} from '@model/grid'
 import type {CanvasGuide} from '@model/guide'
 import type {ImageAsset} from '@model/imageAsset'
@@ -73,6 +74,8 @@ export interface AppState {
     documentSelected: boolean
     // ID of the image asset selected in the tree (shows asset editor in props panel)
     selectedAssetId: string | null
+    // ID of the dimension asset selected in the tree
+    selectedDimensionAssetId: string | null
     // ID of the pixel asset selected in the tree
     selectedPixelAssetId: string | null
     // ID of the pixel asset currently being edited in the overlay
@@ -87,7 +90,7 @@ export interface AppState {
     selectedGradientId: string | null
     library: Library
     selectedLibraryItemId: string | null
-    selectedLibraryItemType: 'gradient' | 'image' | 'font' | null
+    selectedLibraryItemType: 'gradient' | 'image' | 'font' | 'dimension' | null
     physicsSimulationRunning: boolean
     leftPanelVisible: boolean
     rightPanelVisible: boolean
@@ -155,6 +158,9 @@ export type DocumentAction =
     | { type: 'ADD_IMAGE_ASSET'; asset: ImageAsset }
     | { type: 'UPDATE_IMAGE_ASSET'; asset: ImageAsset }
     | { type: 'DELETE_IMAGE_ASSET'; assetId: string }
+    | { type: 'ADD_DIMENSION_ASSET'; asset: DimensionAsset }
+    | { type: 'UPDATE_DIMENSION_ASSET'; asset: DimensionAsset }
+    | { type: 'DELETE_DIMENSION_ASSET'; assetId: string }
     | { type: 'ADD_PIXEL_ASSET'; asset: PixelAsset }
     | { type: 'UPDATE_PIXEL_ASSET'; asset: PixelAsset }
     | { type: 'DELETE_PIXEL_ASSET'; assetId: string }
@@ -215,6 +221,7 @@ export type ViewAction =
     | { type: 'SELECT_DOCUMENT' }
     | { type: 'SET_FOLDER_COLLAPSED'; folderId: string; collapsed: boolean }
     | { type: 'SELECT_IMAGE_ASSET'; assetId: string | null }
+    | { type: 'SELECT_DIMENSION_ASSET'; assetId: string | null }
     | { type: 'SELECT_PIXEL_ASSET'; assetId: string | null }
     | { type: 'START_PIXEL_EDIT'; assetId: string }
     | { type: 'STOP_PIXEL_EDIT' }
@@ -251,11 +258,14 @@ export type LibraryAction =
     | { type: 'ADD_LIBRARY_IMAGE'; image: ImageAsset }
     | { type: 'UPDATE_LIBRARY_IMAGE'; image: ImageAsset }
     | { type: 'DELETE_LIBRARY_IMAGE'; id: string }
+    | { type: 'ADD_LIBRARY_DIMENSION'; dimension: DimensionAsset }
+    | { type: 'UPDATE_LIBRARY_DIMENSION'; dimension: DimensionAsset }
+    | { type: 'DELETE_LIBRARY_DIMENSION'; id: string }
     | { type: 'ADD_LIBRARY_FONT'; font: CustomFont }
     | { type: 'UPDATE_LIBRARY_FONT'; font: CustomFont }
     | { type: 'DELETE_LIBRARY_FONT'; id: string }
-    | { type: 'RENAME_LIBRARY_ITEM'; id: string; name: string; itemType: 'gradient' | 'image' | 'font' }
-    | { type: 'SELECT_LIBRARY_ITEM'; id: string; itemType: 'gradient' | 'image' | 'font' }
+    | { type: 'RENAME_LIBRARY_ITEM'; id: string; name: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' }
+    | { type: 'SELECT_LIBRARY_ITEM'; id: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' }
     | { type: 'DESELECT_LIBRARY_ITEM' }
 
 export type AppAction = DocumentAction | SelectionAction | ViewAction | DragAction | HistoryAction | LibraryAction

@@ -1,11 +1,17 @@
 import type {CustomFont, TreeNode, VibeDocument} from '@model/document'
 import {findNode, findParent, getAllIds, insertNode, removeNode} from '@model/document'
+import type {DimensionAsset} from '@model/dimensionAsset'
 import {DEFAULT_GRID_SETTINGS} from '@model/grid'
 import type {ImageAsset} from '@model/imageAsset'
 import {EMPTY_LIBRARY} from '@model/library'
+import {
+    DEFAULT_PAGE_DIMENSION_ID,
+    findBuiltInPageDimension,
+    resolvePageSize,
+} from '@model/pageDimensions'
 import {DEFAULT_PALETTE} from '@model/palette'
 import type {ShapePowerUpEntry} from '@model/powerUps'
-import type {GradientStop, ImageShape, Shape} from '@model/shapes'
+import type {GradientStop, ImageShape, PageShape, Shape} from '@model/shapes'
 import {
     createDefaultFeatureSettings,
     createDocumentPowerUpEntry,
@@ -111,6 +117,50 @@ function recomputeGroupBounds(groupId: string, doc: VibeDocument): VibeDocument 
     }
 
     return {...doc, shapes: newShapes}
+}
+
+function pageSizeFromPreset(presetId: string): {width: number; height: number} | null {
+    const preset = findBuiltInPageDimension(presetId)
+    return preset ? {width: preset.width, height: preset.height} : null
+}
+
+function normalizePageShape(
+    shape: PageShape,
+    docDimensions: DimensionAsset[],
+    libraryDimensions: DimensionAsset[],
+): PageShape {
+    const nextPageSize = shape.pageSize ?? (shape.fixedSize
+        ? {kind: 'custom' as const, width: shape.fixedSize.width, height: shape.fixedSize.height}
+        : null)
+    const resolved = resolvePageSize(nextPageSize, docDimensions, libraryDimensions)
+    const nextFixedSize = resolved ?? shape.fixedSize
+    return {
+        ...shape,
+        pageSize: nextPageSize,
+        fixedSize: nextFixedSize,
+    }
+}
+
+function normalizePageShapes(doc: VibeDocument, libraryDimensions: DimensionAsset[]): VibeDocument {
+    const docDimensions = doc.dimensions ?? []
+    let changed = false
+    const nextShapes: Record<string, Shape> = {...doc.shapes}
+    for (const shape of Object.values(nextShapes)) {
+        if (shape.type !== 'page') continue
+        const normalized = normalizePageShape(shape, docDimensions, libraryDimensions)
+        if (
+            normalized.pageSize !== shape.pageSize ||
+            JSON.stringify(normalized.fixedSize) !== JSON.stringify(shape.fixedSize)
+        ) {
+            nextShapes[shape.id] = normalized
+            changed = true
+        }
+    }
+    return changed ? {...doc, shapes: nextShapes} : doc
+}
+
+function dimensionAssetRefersToPage(shape: PageShape, assetId: string, scope: 'document' | 'library'): boolean {
+    return shape.pageSize?.kind === 'asset' && shape.pageSize.assetId === assetId && shape.pageSize.scope === scope
 }
 
 function normalizeShapePowerUps(shape: Shape): ShapePowerUpEntry[] {
@@ -455,6 +505,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 gridSettings: d.gridSettings ?? {...DEFAULT_GRID_SETTINGS},
                 pageFolders: d.pageFolders ?? [],
                 images,
+                dimensions: d.dimensions ?? [],
                 customFonts: (d.customFonts ?? []).map((f: unknown) =>
                     typeof f === 'string' ? {
                         id: crypto.randomUUID(),
@@ -479,6 +530,7 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                     ]),
                 ),
             }
+            normalizedDocument = normalizePageShapes(normalizedDocument, normalizedDocument.dimensions ?? [])
             return migrateDocumentPowerUps(normalizedDocument)
         }
 
@@ -580,6 +632,33 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                 }
             }
             return {...doc, images: newImages, shapes: newShapes}
+        }
+
+        case 'ADD_DIMENSION_ASSET': {
+            const dimensions = [...(doc.dimensions ?? []), action.asset]
+            return normalizePageShapes({...doc, dimensions}, dimensions)
+        }
+
+        case 'UPDATE_DIMENSION_ASSET': {
+            const dimensions = (doc.dimensions ?? []).map(a => a.id === action.asset.id ? action.asset : a)
+            return normalizePageShapes({...doc, dimensions}, dimensions)
+        }
+
+        case 'DELETE_DIMENSION_ASSET': {
+            const dimensions = (doc.dimensions ?? []).filter(a => a.id !== action.assetId)
+            const newShapes = {...doc.shapes}
+            for (const shape of Object.values(newShapes)) {
+                if (shape.type !== 'page') continue
+                if (dimensionAssetRefersToPage(shape, action.assetId, 'document')) {
+                    const fallback = shape.fixedSize ?? pageSizeFromPreset(DEFAULT_PAGE_DIMENSION_ID) ?? {width: 800, height: 600}
+                    newShapes[shape.id] = {
+                        ...shape,
+                        pageSize: {kind: 'custom', width: fallback.width, height: fallback.height},
+                        fixedSize: {width: fallback.width, height: fallback.height},
+                    }
+                }
+            }
+            return normalizePageShapes({...doc, dimensions, shapes: newShapes}, dimensions)
         }
 
         case 'ADD_PIXEL_ASSET':
@@ -1123,8 +1202,9 @@ function applyGradientToShapes(
 
 export function createInitialDocument(): VibeDocument {
     const pageId = generateId()
+    const preset = findBuiltInPageDimension(DEFAULT_PAGE_DIMENSION_ID)!
     return {
-        version: 3,
+        version: 4,
         rootNodes: [{id: pageId, children: []}],
         shapes: {
             [pageId]: {
@@ -1133,8 +1213,9 @@ export function createInitialDocument(): VibeDocument {
                 type: 'page',
                 locked: false,
                 visible: true,
-                transform: {x: 0, y: 0, width: 800, height: 600, rotation: 0},
-                fixedSize: null,
+                transform: {x: 0, y: 0, width: preset.width, height: preset.height, rotation: 0},
+                fixedSize: {width: preset.width, height: preset.height},
+                pageSize: {kind: 'preset', presetId: preset.id},
                 background: '#ffffff',
                 clipChildren: false,
             },
@@ -1145,6 +1226,7 @@ export function createInitialDocument(): VibeDocument {
         gridSettings: {...DEFAULT_GRID_SETTINGS},
         pageFolders: [],
         images: [],
+        dimensions: [],
         pixelAssets: [],
         customFonts: [],
         gradients: [
@@ -1184,6 +1266,7 @@ export const initialState: AppState = {
     isDirty: false,
     documentSelected: false,
     selectedAssetId: null,
+    selectedDimensionAssetId: null,
     selectedPixelAssetId: null,
     editingPixelAssetId: null,
     selectedFontName: null,
@@ -1242,6 +1325,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'ADD_IMAGE_ASSET':
         case 'UPDATE_IMAGE_ASSET':
         case 'DELETE_IMAGE_ASSET':
+        case 'ADD_DIMENSION_ASSET':
+        case 'UPDATE_DIMENSION_ASSET':
+        case 'DELETE_DIMENSION_ASSET':
         case 'ADD_PIXEL_ASSET':
         case 'UPDATE_PIXEL_ASSET':
         case 'DELETE_PIXEL_ASSET':
@@ -1288,6 +1374,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 documentSelected: false,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
                 selectedGradientId: null,
@@ -1305,6 +1392,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 documentSelected: false,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
                 selectedGradientId: null,
@@ -1318,6 +1406,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 documentSelected: false,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
                 selectedGradientId: null,
@@ -1381,6 +1470,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 selectedGradientId: action.gradientId,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
                 selectedLibraryItemId: null,
@@ -1417,6 +1507,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 documentSelected: true,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
                 selectedGradientId: null,
@@ -1428,6 +1519,20 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {
                 ...state,
                 selectedAssetId: action.assetId,
+                selectedDimensionAssetId: null,
+                selectedPixelAssetId: null,
+                selectedFontName: null,
+                selectedGradientId: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
+                documentSelected: false,
+                selection: {ids: [], editingTextId: null},
+            }
+        case 'SELECT_DIMENSION_ASSET':
+            return {
+                ...state,
+                selectedDimensionAssetId: action.assetId,
+                selectedAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
                 selectedGradientId: null,
@@ -1441,6 +1546,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 selectedPixelAssetId: action.assetId,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedFontName: null,
                 selectedGradientId: null,
                 selectedLibraryItemId: null,
@@ -1453,6 +1559,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 selectedFontName: action.fontName,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedPixelAssetId: null,
                 selectedGradientId: null,
                 selectedLibraryItemId: null,
@@ -1520,8 +1627,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             }
 
         // ── Library actions ────────────────────────────────────────────────
-        case 'LOAD_LIBRARY':
-            return {...state, library: action.library}
+        case 'LOAD_LIBRARY': {
+            const library = {...EMPTY_LIBRARY, ...action.library, dimensions: action.library.dimensions ?? []}
+            return {
+                ...state,
+                library,
+                document: normalizePageShapes(state.document, library.dimensions),
+            }
+        }
 
         case 'SELECT_LIBRARY_ITEM':
             return {
@@ -1532,6 +1645,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selection: {ids: [], editingTextId: null},
                 documentSelected: false,
                 selectedAssetId: null,
+                selectedDimensionAssetId: null,
                 selectedPixelAssetId: null,
                 selectedFontName: null,
             }
@@ -1587,6 +1701,56 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             }
         }
 
+        case 'ADD_LIBRARY_DIMENSION': {
+            const lib = {...state.library, dimensions: [...state.library.dimensions, action.dimension]}
+            saveLibrary(lib)
+            return {
+                ...state,
+                library: lib,
+                document: normalizePageShapes(state.document, lib.dimensions),
+                selectedLibraryItemId: action.dimension.id,
+                selectedLibraryItemType: 'dimension',
+            }
+        }
+
+        case 'UPDATE_LIBRARY_DIMENSION': {
+            const lib = {...state.library, dimensions: state.library.dimensions.map(d => d.id === action.dimension.id ? action.dimension : d)}
+            saveLibrary(lib)
+            return {
+                ...state,
+                library: lib,
+                document: normalizePageShapes(state.document, lib.dimensions),
+            }
+        }
+
+        case 'DELETE_LIBRARY_DIMENSION': {
+            const lib = {...state.library, dimensions: state.library.dimensions.filter(d => d.id !== action.id)}
+            saveLibrary(lib)
+            const nextDocument = {
+                ...state.document,
+                shapes: Object.fromEntries(
+                    Object.entries(state.document.shapes).map(([id, shape]) => {
+                        if (shape.type !== 'page') return [id, shape]
+                        if (!dimensionAssetRefersToPage(shape, action.id, 'library')) return [id, shape]
+                        const fallback = shape.fixedSize ?? pageSizeFromPreset(DEFAULT_PAGE_DIMENSION_ID) ?? {width: 800, height: 600}
+                        return [id, {
+                            ...shape,
+                            pageSize: {kind: 'custom', width: fallback.width, height: fallback.height},
+                            fixedSize: {width: fallback.width, height: fallback.height},
+                        }]
+                    }),
+                ),
+            }
+            const wasSelected = state.selectedLibraryItemId === action.id
+            return {
+                ...state,
+                library: lib,
+                document: normalizePageShapes(nextDocument, lib.dimensions),
+                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
+                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
+            }
+        }
+
         case 'ADD_LIBRARY_FONT': {
             const lib = {...state.library, fonts: [...state.library.fonts, action.font]}
             saveLibrary(lib)
@@ -1617,11 +1781,17 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 lib = {...lib, gradients: lib.gradients.map(g => g.id === action.id ? {...g, name: action.name} : g)}
             } else if (action.itemType === 'image') {
                 lib = {...lib, images: lib.images.map(i => i.id === action.id ? {...i, name: action.name} : i)}
+            } else if (action.itemType === 'dimension') {
+                lib = {...lib, dimensions: lib.dimensions.map(d => d.id === action.id ? {...d, name: action.name} : d)}
             } else if (action.itemType === 'font') {
                 lib = {...lib, fonts: lib.fonts.map(f => f.id === action.id ? {...f, name: action.name} : f)}
             }
             saveLibrary(lib)
-            return {...state, library: lib}
+            return {
+                ...state,
+                library: lib,
+                document: normalizePageShapes(state.document, lib.dimensions),
+            }
         }
 
         // ── Undo/Redo (handled by history wrapper) ─────────────────────────

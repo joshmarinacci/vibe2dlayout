@@ -140,7 +140,7 @@ function makePage(id: string, children: TreeNode[], shapes: Record<string, Shape
     doc: VibeDocument
     pageId: string
 } {
-    const page: PageShape = {
+    const page = {
         id,
         name: 'Test Page',
         type: 'page',
@@ -151,7 +151,10 @@ function makePage(id: string, children: TreeNode[], shapes: Record<string, Shape
         background: '#ffffff',
         clipChildren: false,
         ...overrides,
-    }
+    } as PageShape
+    page.pageSize = (overrides.pageSize !== undefined ? overrides.pageSize : (page.fixedSize
+        ? {kind: 'custom', width: page.fixedSize.width, height: page.fixedSize.height}
+        : null)) as PageShape['pageSize']
     const doc: VibeDocument = {
         version: 3,
         rootNodes: [{id, children}],
@@ -162,6 +165,7 @@ function makePage(id: string, children: TreeNode[], shapes: Record<string, Shape
         gridSettings: {size: 16, style: 'lines', snapEnabled: false, snapAlignment: false},
         pageFolders: [],
         images: [],
+        dimensions: [],
         pixelAssets: [],
         customFonts: [],
         gradients: [],

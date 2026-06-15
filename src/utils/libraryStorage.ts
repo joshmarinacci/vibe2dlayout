@@ -12,17 +12,29 @@ async function getTauriLibraryPath(): Promise<string> {
     return `${dir}/library.json`
 }
 
+function normalizeLibrary(raw: unknown): Library {
+    if (typeof raw !== 'object' || raw === null) return {...EMPTY_LIBRARY}
+    const lib = raw as Partial<Library> & Record<string, unknown>
+    return {
+        version: 2,
+        gradients: Array.isArray(lib.gradients) ? lib.gradients as Library['gradients'] : [],
+        images: Array.isArray(lib.images) ? lib.images as Library['images'] : [],
+        dimensions: Array.isArray(lib.dimensions) ? lib.dimensions as Library['dimensions'] : [],
+        fonts: Array.isArray(lib.fonts) ? lib.fonts as Library['fonts'] : [],
+    }
+}
+
 export async function loadLibrary(): Promise<Library> {
     try {
         if (isTauri()) {
             const {readTextFile} = await import('@tauri-apps/plugin-fs')
             const path = await getTauriLibraryPath()
             const json = await readTextFile(path)
-            return JSON.parse(json) as Library
+            return normalizeLibrary(JSON.parse(json))
         } else {
             const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
             if (!raw) return {...EMPTY_LIBRARY}
-            return JSON.parse(raw) as Library
+            return normalizeLibrary(JSON.parse(raw))
         }
     } catch {
         return {...EMPTY_LIBRARY}

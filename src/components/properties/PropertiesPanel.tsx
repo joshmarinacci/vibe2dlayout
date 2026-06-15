@@ -25,6 +25,7 @@ import styles from './PropertiesPanel.module.css'
 import {ConnectorSection} from './sections/ConnectorSection'
 import {ContentSection} from './sections/ContentSection'
 import {DocumentSection} from './sections/DocumentSection'
+import {DimensionAssetSection} from './sections/DimensionAssetSection'
 import {FillSection} from './sections/FillSection'
 import {FontInfoSection} from './sections/FontInfoSection'
 import {ImageAssetSection} from './sections/ImageAssetSection'
@@ -120,6 +121,29 @@ export function PropertiesPanel() {
                             </button>
                         </div>
                     </div>
+                </div>
+            )
+        }
+    }
+
+    if (state.selectedDimensionAssetId !== null) {
+        const asset = state.document.dimensions.find(a => a.id === state.selectedDimensionAssetId)
+        if (asset) {
+            const usedByPages = Object.values(state.document.shapes)
+                .filter(s => s.type === 'page' && (s as {
+                    pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                }).pageSize?.kind === 'asset' && (s as {
+                    pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                }).pageSize?.scope === 'document' && (s as {
+                    pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                }).pageSize?.assetId === asset.id)
+            return (
+                <div className={styles.panel}>
+                    <div className={styles.header}>
+                        <span className={styles.shapeType}>dimension</span>
+                        <span className={styles.shapeName}>{asset.name}</span>
+                    </div>
+                    <DimensionAssetSection asset={asset} usageCount={usedByPages.length} dispatch={dispatch}/>
                 </div>
             )
         }
@@ -558,7 +582,12 @@ function ShapeProperties({shape, dispatch, state}: {
             const docGrid = state.document.gridSettings
             return (
                 <>
-                    <PageSection shape={shape} dispatch={dispatch}/>
+                    <PageSection
+                        shape={shape}
+                        documentDimensions={state.document.dimensions}
+                        libraryDimensions={state.library.dimensions}
+                        dispatch={dispatch}
+                    />
                     <CollapsibleSection title="Grid Override">
                         <div className={styles.row}>
                             <label className={styles.label}>Override document grid</label>
