@@ -12,6 +12,7 @@
     "publish-build": "VITE_BASE_PATH=/draw/ vite build",
     "publish-upload": "scp -r -i ../../WebstormProjects/deployman_private.key dist/** deployman@apps.josh.earth:/sites/apps.josh.earth/draw/",
     "publish-full": "npm run clean && npm run publish-build && npm run publish-upload",
+    "publish-pm2": "pm2 deploy production",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
