@@ -8,6 +8,7 @@ import {
     type Engine as MatterEngine,
     type Body as MatterBody,
 } from 'matter-js'
+import {createPowerUpLogger} from '@logging'
 
 interface PhysicsBodySettings {
     bodyType: 'dynamic' | 'static' | 'kinematic'
@@ -51,6 +52,7 @@ class PhysicsSession {
     private readonly initialTransforms = new Map<string, { x: number; y: number; rotation: number }>()
     private lastTick = 0
     private rafId: number | null = null
+    private readonly logger = createPowerUpLogger('physics')
 
     constructor(ctx: PowerUpActionContext) {
         this.dispatch = ctx.dispatch
@@ -73,9 +75,15 @@ class PhysicsSession {
 
         this.addStaticPageBoundaries(ctx.state.document.shapes)
         this.addPhysicsBodies(ctx.state.document.shapes)
+        this.logger.info('Physics session created', {
+            gravityX,
+            gravityY,
+            iterations,
+        })
     }
 
     start(): void {
+        this.logger.info('Physics session started')
         this.lastTick = performance.now()
         this.tick()
     }
@@ -95,6 +103,7 @@ class PhysicsSession {
             this.dispatch({type: 'APPLY_PHYSICS_TRANSFORMS', updates: restoreUpdates})
         }
         Composite.clear(this.engine.world, false, true)
+        this.logger.info('Physics session stopped', {restoredShapes: restoreUpdates.length})
     }
 
     private addStaticPageBoundaries(shapes: Record<string, Shape>): void {
@@ -198,6 +207,7 @@ export function togglePhysicsSimulation(ctx: PowerUpActionContext): void {
         ctx.dispatch({type: 'SET_PHYSICS_SIMULATION_RUNNING', running: false})
         return
     }
+    createPowerUpLogger('physics').debug('Starting physics simulation')
     const session = new PhysicsSession(ctx)
     activeSession = session
     ctx.dispatch({type: 'SET_PHYSICS_SIMULATION_RUNNING', running: true})

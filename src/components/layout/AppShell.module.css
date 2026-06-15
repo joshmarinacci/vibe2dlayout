@@ -64,3 +64,24 @@
     overflow-x: hidden;
     min-width: 0;
 }
+
+.logConsoleResizeHandle {
+    flex: 0 0 auto;
+    height: 8px;
+    cursor: ns-resize;
+    background: var(--color-bg-toolbar);
+    border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+}
+
+.logConsoleResizeHandle span {
+    width: 48px;
+    height: 2px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-text-muted) 40%, transparent);
+    pointer-events: none;
+}

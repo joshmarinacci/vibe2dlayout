@@ -12,6 +12,7 @@ import {PageShapeComp} from './shapes/PageShape'
 import {PixelImageShapeComp} from './shapes/PixelImageShape'
 import {RectShape} from './shapes/RectShape'
 import {TextShapeComp} from './shapes/TextShape'
+import {rendererLogger} from '@logging'
 
 interface Props {
     nodes: TreeNode[]
@@ -171,6 +172,10 @@ function ShapeNode({
                     children,
                 })}</>
             }
+            rendererLogger.warn('No renderer registered for shape type', {
+                shapeId: resolvedShape.id,
+                shapeType: resolvedShape.type,
+            })
             return null
         }
     }

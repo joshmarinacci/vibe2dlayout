@@ -3,6 +3,7 @@ import type {TreeNode} from '@model/document'
 import type {PageShape} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
 import type {AppState} from '@store/types'
+import {exporterLogger} from '@logging'
 import html2canvas from 'html2canvas'
 import {jsPDF} from 'jspdf'
 import React from 'react'
@@ -62,6 +63,7 @@ async function renderPageToCanvas(
 }
 
 export async function exportDocumentAsPdf(state: AppState): Promise<void> {
+    exporterLogger.info('Exporting document as PDF', {documentName: state.documentName})
     const {rootNodes, shapes} = state.document
     const activeTheme = getActiveTheme(state.document)
     const handDrawn = activeTheme.handDrawn
@@ -102,5 +104,6 @@ export async function exportDocumentAsPdf(state: AppState): Promise<void> {
 
     if (pdf) {
         pdf.save(`${state.documentName || 'export'}.pdf`)
+        exporterLogger.info('Exported document as PDF', {pageCount: pages.length})
     }
 }

@@ -36,6 +36,12 @@
       "@hooks/*": [
         "src/hooks/*"
       ],
+      "@logging": [
+        "src/logging/index.ts"
+      ],
+      "@logging/*": [
+        "src/logging/*"
+      ],
       "@powerups/*": [
         "src/powerups/*"
       ]

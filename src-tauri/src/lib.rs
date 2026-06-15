@@ -87,6 +87,7 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
             &MenuItem::with_id(app, "menu:toggle-snap",  "Toggle Alignment Snap", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "menu:toggle-theme", "Toggle Dark Mode",      true, None::<&str>)?,
+            &MenuItem::with_id(app, "menu:toggle-log-console", "Toggle Log Console", true, None::<&str>)?,
         ],
     )?;
 

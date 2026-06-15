@@ -1,4 +1,5 @@
 import {EMPTY_LIBRARY, type Library} from '@model/library'
+import {appLogger} from '@logging'
 
 const LOCAL_STORAGE_KEY = 'vibe2d:library'
 
@@ -55,6 +56,6 @@ export async function saveLibrary(library: Library): Promise<void> {
             localStorage.setItem(LOCAL_STORAGE_KEY, json)
         }
     } catch (e) {
-        console.warn('Failed to save library', e)
+        appLogger.warn('Failed to save library', e)
     }
 }

@@ -3,6 +3,7 @@ import {useAppDispatch, useAppState} from '@store/context'
 import {saveDoc} from '@utils/localStorageDB'
 import {shortcutEvents} from '@utils/shortcutEvents'
 import {getEffectiveGridSettings} from '@utils/snapping'
+import {appLogger} from '@logging'
 import {useEffect} from 'react'
 
 const IS_TAURI = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
@@ -24,9 +25,11 @@ export function useDocumentShortcuts() {
                     try {
                         const entry = saveDoc(state.documentId, state.documentName, state.document)
                         dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
-                        notifyPowerUpsDocumentSaved(state, dispatch).catch(console.error)
+                        notifyPowerUpsDocumentSaved(state, dispatch).catch(err => {
+                            appLogger.error('Failed to notify power-ups after save shortcut', err)
+                        })
                     } catch (err) {
-                        console.error('Save failed:', err)
+                        appLogger.error('Save failed from shortcut', err)
                     }
                 }
                 return

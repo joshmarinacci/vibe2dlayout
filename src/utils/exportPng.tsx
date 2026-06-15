@@ -3,6 +3,7 @@ import type {TreeNode} from '@model/document'
 import {getActiveTheme} from '@model/theme'
 import type {AppState} from '@store/types'
 import {computeVisualBounds} from '@utils/exportBounds'
+import {exporterLogger} from '@logging'
 import html2canvas from 'html2canvas'
 import React from 'react'
 import {createRoot} from 'react-dom/client'
@@ -22,6 +23,7 @@ function findNode(nodes: TreeNode[], id: string): TreeNode | null {
 }
 
 export async function exportGroupAsPng(groupId: string, state: AppState): Promise<void> {
+    exporterLogger.info('Exporting group as PNG', {groupId})
     const group = state.document.shapes[groupId]
     if (!group || group.type !== 'group') throw new Error('Shape is not a group')
 
@@ -96,6 +98,7 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
+        exporterLogger.info('Exported group as PNG', {groupId})
     } finally {
         root.unmount()
         document.body.removeChild(container)
@@ -103,6 +106,11 @@ export async function exportGroupAsPng(groupId: string, state: AppState): Promis
 }
 
 export async function exportPageAsPng(state: AppState, options?: ExportPageAsPngOptions): Promise<void> {
+    exporterLogger.info('Exporting page as PNG', {
+        pageId: state.activePageId,
+        scale: options?.scale,
+        transparentBackground: options?.transparentBackground ?? false,
+    })
     const pageId = state.activePageId
     if (!pageId) throw new Error('No active page')
 
@@ -172,6 +180,7 @@ export async function exportPageAsPng(state: AppState, options?: ExportPageAsPng
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
+        exporterLogger.info('Exported page as PNG', {pageId})
     } finally {
         root.unmount()
         document.body.removeChild(container)

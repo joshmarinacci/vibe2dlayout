@@ -19,6 +19,7 @@ import {TextCssDialog} from './TextCssDialog'
 import {useCanvasDrop} from './useCanvasDrop'
 import {useCanvasPointer} from './useCanvasPointer'
 import {usePinchGestures} from '@hooks/usePinchGestures'
+import {rendererLogger} from '@logging'
 
 export function CanvasView() {
     const {state} = useAppState()
@@ -76,6 +77,14 @@ export function CanvasView() {
 
     const pageOriginX = activePage?.type === 'page' ? activePage.transform.x : 0
     const pageOriginY = activePage?.type === 'page' ? activePage.transform.y : 0
+
+    useEffect(() => {
+        rendererLogger.debug('Canvas view updated', {
+            activePageId: state.activePageId,
+            zoom: state.viewTransform.zoom,
+            selectionCount: state.selection.ids.length,
+        })
+    }, [state.activePageId, state.viewTransform.zoom, state.selection.ids.length])
 
     return (
         <div

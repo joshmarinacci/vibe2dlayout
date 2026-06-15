@@ -2,6 +2,7 @@ import {computeBoundingBox} from "@components/canvas/SelectionOverlay.tsx";
 import {SelectInput} from "@components/properties/inputs/SelectInput.tsx";
 import type {FillStyle, FormShape, Shape, ShapeType} from "@model/shapes.ts";
 import {getActiveTheme} from "@model/theme.ts";
+import {rendererLogger} from '@logging'
 import {createShape} from "@utils/shapeFactory.ts";
 import {selectSelectedShapes, useAppDispatch, useAppState} from "../../store";
 
@@ -16,7 +17,7 @@ export function SelectionPanel({}: SelectionPanelProps) {
     if (ids.length === 0) return null
     const bbox = computeBoundingBox(state)
     if (!bbox) return null
-    console.log("bbox", bbox)
+    rendererLogger.debug('Selection panel bounding box', bbox)
     const width = 200
     const height = 100
 
@@ -62,7 +63,7 @@ export function SelectionPanel({}: SelectionPanelProps) {
                     {value: 'blue', label: 'Blue'},
                     {value: 'green', label: 'Green'}
                 ]} onChange={(v) => {
-                    console.log("new color is", v)
+                    rendererLogger.debug('Selection panel color changed', {color: v})
                     patchFill({
                         type: 'color',
                         color: v,

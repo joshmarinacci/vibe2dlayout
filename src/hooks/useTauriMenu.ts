@@ -9,6 +9,7 @@ import {exportPhysicsHtml} from '@utils/exportPhysicsHtml'
 import {exportPageAsPng} from '@utils/exportPng'
 import {shortcutEvents} from '@utils/shortcutEvents'
 import {tauriOpenFile, tauriSaveAsFile, tauriSaveFile} from '@utils/tauriStorage'
+import {appLogger, exporterLogger} from '@logging'
 import {useEffect, useRef} from 'react'
 
 function isTauri(): boolean {
@@ -42,20 +43,27 @@ export function useTauriMenu() {
 
             unlisten.push(await listen('menu:open', async () => {
                 try {
+                    appLogger.info('Opening document from native menu')
                     const result = await tauriOpenFile()
                     if (!result) return
                     dispatch({type: 'LOAD_DOCUMENT', document: result.document})
                     dispatch({type: 'SET_ACTIVE_PAGE', pageId: result.document.rootNodes[0]?.id ?? null})
                     dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
                     dispatch({type: 'SET_FILE_PATH', path: result.filePath})
+                    appLogger.info('Opened document from native menu', {
+                        name: result.name,
+                        rootNodes: result.document.rootNodes.length,
+                        shapeCount: Object.keys(result.document.shapes).length,
+                    })
                 } catch (err) {
-                    console.error('Open failed:', err)
+                    appLogger.error('Open failed', err)
                 }
             }))
 
             unlisten.push(await listen('menu:save', async () => {
                 const s = stateRef.current
                 try {
+                    appLogger.info('Saving document from native menu', {hasPath: Boolean(s.currentFilePath)})
                     if (s.currentFilePath) {
                         await tauriSaveFile(s.currentFilePath, s.document)
                         dispatch({type: 'SET_DOCUMENT_META', id: null, name: s.documentName})
@@ -69,13 +77,14 @@ export function useTauriMenu() {
                         }
                     }
                 } catch (err) {
-                    console.error('Save failed:', err)
+                    appLogger.error('Save failed', err)
                 }
             }))
 
             unlisten.push(await listen('menu:save-as', async () => {
                 const s = stateRef.current
                 try {
+                    appLogger.info('Save As from native menu')
                     const result = await tauriSaveAsFile(s.document, s.documentName)
                     if (result) {
                         dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
@@ -83,7 +92,7 @@ export function useTauriMenu() {
                         await notifyPowerUpsDocumentSaved(stateRef.current, dispatch)
                     }
                 } catch (err) {
-                    console.error('Save As failed:', err)
+                    appLogger.error('Save As failed', err)
                 }
             }))
 
@@ -132,15 +141,21 @@ export function useTauriMenu() {
             }))
 
             unlisten.push(await listen('menu:export-png', () => {
-                exportPageAsPng(stateRef.current).catch(console.error)
+                exporterLogger.info('Exporting PNG via native menu')
+                exportPageAsPng(stateRef.current).catch(err => exporterLogger.error('PNG export failed', err))
             }))
 
             unlisten.push(await listen('menu:export-pdf', () => {
-                exportDocumentAsPdf(stateRef.current).catch(console.error)
+                exporterLogger.info('Exporting PDF via native menu')
+                exportDocumentAsPdf(stateRef.current).catch(err => exporterLogger.error('PDF export failed', err))
             }))
 
             unlisten.push(await listen('menu:export-html', () => {
+                exporterLogger.info('Exporting HTML via native menu')
                 exportPageAsHtml(stateRef.current)
+            }))
+            unlisten.push(await listen('menu:toggle-log-console', () => {
+                dispatch({type: 'TOGGLE_LOG_CONSOLE'})
             }))
 
             unlisten.push(await listen('menu:duplicate', () => {
@@ -227,13 +242,13 @@ export function useTauriMenu() {
                     try {
                         await runPowerUpMenuAction(action, {state: currentState, dispatch})
                     } catch (err) {
-                        console.error(`Power-up action failed for ${menuId}`, err)
+                        appLogger.error('Power-up action failed', {menuId, error: err})
                     }
                 }))
             }
         }
 
-        setup().catch(console.error)
+        setup().catch(err => appLogger.error('Failed to set up native menus', err))
         return () => {
             unlisten.forEach(fn => fn())
         }

@@ -5,6 +5,7 @@ import {stopPhysicsSimulation, togglePhysicsSimulation} from '@powerups/physicsR
 import {exportPhysicsHtml} from '@utils/exportPhysicsHtml'
 import {exportPageAsPng} from '@utils/exportPng'
 import {downloadDocumentXml} from '@utils/exportXml'
+import {createPowerUpLogger} from '@logging'
 import {Download, Play, ScrollText} from 'lucide-react'
 import type {PowerUpDefinition} from './types'
 
@@ -12,6 +13,9 @@ const PHYSICS_POWER_UP_ID = 'powerup.physics'
 const XML_EXPORT_POWER_UP_ID = 'powerup.export.xml'
 const PNG_EXPORT_POWER_UP_ID = 'powerup.export.png'
 const FORMS_POWER_UP_ID = 'powerup.forms'
+const physicsLogger = createPowerUpLogger(PHYSICS_POWER_UP_ID)
+const xmlExportLogger = createPowerUpLogger(XML_EXPORT_POWER_UP_ID)
+const pngExportLogger = createPowerUpLogger(PNG_EXPORT_POWER_UP_ID)
 
 // Forms powerup uses a dynamic import in its lifecycle to avoid a circular dependency:
 // formsBuiltIn → CollapsibleSection → @store/context → reducer → registry → builtIns → formsBuiltIn
@@ -102,6 +106,7 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 title: 'Physics',
                 icon: <Play size={15}/>,
                 run: (ctx) => {
+                    physicsLogger.info('Toggling physics simulation')
                     togglePhysicsSimulation(ctx)
                 },
             },
@@ -112,6 +117,7 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 title: 'Run/Stop Physics',
                 tauriMenuId: 'menu:powerups:action:physics:simulate',
                 run: (ctx) => {
+                    physicsLogger.info('Toggling physics simulation from menu')
                     togglePhysicsSimulation(ctx)
                 },
             },
@@ -121,6 +127,7 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 tauriMenuId: 'menu:powerups:action:physics:export-html',
                 isEnabled: ({state}) => !!state.activePageId,
                 run: ({state}) => {
+                    physicsLogger.info('Exporting physics HTML', {pageId: state.activePageId})
                     exportPhysicsHtml(state, `${state.documentName || 'physics'}-simulation.html`)
                 },
             },
@@ -154,6 +161,7 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 title: 'XML',
                 icon: <ScrollText size={15}/>,
                 run: ({state}) => {
+                    xmlExportLogger.info('Exporting XML', {documentName: state.documentName})
                     downloadDocumentXml(state.document, `${state.documentName || 'export'}.xml`)
                 },
             },
@@ -164,6 +172,7 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 title: 'Export XML...',
                 tauriMenuId: 'menu:powerups:action:xml-export:export',
                 run: ({state}) => {
+                    xmlExportLogger.info('Exporting XML from menu', {documentName: state.documentName})
                     downloadDocumentXml(state.document, `${state.documentName || 'export'}.xml`)
                 },
             },
@@ -201,6 +210,7 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 title: 'PNG',
                 icon: <Download size={15}/>,
                 run: async ({state}) => {
+                    pngExportLogger.info('Exporting PNG', {documentName: state.documentName})
                     const settings = state.document.powerUps.find(p => p.id === PNG_EXPORT_POWER_UP_ID)?.settings ?? {}
                     await exportPageAsPng(state, {
                         scale: typeof settings.scale === 'number' ? settings.scale : 2,
@@ -215,6 +225,7 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 title: 'Export PNG (Power Up)...',
                 tauriMenuId: 'menu:powerups:action:png-export:export',
                 run: async ({state}) => {
+                    pngExportLogger.info('Exporting PNG from menu', {documentName: state.documentName})
                     const settings = state.document.powerUps.find(p => p.id === PNG_EXPORT_POWER_UP_ID)?.settings ?? {}
                     await exportPageAsPng(state, {
                         scale: typeof settings.scale === 'number' ? settings.scale : 2,

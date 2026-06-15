@@ -17,6 +17,7 @@ import {exportPageAsPng} from '@utils/exportPng'
 import {saveDoc} from '@utils/localStorageDB'
 import {downloadJSON, fromJSON, uploadJSON} from '@utils/serialization'
 import {createShape} from '@utils/shapeFactory'
+import {appLogger, importerLogger} from '@logging'
 import {
     ChevronDown,
     Circle,
@@ -42,6 +43,7 @@ import {
     Redo2,
     Save,
     Settings,
+    Search,
     StopCircle,
     Square,
     Sun,
@@ -154,19 +156,23 @@ export function Toolbar() {
             dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
             await notifyPowerUpsDocumentSaved(state, dispatch)
         } catch (err) {
+            appLogger.error('Save failed', err)
             alert('Save failed: ' + (err instanceof Error ? err.message : String(err)))
         }
     }
 
     const handleImportJSON = async () => {
         try {
+            importerLogger.info('Importing JSON document')
             const json = await uploadJSON()
             const doc = fromJSON(json)
             dispatch({type: 'LOAD_DOCUMENT', document: doc})
             const firstPage = doc.rootNodes[0]?.id ?? null
             dispatch({type: 'SET_ACTIVE_PAGE', pageId: firstPage})
             dispatch({type: 'SET_DOCUMENT_META', id: null, name: 'Untitled'})
+            importerLogger.info('Imported JSON document', {rootNodes: doc.rootNodes.length, shapeCount: Object.keys(doc.shapes).length})
         } catch (err) {
+            importerLogger.error('Failed to import JSON document', err)
             alert('Failed to load document: ' + (err instanceof Error ? err.message : String(err)))
         }
     }
@@ -182,9 +188,12 @@ export function Toolbar() {
         try {
             const entry = saveDoc(id, name, state.document)
             dispatch({type: 'SET_DOCUMENT_META', id: entry.id, name: entry.name})
-            notifyPowerUpsDocumentSaved(state, dispatch).catch(console.error)
+            notifyPowerUpsDocumentSaved(state, dispatch).catch(err => {
+                appLogger.error('Failed to notify power-ups after save', err)
+            })
             setShowDocumentsModal(false)
         } catch (err) {
+            appLogger.error('Save As failed', err)
             alert('Save failed: ' + (err instanceof Error ? err.message : String(err)))
         }
     }
@@ -415,6 +424,13 @@ export function Toolbar() {
                                         {theme === 'dark' ? <Sun size={13}/> : <Moon size={13}/>}
                                         <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                                     </button>
+                                    <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'TOGGLE_LOG_CONSOLE'});
+                                        setShowViewMenu(false)
+                                    }}>
+                                        <Search size={13}/>
+                                        <span>{state.showLogConsole ? 'Hide Log Console' : 'Show Log Console'}</span>
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -483,8 +499,8 @@ export function Toolbar() {
                                                     className={styles.formMenuItem}
                                                     disabled={action.isEnabled ? !action.isEnabled({state, dispatch}) : false}
                                                     onClick={() => {
-                                                        runPowerUpMenuAction(action, {state, dispatch})
-                                                            .catch(console.error)
+                                                runPowerUpMenuAction(action, {state, dispatch})
+                                                    .catch(err => appLogger.error(`Power-up menu action failed: ${action.id}`, err))
                                                         setShowPowerUpsMenu(false)
                                                     }}
                                                 >
@@ -606,7 +622,7 @@ export function Toolbar() {
                                 className={`${styles.btn} ${isPhysicsAction && state.physicsSimulationRunning ? styles.btnDanger : ''}`}
                                 title={title}
                                 disabled={action.isEnabled ? !action.isEnabled({state, dispatch}) : false}
-                                onClick={() => runPowerUpToolbarAction(action, {state, dispatch}).catch(console.error)}
+                                onClick={() => runPowerUpToolbarAction(action, {state, dispatch}).catch(err => appLogger.error(`Power-up toolbar action failed: ${action.id}`, err))}
                             >
                                 {icon}
                             </button>

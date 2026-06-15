@@ -63,6 +63,7 @@ export interface AppState {
     showSettingsModal: boolean
     showThemeModal: boolean
     showDocumentSettingsModal: boolean
+    showLogConsole: boolean
     settings: UserSettings
     drilledInContainerStack: string[]  // innermost (current) is last element
     // current document identity (localStorage / display name)
@@ -218,6 +219,7 @@ export type ViewAction =
     | { type: 'EXIT_DRILL_MODE' }
     | { type: 'TOGGLE_THEME_MODAL' }
     | { type: 'TOGGLE_DOCUMENT_SETTINGS_MODAL' }
+    | { type: 'TOGGLE_LOG_CONSOLE' }
     | { type: 'SELECT_DOCUMENT' }
     | { type: 'SET_FOLDER_COLLAPSED'; folderId: string; collapsed: boolean }
     | { type: 'SELECT_IMAGE_ASSET'; assetId: string | null }

@@ -3,6 +3,7 @@ import {canRedo, canUndo, createInitialHistory, historyReducer} from './history'
 import {initialState} from './reducer'
 import type {AppAction, AppState} from './types'
 import {loadLibrary} from '@utils/libraryStorage'
+import {appLogger} from '@logging'
 
 interface AppStateContextValue {
     state: AppState
@@ -26,7 +27,7 @@ class PropsheetStateImpl implements PropsheetState {
     }
 
     dump(): void {
-        console.log("propsheet state", this.states)
+        appLogger.debug('Propsheet state dump', {states: this.states})
     }
     setOpen(name: string, open: boolean): void {
         this.states[name] = open

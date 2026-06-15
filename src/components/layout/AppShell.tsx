@@ -5,16 +5,19 @@ import {TreePanel} from '@components/tree/TreePanel'
 import {useDynamicFonts} from '@hooks/useDynamicFonts'
 import {useFontMetadataEnrichment} from '@hooks/useFontMetadataEnrichment'
 import {useAppDispatch, useAppState} from '@store/context'
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import styles from './AppShell.module.css'
 import {ResizeHandle} from './ResizeHandle'
 import {SettingsModal} from './SettingsModal'
 import {ShortcutIndicator} from './ShortcutIndicator'
 import {ShortcutsModal} from './ShortcutsModal'
+import {LogConsole} from './LogConsole'
 import {StatusBar} from './StatusBar'
 
 const MIN_SIDEBAR = 150
 const MAX_SIDEBAR = 500
+const MIN_LOG_CONSOLE = 140
+const MAX_LOG_CONSOLE = 420
 
 export function AppShell() {
     const {state} = useAppState()
@@ -24,6 +27,8 @@ export function AppShell() {
 
     const [leftWidth, setLeftWidth] = useState(220)
     const [rightWidth, setRightWidth] = useState(300)
+    const [logConsoleHeight, setLogConsoleHeight] = useState(260)
+    const logResizeDrag = useRef<{startY: number; startHeight: number} | null>(null)
 
     useEffect(() => {
         if (window.innerWidth < 768) {
@@ -38,6 +43,23 @@ export function AppShell() {
 
     const onResizeRight = useCallback((delta: number) => {
         setRightWidth(w => Math.max(MIN_SIDEBAR, Math.min(MAX_SIDEBAR, w + delta)))
+    }, [])
+
+    const onLogResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        logResizeDrag.current = {startY: e.clientY, startHeight: logConsoleHeight}
+        e.currentTarget.setPointerCapture(e.pointerId)
+    }, [logConsoleHeight])
+
+    const onLogResizePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (!logResizeDrag.current) return
+        const delta = logResizeDrag.current.startY - e.clientY
+        setLogConsoleHeight(Math.max(MIN_LOG_CONSOLE, Math.min(MAX_LOG_CONSOLE, logResizeDrag.current.startHeight + delta)))
+    }, [])
+
+    const onLogResizePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        logResizeDrag.current = null
+        e.currentTarget.releasePointerCapture(e.pointerId)
     }, [])
 
     const panelOpacity = state.settings.panelOpacity ?? 0.92
@@ -69,6 +91,18 @@ export function AppShell() {
                     </div>
                 )}
             </div>
+            {state.showLogConsole && (
+                <div
+                    className={styles.logConsoleResizeHandle}
+                    onPointerDown={onLogResizePointerDown}
+                    onPointerMove={onLogResizePointerMove}
+                    onPointerUp={onLogResizePointerUp}
+                    title="Resize log console"
+                >
+                    <span/>
+                </div>
+            )}
+            <LogConsole height={state.showLogConsole ? logConsoleHeight : undefined}/>
             <StatusBar/>
             <ShortcutsModal/>
             <SettingsModal/>

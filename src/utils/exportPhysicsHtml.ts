@@ -2,6 +2,7 @@ import {getAllIds} from '@model/document'
 import {strokeColor} from '@model/shapes'
 import type {AppState} from '@store/types'
 import {fillBackground} from '@utils/fillCSS'
+import {createPowerUpLogger} from '@logging'
 
 interface ShapeExportData {
     id: string
@@ -32,6 +33,7 @@ interface ShapeVisual {
 }
 
 function buildPhysicsHtml(state: AppState): string {
+    const logger = createPowerUpLogger('physics')
     const {document: doc, activePageId} = state
 
     const pageNode = doc.rootNodes.find(n => n.id === activePageId)
@@ -127,6 +129,10 @@ function buildPhysicsHtml(state: AppState): string {
     const shapeJson = JSON.stringify(physicsShapes, null, 2)
 
     const wallT = 100
+    logger.debug('Building physics HTML export', {
+        pageId: activePageId,
+        shapeCount: physicsShapes.length,
+    })
 
     return `<!DOCTYPE html>
 <html lang="en">

@@ -42,6 +42,7 @@ import type {AppState} from '@store/types'
 import {arrowMarkerPath, buildConnectorPath, resolveEndpoint} from '@utils/connectors'
 import {fillBackground, gradientCSS} from '@utils/fillCSS'
 import {buildGoogleFontHref} from '@utils/fontFeatures'
+import {exporterLogger} from '@logging'
 
 // ─── CSS string helpers ───────────────────────────────────────────────────
 
@@ -980,6 +981,7 @@ ${bodyHtml}
 }
 
 export function exportPageAsHtml(state: AppState): void {
+    exporterLogger.info('Exporting page as HTML', {pageId: state.activePageId})
     const pageId = state.activePageId
     if (!pageId) throw new Error('No active page')
 
@@ -1001,4 +1003,5 @@ export function exportPageAsHtml(state: AppState): void {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+    exporterLogger.info('Exported page as HTML', {pageId})
 }

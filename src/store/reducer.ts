@@ -1258,6 +1258,7 @@ export const initialState: AppState = {
     showSettingsModal: false,
     showThemeModal: false,
     showDocumentSettingsModal: false,
+    showLogConsole: false,
     settings: {...DEFAULT_SETTINGS},
     drilledInContainerStack: [],
     documentId: null,
@@ -1459,6 +1460,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, showThemeModal: !state.showThemeModal}
         case 'TOGGLE_DOCUMENT_SETTINGS_MODAL':
             return {...state, showDocumentSettingsModal: !state.showDocumentSettingsModal}
+        case 'TOGGLE_LOG_CONSOLE':
+            return {...state, showLogConsole: !state.showLogConsole}
         case 'REQUEST_DOCUMENTS_MODAL':
             return {...state, pendingDocumentsModalMode: action.mode}
         case 'CLEAR_DOCUMENTS_MODAL_REQUEST':

@@ -1,4 +1,11 @@
 
+## 2026-06-15 — Client-side logging console
+
+- Added a shared client-side logging layer on top of `debug`, with typed log records, structured payload support, and subsystem namespaces for renderer, importer, exporter, and power-ups
+- Added a docked logging console that opens from the View menu and native Tauri menu, with level filters, subsystem filters, incremental search, copy/clear controls, and expandable JSON payloads
+- The console now resizes vertically via a drag handle above the panel, and the log list scrolls instead of compressing entries when space is tight
+- Instrumented representative renderer, import/export, menu, and power-up paths to emit structured logs into the new console
+
 ## 2026-06-15 — Page dimensions with presets, assets, and custom sizes
 
 - Page settings now support a unified size picker with built-in presets, document `Dimension` assets, library `Dimension` assets, and custom width/height entry

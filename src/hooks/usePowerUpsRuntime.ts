@@ -2,6 +2,7 @@ import {useAppDispatch, useAppState} from '@store/context'
 import {useEffect, useRef} from 'react'
 import {getPowerUpDefinition, getRegisteredDocumentPowerUps} from '@powerups/registry'
 import type {DocumentPowerUpEntry} from '@model/powerUps'
+import {createPowerUpLogger} from '@logging'
 
 export async function notifyPowerUpsDocumentSaved(
     state: ReturnType<typeof useAppState>['state'],
@@ -12,7 +13,7 @@ export async function notifyPowerUpsDocumentSaved(
         try {
             await definition.lifecycle?.onDocumentSaved?.(ctx, documentEntry)
         } catch (err) {
-            console.error(`Power-up onDocumentSaved failed for ${definition.id}`, err)
+            createPowerUpLogger(definition.id).error('onDocumentSaved failed', err)
         }
     }
 }
@@ -38,11 +39,13 @@ export function usePowerUpsRuntime(): void {
             if (previousById.has(entry.id)) continue
             const definition = getPowerUpDefinition(entry.id)
             if (!definition) continue
+            const logger = createPowerUpLogger(entry.id)
+            logger.info('Power-up installed')
             Promise.resolve(definition.lifecycle?.onInstall?.(ctx, entry)).catch(err => {
-                console.error(`Power-up onInstall failed for ${entry.id}`, err)
+                logger.error('onInstall failed', err)
             })
             Promise.resolve(definition.lifecycle?.onLoad?.(ctx, entry)).catch(err => {
-                console.error(`Power-up onLoad failed for ${entry.id}`, err)
+                logger.error('onLoad failed', err)
             })
         }
 
@@ -50,8 +53,10 @@ export function usePowerUpsRuntime(): void {
             if (currentById.has(entry.id)) continue
             const definition = getPowerUpDefinition(entry.id)
             if (!definition) continue
+            const logger = createPowerUpLogger(entry.id)
+            logger.info('Power-up unloaded')
             Promise.resolve(definition.lifecycle?.onUnload?.(ctx, entry)).catch(err => {
-                console.error(`Power-up onUnload failed for ${entry.id}`, err)
+                logger.error('onUnload failed', err)
             })
         }
 
@@ -78,12 +83,17 @@ export function usePowerUpsRuntime(): void {
             const definition = getPowerUpDefinition(shapePowerUp.id)
             const documentPowerUp = documentPowerUpsById.get(shapePowerUp.id)
             if (!definition || !documentPowerUp) continue
+            const logger = createPowerUpLogger(shapePowerUp.id)
+            logger.debug('Shape selected with power-up', {
+                shapeId: selectedShape.id,
+                featureCount: Object.keys(shapePowerUp.features ?? {}).length,
+            })
             Promise.resolve(definition.lifecycle?.onNodeSelected?.(ctx, {
                 shape: selectedShape,
                 shapePowerUp,
                 documentPowerUp,
             })).catch(err => {
-                console.error(`Power-up onNodeSelected failed for ${shapePowerUp.id}`, err)
+                logger.error('onNodeSelected failed', err)
             })
         }
     }, [state, dispatch])

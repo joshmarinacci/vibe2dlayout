@@ -1,0 +1,219 @@
+.console {
+    flex: 0 0 auto;
+    height: 260px;
+    min-height: 180px;
+    max-height: 40vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--color-bg-panel);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.header,
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.header {
+    justify-content: space-between;
+}
+
+.titleBlock {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+
+.title {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.count {
+    font-size: 11px;
+    color: var(--color-text-muted);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.iconButton {
+    width: 26px;
+    height: 22px;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--color-text-muted);
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.iconButton:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-primary);
+}
+
+.search {
+    flex: 1 1 220px;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 0 8px;
+    background: var(--color-bg-toolbar);
+}
+
+.search input {
+    flex: 1;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    outline: none;
+    font-size: 12px;
+}
+
+.filterGroup,
+.subsystems {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.subsystems {
+    padding: 0 8px 6px;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+}
+
+.filterChip {
+    height: 22px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg-toolbar);
+    color: var(--color-text-muted);
+    font-size: 11px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.filterChip:hover,
+.filterChip.active {
+    color: var(--color-text-primary);
+    background: var(--color-bg-hover);
+}
+
+.list {
+    flex: 1;
+    overflow: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
+    font-size: 12px;
+}
+
+.empty {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    padding: 8px;
+}
+
+.row {
+    flex: 0 0 auto;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg-app);
+    overflow: hidden;
+}
+
+.rowHeader {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto auto auto 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.time,
+.subsystem {
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.message {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.levelBadge {
+    justify-self: start;
+    font-size: 10px;
+    letter-spacing: 0;
+    padding: 2px 6px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.debug .levelBadge,
+.debug {
+    border-color: color-mix(in srgb, var(--color-border) 80%, transparent);
+}
+
+.info .levelBadge {
+    background: color-mix(in srgb, #1d4ed8 18%, transparent);
+    color: #1d4ed8;
+}
+
+.warn .levelBadge {
+    background: color-mix(in srgb, #d97706 18%, transparent);
+    color: #d97706;
+}
+
+.error .levelBadge {
+    background: color-mix(in srgb, #dc2626 18%, transparent);
+    color: #dc2626;
+}
+
+.payload {
+    border-top: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+    padding: 6px 8px 8px;
+}
+
+.payload summary {
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.payload pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--color-text-primary);
+}

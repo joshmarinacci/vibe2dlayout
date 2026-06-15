@@ -1,5 +1,6 @@
 import {fromJSON, toJSON} from './serialization'
 import type {VibeDocument} from '@model/document'
+import {importerLogger, exporterLogger} from '@logging'
 
 export interface TauriOpenResult {
     filePath: string
@@ -16,16 +17,19 @@ export async function tauriOpenFile(): Promise<TauriOpenResult | null> {
     })
     if (!selected || Array.isArray(selected)) return null
     const filePath = selected as string
+    importerLogger.info('Reading document from disk', {filePath})
     const json = await readTextFile(filePath)
     const document = fromJSON(json)
     const {basename} = await import('@tauri-apps/api/path')
     const base = await basename(filePath)
     const name = base.replace(/\.vibe\.json$|\.json$/, '')
+    importerLogger.info('Loaded document from disk', {filePath, name})
     return {filePath, document, name}
 }
 
 export async function tauriSaveFile(filePath: string, document: VibeDocument): Promise<void> {
     const {writeTextFile} = await import('@tauri-apps/plugin-fs')
+    exporterLogger.info('Writing document to disk', {filePath})
     await writeTextFile(filePath, toJSON(document))
 }
 
@@ -41,6 +45,7 @@ export async function tauriSaveAsFile(
         filters: [{name: 'Vibe Document', extensions: ['json']}],
     })
     if (!filePath) return null
+    exporterLogger.info('Writing document with Save As', {filePath})
     await writeTextFile(filePath, toJSON(document))
     const base = await basename(filePath)
     const name = base.replace(/\.vibe\.json$|\.json$/, '')
