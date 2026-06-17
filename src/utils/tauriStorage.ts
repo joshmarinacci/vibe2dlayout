@@ -1,4 +1,5 @@
 import {fromJSON, toJSON} from './serialization'
+import {decodeLimnPng} from './limnFile'
 import type {VibeDocument} from '@model/document'
 import {importerLogger, exporterLogger} from '@logging'
 
@@ -50,4 +51,48 @@ export async function tauriSaveAsFile(
     const base = await basename(filePath)
     const name = base.replace(/\.vibe\.json$|\.json$/, '')
     return {filePath, name}
+}
+
+export async function tauriSaveLimnFile(filePath: string, pngBytes: Uint8Array): Promise<void> {
+    const {writeFile} = await import('@tauri-apps/plugin-fs')
+    exporterLogger.info('Writing Limn file to disk', {filePath})
+    await writeFile(filePath, pngBytes)
+}
+
+export async function tauriSaveAsLimnFile(
+    pngBytes: Uint8Array,
+    defaultName: string,
+): Promise<{filePath: string; name: string} | null> {
+    const {save} = await import('@tauri-apps/plugin-dialog')
+    const {writeFile} = await import('@tauri-apps/plugin-fs')
+    const {basename} = await import('@tauri-apps/api/path')
+    const filePath = await save({
+        defaultPath: `${defaultName}.limn.png`,
+        filters: [{name: 'Limn Document', extensions: ['limn.png', 'png']}],
+    })
+    if (!filePath) return null
+    exporterLogger.info('Writing Limn file with Save As', {filePath})
+    await writeFile(filePath, pngBytes)
+    const base = await basename(filePath)
+    const name = base.replace(/\.limn\.png$|\.limn$/, '')
+    return {filePath, name}
+}
+
+export async function tauriOpenLimnFile(): Promise<TauriOpenResult | null> {
+    const {open} = await import('@tauri-apps/plugin-dialog')
+    const {readFile} = await import('@tauri-apps/plugin-fs')
+    const {basename} = await import('@tauri-apps/api/path')
+    const selected = await open({
+        filters: [{name: 'Limn Document', extensions: ['limn.png', 'png']}],
+        multiple: false,
+    })
+    if (!selected || Array.isArray(selected)) return null
+    const filePath = selected as string
+    importerLogger.info('Reading Limn file from disk', {filePath})
+    const bytes = await readFile(filePath)
+    const document = decodeLimnPng(bytes)
+    const base = await basename(filePath)
+    const name = base.replace(/\.limn\.png$|\.limn$/, '')
+    importerLogger.info('Loaded Limn file from disk', {filePath, name})
+    return {filePath, document, name}
 }

@@ -1,4 +1,16 @@
 
+## 2026-06-16 — Limn PNG file format (.limn)
+
+- Added `.limn` file format: a valid PNG (thumbnail of the first page) with the full document JSON embedded in a `tEXt` metadata chunk
+- New `src/utils/pngMeta.ts`: pure PNG byte manipulation — `injectTextChunk` and `extractTextChunk` with a hand-rolled CRC32 implementation; no DOM dependencies, fully unit-tested
+- New `src/utils/limnFile.ts`: `encodeLimnPng`, `decodeLimnPng`, `downloadLimnFile`, `uploadLimnFile` — encodes JSON as UTF-8 → base64 in the PNG metadata chunk; `decodeLimnPng` runs the full `fromJSON` migration pipeline so older documents are auto-upgraded
+- Added `renderPageToBytes` to `src/utils/exportPng.tsx`: renders the active page via html2canvas, scales to fit within 1200px on the longest side, and adds a white border with a small "Limn" label in the corner; throws (rather than alerting) when the page has no fixed size
+- Added "Save as Limn..." and "Open Limn..." to the File menu in `Toolbar.tsx` (web build)
+- Added `menu:save-limn` and `menu:open-limn` event handlers in `useTauriMenu.ts` (Tauri build)
+- Added `tauriSaveLimnFile`, `tauriSaveAsLimnFile`, `tauriOpenLimnFile` to `tauriStorage.ts`
+- Document `version` field (currently 4) is preserved in the embedded JSON; existing migration logic handles upgrading any older `.limn` file automatically on open
+- 14 new unit tests: 8 in `tests/utils/pngMeta.test.ts` (chunk injection/extraction, CRC, chunk ordering, unicode, large values) and 6 in `tests/utils/limnFile.test.ts` (round-trip, v3→v4 migration, error cases, unicode preservation)
+
 ## 2026-06-15 — Client-side logging console
 
 - Added a shared client-side logging layer on top of `debug`, with typed log records, structured payload support, and subsystem namespaces for renderer, importer, exporter, and power-ups

@@ -13,6 +13,11 @@ export interface ExportPageAsPngOptions {
     transparentBackground?: boolean
 }
 
+export interface RenderPageToBytesOptions {
+    maxSize?: number  // longest-side pixel limit for thumbnail, default 1200
+    border?: number   // white border width in output pixels, default 16
+}
+
 function findNode(nodes: TreeNode[], id: string): TreeNode | null {
     for (const n of nodes) {
         if (n.id === id) return n
@@ -20,6 +25,91 @@ function findNode(nodes: TreeNode[], id: string): TreeNode | null {
         if (found) return found
     }
     return null
+}
+
+/**
+ * Renders the active page to a PNG Uint8Array suitable for embedding in a .limn file.
+ * Scales the page to fit within maxSize on the longest side, and adds a decorative
+ * white border with a small "Limn" label. Throws (does not alert) if the page has no
+ * fixed size, so callers can show a user-friendly message.
+ */
+export async function renderPageToBytes(state: AppState, options?: RenderPageToBytesOptions): Promise<Uint8Array> {
+    const pageId = state.activePageId
+    if (!pageId) throw new Error('No active page')
+
+    const page = state.document.shapes[pageId]
+    if (!page || page.type !== 'page') throw new Error('No page found')
+    if (!page.fixedSize) throw new Error('PNG thumbnail requires a fixed-size page. Set a width and height in the properties panel first.')
+
+    const pageNode = state.document.rootNodes.find(n => n.id === pageId)
+    if (!pageNode) throw new Error('Page node not found')
+
+    const {width, height} = page.fixedSize
+    const maxSize = options?.maxSize ?? 1200
+    const border = options?.border ?? 16
+    const renderScale = Math.min(1, maxSize / Math.max(width, height))
+
+    const container = document.createElement('div')
+    container.style.cssText = `
+    position: fixed;
+    left: ${-(width + 200)}px;
+    top: 0;
+    width: ${width}px;
+    height: ${height}px;
+    background: ${page.background};
+    overflow: hidden;
+  `
+    document.body.appendChild(container)
+
+    const root = createRoot(container)
+    try {
+        await new Promise<void>(resolve => {
+            root.render(
+                React.createElement(ShapeRenderer, {
+                    nodes: pageNode.children,
+                    shapes: state.document.shapes,
+                    selectedIds: [],
+                    editingTextId: null,
+                    dispatch: () => {},
+                    handDrawn: getActiveTheme(state.document).handDrawn,
+                    themeFontFamily: getActiveTheme(state.document).fontFamily,
+                })
+            )
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        })
+
+        const canvas = await html2canvas(container, {
+            width,
+            height,
+            scale: renderScale,
+            useCORS: true,
+            backgroundColor: page.background,
+            logging: false,
+        })
+
+        // Compose final thumbnail: white border + page render + gray outline + "Limn" label
+        const final = document.createElement('canvas')
+        final.width = canvas.width + 2 * border
+        final.height = canvas.height + 2 * border
+        const ctx = final.getContext('2d')!
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, final.width, final.height)
+        ctx.drawImage(canvas, border, border)
+        ctx.strokeStyle = '#cccccc'
+        ctx.lineWidth = 1
+        ctx.strokeRect(border - 0.5, border - 0.5, canvas.width + 1, canvas.height + 1)
+        ctx.font = '10px sans-serif'
+        ctx.fillStyle = '#aaaaaa'
+        ctx.textAlign = 'right'
+        ctx.fillText('Limn', final.width - 4, final.height - 4)
+
+        const dataUrl = final.toDataURL('image/png')
+        const binary = atob(dataUrl.split(',')[1])
+        return Uint8Array.from(binary, c => c.charCodeAt(0))
+    } finally {
+        root.unmount()
+        document.body.removeChild(container)
+    }
 }
 
 export async function exportGroupAsPng(groupId: string, state: AppState): Promise<void> {

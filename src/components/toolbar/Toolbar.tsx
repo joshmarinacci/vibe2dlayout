@@ -13,7 +13,8 @@ import {useAppDispatch, useAppState} from '@store/context'
 import {createInitialDocument} from '@store/reducer'
 import type {ToolMode} from '@store/types'
 import {exportDocumentAsPdf} from '@utils/exportPdf'
-import {exportPageAsPng} from '@utils/exportPng'
+import {exportPageAsPng, renderPageToBytes} from '@utils/exportPng'
+import {encodeLimnPng, downloadLimnFile, uploadLimnFile} from '@utils/limnFile'
 import {saveDoc} from '@utils/localStorageDB'
 import {downloadJSON, fromJSON, uploadJSON} from '@utils/serialization'
 import {createShape} from '@utils/shapeFactory'
@@ -198,6 +199,31 @@ export function Toolbar() {
         }
     }
 
+    const handleSaveLimnFile = async () => {
+        setShowFileMenu(false)
+        try {
+            const thumbnailBytes = await renderPageToBytes(state)
+            const pngBytes = encodeLimnPng(thumbnailBytes, state.document)
+            downloadLimnFile(pngBytes, `${state.documentName || 'document'}.limn.png`)
+        } catch (err) {
+            appLogger.error('Save as Limn failed', err)
+            alert('Save as Limn failed: ' + (err instanceof Error ? err.message : String(err)))
+        }
+    }
+
+    const handleOpenLimnFile = async () => {
+        setShowFileMenu(false)
+        try {
+            const {doc} = await uploadLimnFile()
+            dispatch({type: 'LOAD_DOCUMENT', document: doc})
+            dispatch({type: 'SET_ACTIVE_PAGE', pageId: doc.rootNodes[0]?.id ?? null})
+            dispatch({type: 'SET_DOCUMENT_META', id: null, name: 'Untitled'})
+        } catch (err) {
+            appLogger.error('Open Limn failed', err)
+            alert('Open Limn failed: ' + (err instanceof Error ? err.message : String(err)))
+        }
+    }
+
     const handleNew = () => {
         const doc = createInitialDocument()
         dispatch({type: 'LOAD_DOCUMENT', document: doc})
@@ -291,6 +317,13 @@ export function Toolbar() {
                                         setShowFileMenu(false)
                                     }}>
                                         <Download size={13}/><span>Export PDF...</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={handleSaveLimnFile}>
+                                        <FileImage size={13}/><span>Save as Limn...</span>
+                                    </button>
+                                    <button className={styles.formMenuItem} onClick={handleOpenLimnFile}>
+                                        <Image size={13}/><span>Open Limn...</span>
                                     </button>
                                     <div className={styles.formMenuDivider}/>
                                     <button className={styles.formMenuItem} onClick={() => {

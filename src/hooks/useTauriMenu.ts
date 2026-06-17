@@ -6,9 +6,10 @@ import type {AppState} from '@store/types'
 import {exportDocumentAsPdf} from '@utils/exportPdf'
 import {exportPageAsHtml} from '@utils/exportHtml'
 import {exportPhysicsHtml} from '@utils/exportPhysicsHtml'
-import {exportPageAsPng} from '@utils/exportPng'
+import {exportPageAsPng, renderPageToBytes} from '@utils/exportPng'
+import {encodeLimnPng} from '@utils/limnFile'
 import {shortcutEvents} from '@utils/shortcutEvents'
-import {tauriOpenFile, tauriSaveAsFile, tauriSaveFile} from '@utils/tauriStorage'
+import {tauriOpenFile, tauriOpenLimnFile, tauriSaveAsFile, tauriSaveAsLimnFile, tauriSaveFile} from '@utils/tauriStorage'
 import {appLogger, exporterLogger} from '@logging'
 import {useEffect, useRef} from 'react'
 
@@ -93,6 +94,32 @@ export function useTauriMenu() {
                     }
                 } catch (err) {
                     appLogger.error('Save As failed', err)
+                }
+            }))
+
+            unlisten.push(await listen('menu:save-limn', async () => {
+                const s = stateRef.current
+                try {
+                    exporterLogger.info('Saving Limn file via native menu')
+                    const thumbnailBytes = await renderPageToBytes(s)
+                    const pngBytes = encodeLimnPng(thumbnailBytes, s.document)
+                    await tauriSaveAsLimnFile(pngBytes, s.documentName)
+                } catch (err) {
+                    appLogger.error('Save as Limn failed', err)
+                }
+            }))
+
+            unlisten.push(await listen('menu:open-limn', async () => {
+                try {
+                    appLogger.info('Opening Limn file via native menu')
+                    const result = await tauriOpenLimnFile()
+                    if (!result) return
+                    dispatch({type: 'LOAD_DOCUMENT', document: result.document})
+                    dispatch({type: 'SET_ACTIVE_PAGE', pageId: result.document.rootNodes[0]?.id ?? null})
+                    dispatch({type: 'SET_DOCUMENT_META', id: null, name: result.name})
+                    dispatch({type: 'SET_FILE_PATH', path: result.filePath})
+                } catch (err) {
+                    appLogger.error('Open Limn failed', err)
                 }
             }))
 
