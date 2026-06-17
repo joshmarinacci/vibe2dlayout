@@ -7,4 +7,19 @@
     padding: 8px 10px 3px;
     cursor: default;
     user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    color: var(--color-text-secondary, #666);
+}
+
+.chevron {
+    flex-shrink: 0;
 }

@@ -447,6 +447,9 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
                         },
                     }
                 }
+                if (rootShape?.type === 'page') {
+                    newShapes[clonedNode.id] = {...rootShape, id: clonedNode.id, name: `${rootShape.name} copy`}
+                }
                 // Insert after the original
                 const parentNode = findParent(newDoc.rootNodes, id)
                 const parentId = parentNode?.id ?? null
@@ -1282,6 +1285,9 @@ export const initialState: AppState = {
     physicsSimulationRunning: false,
     leftPanelVisible: true,
     rightPanelVisible: true,
+    presentationMode: false,
+    presentationSlideIndex: 0,
+    notesVisible: false,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1491,6 +1497,24 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             return {...state, leftPanelVisible: !state.leftPanelVisible}
         case 'TOGGLE_RIGHT_PANEL':
             return {...state, rightPanelVisible: !state.rightPanelVisible}
+        case 'SET_PRESENTATION_MODE':
+            return {
+                ...state,
+                presentationMode: action.active,
+                presentationSlideIndex: action.slideIndex ?? state.presentationSlideIndex,
+            }
+        case 'NEXT_SLIDE':
+            return {
+                ...state,
+                presentationSlideIndex: Math.min(state.presentationSlideIndex + 1, action.totalSlides - 1),
+            }
+        case 'PREV_SLIDE':
+            return {
+                ...state,
+                presentationSlideIndex: Math.max(state.presentationSlideIndex - 1, 0),
+            }
+        case 'TOGGLE_NOTES_PANEL':
+            return {...state, notesVisible: !state.notesVisible}
         case 'SET_DOCUMENT_META':
             return {...state, documentId: action.id, documentName: action.name, isDirty: false}
         case 'ENTER_DRILL_MODE':

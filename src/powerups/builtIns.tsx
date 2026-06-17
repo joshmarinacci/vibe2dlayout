@@ -2,6 +2,7 @@ import {NumberInput} from '@components/properties/inputs/NumberInput'
 import {ToggleInput} from '@components/properties/inputs/ToggleInput'
 import {CollapsibleSection} from '@components/properties/CollapsibleSection'
 import {stopPhysicsSimulation, togglePhysicsSimulation} from '@powerups/physicsRuntime'
+import {SLIDES_POWER_UP} from '@powerups/slidesBuiltIn'
 import {exportPhysicsHtml} from '@utils/exportPhysicsHtml'
 import {exportPageAsPng} from '@utils/exportPng'
 import {downloadDocumentXml} from '@utils/exportXml'
@@ -44,6 +45,7 @@ const FORMS_POWER_UP_STUB: PowerUpDefinition = {
 
 export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
     FORMS_POWER_UP_STUB,
+    SLIDES_POWER_UP,
     {
         id: PHYSICS_POWER_UP_ID,
         name: 'Physics',
@@ -237,9 +239,12 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
     },
 ]
 
+const SLIDES_POWER_UP_ID = 'slides'
+
 export const BUILT_IN_POWER_UP_IDS = {
     PHYSICS_POWER_UP_ID,
     XML_EXPORT_POWER_UP_ID,
     PNG_EXPORT_POWER_UP_ID,
     FORMS_POWER_UP_ID,
+    SLIDES_POWER_UP_ID,
 }

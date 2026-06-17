@@ -1,4 +1,17 @@
 
+## 2026-06-17 — Collapsible Assets and Library sections in tree panel
+
+- "Assets" and "Library" section headers in the layer tree are now collapsible
+- Click the header to toggle; a chevron indicates open/closed state
+- Extended `SectionHeader` with optional `collapsible`/`collapsed`/`onToggle` props; non-collapsible usage unchanged
+
+## 2026-06-17 — Page management in layer tree context menu
+
+- Added "Duplicate" to the right-click context menu for page items in the layer tree; duplicated page gets " copy" appended to its name
+- Added "Move Up", "Move Down", "Move to Top", "Move to Bottom" to the page context menu for reordering pages
+- Both features work on any page, not just slides powerup pages
+- Reuses existing `DUPLICATE_SHAPES` and `REORDER_SHAPE` reducer actions
+
 ## 2026-06-16 — Limn PNG file format (.limn)
 
 - Added `.limn` file format: a valid PNG (thumbnail of the first page) with the full document JSON embedded in a `tEXt` metadata chunk

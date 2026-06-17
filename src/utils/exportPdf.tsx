@@ -9,7 +9,7 @@ import {jsPDF} from 'jspdf'
 import React from 'react'
 import {createRoot} from 'react-dom/client'
 
-async function renderPageToCanvas(
+export async function renderPageToCanvas(
     page: PageShape,
     pageNode: TreeNode,
     shapes: AppState['document']['shapes'],

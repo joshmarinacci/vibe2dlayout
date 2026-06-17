@@ -95,6 +95,9 @@ export interface AppState {
     physicsSimulationRunning: boolean
     leftPanelVisible: boolean
     rightPanelVisible: boolean
+    presentationMode: boolean
+    presentationSlideIndex: number
+    notesVisible: boolean
 }
 
 export interface ShapeTransformUpdate {
@@ -240,6 +243,10 @@ export type ViewAction =
     | { type: 'APPLY_PHYSICS_TRANSFORMS'; updates: ShapeTransformUpdate[] }
     | { type: 'TOGGLE_LEFT_PANEL' }
     | { type: 'TOGGLE_RIGHT_PANEL' }
+    | { type: 'SET_PRESENTATION_MODE'; active: boolean; slideIndex?: number }
+    | { type: 'NEXT_SLIDE'; totalSlides: number }
+    | { type: 'PREV_SLIDE' }
+    | { type: 'TOGGLE_NOTES_PANEL' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

@@ -350,6 +350,39 @@ export function TreeNodeComp({
                 {
                     items: [
                         {
+                            label: 'Duplicate',
+                            icon: <Copy size={14}/>,
+                            onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [node.id]}),
+                        },
+                    ],
+                },
+                {
+                    items: [
+                        {
+                            label: 'Move Up',
+                            icon: <ChevronUp size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'up'}),
+                        },
+                        {
+                            label: 'Move Down',
+                            icon: <ChevronDown size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'down'}),
+                        },
+                        {
+                            label: 'Move to Top',
+                            icon: <ChevronsUp size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'to-front'}),
+                        },
+                        {
+                            label: 'Move to Bottom',
+                            icon: <ChevronsDown size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'to-back'}),
+                        },
+                    ],
+                },
+                {
+                    items: [
+                        {
                             label: 'Delete',
                             icon: <Trash2 size={14}/>,
                             danger: true,
