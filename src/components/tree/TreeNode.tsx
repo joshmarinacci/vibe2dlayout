@@ -94,6 +94,10 @@ interface DragPayload {
 }
 
 const DRAG_TYPE = 'application/vibe-tree-drag'
+// Tracks whether the currently active drag is a page shape.
+// Set at dragstart (where shape type is known) so dragover handlers can
+// suppress the 'into' indicator and reject invalid drop targets visually.
+let draggingPageFlag = false
 
 interface Props {
     node: TreeNode
@@ -166,6 +170,7 @@ export function TreeNodeComp({
     const handleDragStart = (e: React.DragEvent) => {
         e.stopPropagation()
         isDraggingSelf.current = true
+        draggingPageFlag = shape.type === 'page'
         const payload: DragPayload = {id: node.id, parentId, index: nodeIndex}
         e.dataTransfer.setData(DRAG_TYPE, JSON.stringify(payload))
         e.dataTransfer.effectAllowed = 'move'
@@ -173,6 +178,8 @@ export function TreeNodeComp({
 
     const handleDragEnd = () => {
         isDraggingSelf.current = false
+        draggingPageFlag = false
+        dropZoneRef.current = null
         setDropZone(null)
     }
 
@@ -180,14 +187,24 @@ export function TreeNodeComp({
 
     const handleDragOver = (e: React.DragEvent) => {
         if (!e.dataTransfer.types.includes(DRAG_TYPE)) return
-        e.preventDefault()
         e.stopPropagation()
+
+        // Pages must stay at root level — reject drops on nested nodes entirely
+        if (draggingPageFlag && parentId !== null) {
+            dropZoneRef.current = null
+            setDropZone(null)
+            return  // no preventDefault → browser shows "not allowed" cursor
+        }
+
+        e.preventDefault()
         e.dataTransfer.dropEffect = 'move'
         // Compute zone relative to the inner .node row, not the full wrapper
         const nodeEl = (e.currentTarget as HTMLElement).querySelector(`.${styles.node}`) as HTMLElement | null
         const rect = nodeEl ? nodeEl.getBoundingClientRect() : (e.currentTarget as HTMLElement).getBoundingClientRect()
         const ratio = (e.clientY - rect.top) / rect.height
-        const zone: 'before' | 'into' | 'after' = ratio < 0.25 ? 'before' : ratio > 0.75 ? 'after' : 'into'
+        let zone: 'before' | 'into' | 'after' = ratio < 0.25 ? 'before' : ratio > 0.75 ? 'after' : 'into'
+        // Pages can't be nested — suppress 'into' indicator
+        if (draggingPageFlag && zone === 'into') zone = 'after'
         dropZoneRef.current = zone
         setDropZone(zone)
     }
