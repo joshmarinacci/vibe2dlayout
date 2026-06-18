@@ -1,5 +1,6 @@
 import type {ImageAsset} from '@model/imageAsset'
 import type {AppAction} from '@store/types'
+import {generateId} from '@utils/idgen'
 import {type Dispatch, useState} from 'react'
 import {createPortal} from 'react-dom'
 import rowStyles from './AssetRow.module.css'
@@ -34,6 +35,13 @@ export function AssetRow({asset, isSelected, usageCount, dispatch}: Props) {
                         setEditName(asset.name);
                         setIsEditingName(true)
                     }
+                },
+                {
+                    label: 'Add to Library',
+                    onClick: () => dispatch({
+                        type: 'ADD_LIBRARY_IMAGE',
+                        image: {...asset, id: generateId()},
+                    }),
                 },
             ],
         },

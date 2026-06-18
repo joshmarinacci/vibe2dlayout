@@ -465,6 +465,38 @@ export function applyDocumentAction(doc: VibeDocument, action: DocumentAction): 
             return newDoc
         }
 
+        case 'PLACE_SHAPE_TEMPLATE': {
+            const {template, parentId, x, y} = action
+            const {node: clonedNode, newShapes} = cloneSubtree(template.rootNode, template.shapes)
+            const rootShape = newShapes[clonedNode.id]
+            if (rootShape && rootShape.type !== 'line' && 'transform' in rootShape) {
+                newShapes[clonedNode.id] = {
+                    ...rootShape,
+                    transform: {...(rootShape as {transform: object}).transform, x, y},
+                } as typeof rootShape
+            }
+            const siblings = parentId ? (findNode(doc.rootNodes, parentId)?.children ?? []) : doc.rootNodes
+            return {
+                ...doc,
+                shapes: {...doc.shapes, ...newShapes},
+                rootNodes: insertNode(doc.rootNodes, parentId, clonedNode, siblings.length),
+            }
+        }
+
+        case 'PLACE_PAGE_TEMPLATE': {
+            const {template, newPageId} = action
+            const {node: clonedNode, newShapes} = cloneSubtree(template.rootNode, template.shapes, newPageId)
+            const rootShape = newShapes[clonedNode.id]
+            if (rootShape?.type === 'page') {
+                newShapes[clonedNode.id] = {...rootShape, id: clonedNode.id, name: `${rootShape.name} copy`}
+            }
+            return {
+                ...doc,
+                shapes: {...doc.shapes, ...newShapes},
+                rootNodes: [...doc.rootNodes, clonedNode],
+            }
+        }
+
         case 'ALIGN_SHAPES': {
             const updates = computeAlignedTransforms(action.ids, doc.shapes, doc.rootNodes, action.alignment)
             let newShapes = {...doc.shapes}
@@ -1357,10 +1389,20 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'REMOVE_SHAPE_POWER_UP_FEATURE':
         case 'UPDATE_SHAPE_POWER_UP_FEATURE_SETTINGS':
         case 'MOVE_SHAPES_START':
+        case 'PLACE_SHAPE_TEMPLATE':
             return {
                 ...state,
                 document: applyDocumentAction(state.document, action),
             }
+
+        case 'PLACE_PAGE_TEMPLATE': {
+            const newDoc = applyDocumentAction(state.document, action)
+            return {
+                ...state,
+                document: newDoc,
+                activePageId: action.newPageId,
+            }
+        }
 
         // DRAG_SHAPES: same move logic as MOVE_SHAPES but NOT recorded in undo history.
         // The undo anchor is set by MOVE_SHAPES_START which fires once at drag start.
@@ -1655,7 +1697,13 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
         // ── Library actions ────────────────────────────────────────────────
         case 'LOAD_LIBRARY': {
-            const library = {...EMPTY_LIBRARY, ...action.library, dimensions: action.library.dimensions ?? []}
+            const library = {
+                ...EMPTY_LIBRARY,
+                ...action.library,
+                dimensions: action.library.dimensions ?? [],
+                shapeTemplates: action.library.shapeTemplates ?? [],
+                pageTemplates: action.library.pageTemplates ?? [],
+            }
             return {
                 ...state,
                 library,
@@ -1812,12 +1860,52 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 lib = {...lib, dimensions: lib.dimensions.map(d => d.id === action.id ? {...d, name: action.name} : d)}
             } else if (action.itemType === 'font') {
                 lib = {...lib, fonts: lib.fonts.map(f => f.id === action.id ? {...f, name: action.name} : f)}
+            } else if (action.itemType === 'shape-template') {
+                lib = {...lib, shapeTemplates: lib.shapeTemplates.map(t => t.id === action.id ? {...t, name: action.name} : t)}
+            } else if (action.itemType === 'page-template') {
+                lib = {...lib, pageTemplates: lib.pageTemplates.map(t => t.id === action.id ? {...t, name: action.name} : t)}
             }
             saveLibrary(lib)
             return {
                 ...state,
                 library: lib,
                 document: normalizePageShapes(state.document, lib.dimensions),
+            }
+        }
+
+        case 'ADD_LIBRARY_SHAPE_TEMPLATE': {
+            const lib = {...state.library, shapeTemplates: [...state.library.shapeTemplates, action.template]}
+            saveLibrary(lib)
+            return {...state, library: lib, selectedLibraryItemId: action.template.id, selectedLibraryItemType: 'shape-template'}
+        }
+
+        case 'DELETE_LIBRARY_SHAPE_TEMPLATE': {
+            const lib = {...state.library, shapeTemplates: state.library.shapeTemplates.filter(t => t.id !== action.id)}
+            saveLibrary(lib)
+            const wasSelected = state.selectedLibraryItemId === action.id
+            return {
+                ...state,
+                library: lib,
+                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
+                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
+            }
+        }
+
+        case 'ADD_LIBRARY_PAGE_TEMPLATE': {
+            const lib = {...state.library, pageTemplates: [...state.library.pageTemplates, action.template]}
+            saveLibrary(lib)
+            return {...state, library: lib, selectedLibraryItemId: action.template.id, selectedLibraryItemType: 'page-template'}
+        }
+
+        case 'DELETE_LIBRARY_PAGE_TEMPLATE': {
+            const lib = {...state.library, pageTemplates: state.library.pageTemplates.filter(t => t.id !== action.id)}
+            saveLibrary(lib)
+            const wasSelected = state.selectedLibraryItemId === action.id
+            return {
+                ...state,
+                library: lib,
+                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
+                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
             }
         }
 

@@ -1,4 +1,21 @@
 
+## 2026-06-18 — Library template rename and canvas "Save to Library"
+
+- Template rename: double-click on a shape or page template in the Library panel now triggers inline rename (consistent with gradients/images); place/create actions remain in the right-click context menu only
+- Canvas context menu: "Save to Library" now appears in the right-click menu on the canvas when a shape is selected, matching the tree view behavior
+
+## 2026-06-18 — Library templates and asset promotion
+
+- **Save shape to library**: right-click any shape in the layer tree → "Save to Library" — captures the shape and all descendants as a reusable `ShapeTemplate`
+- **Save page as template**: right-click a page → "Save as Template" — captures the full page subtree as a `PageTemplate`
+- **Place shape template**: double-click a shape template in the Library panel → places a fresh copy with new IDs on the active page at (50, 50)
+- **Create page from template**: double-click a page template in the Library panel → creates a new page from the template and makes it active
+- **Promote document assets to library**: right-click context menus on document Images, Gradients, Fonts, and Dimensions now include "Add to Library"
+- Library model bumped from v2 to v3; `normalizeLibrary` in `libraryStorage.ts` populates empty arrays for new fields when loading older libraries
+- New library actions: `ADD_LIBRARY_SHAPE_TEMPLATE`, `DELETE_LIBRARY_SHAPE_TEMPLATE`, `ADD_LIBRARY_PAGE_TEMPLATE`, `DELETE_LIBRARY_PAGE_TEMPLATE`
+- New document actions (undo-able): `PLACE_SHAPE_TEMPLATE`, `PLACE_PAGE_TEMPLATE`
+- Extended `RENAME_LIBRARY_ITEM` and `SELECT_LIBRARY_ITEM` to include `'shape-template'` and `'page-template'` item types
+
 ## 2026-06-17 — Collapsible Assets and Library sections in tree panel
 
 - "Assets" and "Library" section headers in the layer tree are now collapsible

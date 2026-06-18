@@ -1,7 +1,10 @@
 import type {CustomFont} from '@model/document'
 import type {AppAction} from '@store/types'
+import {generateId} from '@utils/idgen'
 import {type Dispatch, useRef, useState} from 'react'
+import {createPortal} from 'react-dom'
 import styles from './FontsSection.module.css'
+import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
 
 interface Props {
     customFonts: CustomFont[]
@@ -15,6 +18,7 @@ export function FontsSection({customFonts, selectedFontName, dispatch}: Props) {
     const [fontInput, setFontInput] = useState('')
     const [validating, setValidating] = useState(false)
     const [validationError, setValidationError] = useState<string | null>(null)
+    const [ctxMenu, setCtxMenu] = useState<{x: number; y: number; font: CustomFont} | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)
 
     const openMenu = () => {
@@ -54,6 +58,21 @@ export function FontsSection({customFonts, selectedFontName, dispatch}: Props) {
         dispatch({type: 'ADD_CUSTOM_FONT', font: {id: crypto.randomUUID(), name, metadataVersion: 0, isVariable: null, axes: []}})
         cancel()
     }
+
+    const ctxGroups: ContextMenuGroup[] = ctxMenu ? [
+        {items: [{
+            label: 'Add to Library',
+            onClick: () => dispatch({
+                type: 'ADD_LIBRARY_FONT',
+                font: {...ctxMenu.font, id: generateId()},
+            }),
+        }]},
+        {items: [{
+            label: 'Remove Font',
+            danger: true,
+            onClick: () => dispatch({type: 'DELETE_CUSTOM_FONT', fontName: ctxMenu.font.name}),
+        }]},
+    ] : []
 
     return (
         <div>
@@ -105,6 +124,10 @@ export function FontsSection({customFonts, selectedFontName, dispatch}: Props) {
                             key={font.name}
                             className={`${styles.fontRow} ${selectedFontName === font.name ? styles.fontRowSelected : ''}`}
                             onClick={() => dispatch({type: 'SELECT_FONT', fontName: font.name})}
+                            onContextMenu={e => {
+                                e.preventDefault()
+                                setCtxMenu({x: e.clientX, y: e.clientY, font})
+                            }}
                         >
                             <span className={styles.fontName}
                                   style={{fontFamily: font.name}}>{font.name}</span>
@@ -122,6 +145,16 @@ export function FontsSection({customFonts, selectedFontName, dispatch}: Props) {
                             </button>
                         </div>
                     ))
+            )}
+
+            {ctxMenu && createPortal(
+                <ContextMenu
+                    x={ctxMenu.x}
+                    y={ctxMenu.y}
+                    groups={ctxGroups}
+                    onClose={() => setCtxMenu(null)}
+                />,
+                document.body,
             )}
         </div>
     )

@@ -251,6 +251,7 @@ export function TreePanel() {
                     selectedId={state.selectedLibraryItemId}
                     selectedType={state.selectedLibraryItemType}
                     shapes={state.document.shapes}
+                    activePageId={state.activePageId}
                     dispatch={dispatch}
                 />}
             </div>

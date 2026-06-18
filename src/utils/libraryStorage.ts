@@ -17,11 +17,13 @@ function normalizeLibrary(raw: unknown): Library {
     if (typeof raw !== 'object' || raw === null) return {...EMPTY_LIBRARY}
     const lib = raw as Partial<Library> & Record<string, unknown>
     return {
-        version: 2,
+        version: 3,
         gradients: Array.isArray(lib.gradients) ? lib.gradients as Library['gradients'] : [],
         images: Array.isArray(lib.images) ? lib.images as Library['images'] : [],
         dimensions: Array.isArray(lib.dimensions) ? lib.dimensions as Library['dimensions'] : [],
         fonts: Array.isArray(lib.fonts) ? lib.fonts as Library['fonts'] : [],
+        shapeTemplates: Array.isArray(lib.shapeTemplates) ? lib.shapeTemplates as Library['shapeTemplates'] : [],
+        pageTemplates: Array.isArray(lib.pageTemplates) ? lib.pageTemplates as Library['pageTemplates'] : [],
     }
 }
 
