@@ -131,6 +131,7 @@ export function TreeNodeComp({
 
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
     const [dropZone, setDropZone] = useState<'before' | 'into' | 'after' | null>(null)
+    const dropZoneRef = useRef<'before' | 'into' | 'after' | null>(null)
     const [isEditing, setIsEditing] = useState(false)
     const [editName, setEditName] = useState(shape.name)
     const nameInputRef = useRef<HTMLInputElement>(null)
@@ -175,18 +176,25 @@ export function TreeNodeComp({
         setDropZone(null)
     }
 
+    const VALID_CONTAINERS = new Set(['page', 'frame', 'panel', 'scrollpanel', 'group', 'tabbed-panel'])
+
     const handleDragOver = (e: React.DragEvent) => {
         if (!e.dataTransfer.types.includes(DRAG_TYPE)) return
         e.preventDefault()
         e.stopPropagation()
         e.dataTransfer.dropEffect = 'move'
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+        // Compute zone relative to the inner .node row, not the full wrapper
+        const nodeEl = (e.currentTarget as HTMLElement).querySelector(`.${styles.node}`) as HTMLElement | null
+        const rect = nodeEl ? nodeEl.getBoundingClientRect() : (e.currentTarget as HTMLElement).getBoundingClientRect()
         const ratio = (e.clientY - rect.top) / rect.height
-        setDropZone(ratio < 0.25 ? 'before' : ratio > 0.75 ? 'after' : 'into')
+        const zone: 'before' | 'into' | 'after' = ratio < 0.25 ? 'before' : ratio > 0.75 ? 'after' : 'into'
+        dropZoneRef.current = zone
+        setDropZone(zone)
     }
 
     const handleDragLeave = (e: React.DragEvent) => {
         if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+            dropZoneRef.current = null
             setDropZone(null)
         }
     }
@@ -195,22 +203,32 @@ export function TreeNodeComp({
         e.preventDefault()
         e.stopPropagation()
         const raw = e.dataTransfer.getData(DRAG_TYPE)
+        // Read synchronously from ref before clearing
+        let zone = dropZoneRef.current
+        dropZoneRef.current = null
         setDropZone(null)
-        if (!raw) return
+        if (!raw || !zone) return
         const drag: DragPayload = JSON.parse(raw)
         if (drag.id === node.id) return  // dropped on self
+
+        // Validate: pages can't be nested inside other nodes
+        const draggedShape = shapes[drag.id]
+        if (draggedShape?.type === 'page' && zone === 'into') zone = 'after'
+
+        // Validate: non-container shapes can't receive children
+        if (zone === 'into' && !VALID_CONTAINERS.has(shape.type)) zone = 'after'
 
         let newParentId: string | null
         let insertIndex: number
 
-        if (dropZone === 'into') {
+        if (zone === 'into') {
             newParentId = node.id
             insertIndex = node.children.length
         } else {
             // before / after: insert as sibling of this node
             newParentId = parentId
             const targetIndex = nodeIndex
-            if (dropZone === 'before') {
+            if (zone === 'before') {
                 // if drag came from same parent and was before target, target shifts left after removal
                 insertIndex = drag.parentId === newParentId && drag.index < targetIndex
                     ? targetIndex - 1
@@ -520,7 +538,12 @@ export function TreeNodeComp({
     }
 
     return (
-        <div className={styles.nodeWrapper}>
+        <div
+            className={styles.nodeWrapper}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             <div
                 className={[
                     styles.node,
@@ -540,9 +563,6 @@ export function TreeNodeComp({
                 onContextMenu={handleContextMenu}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
             >
                 {hasChildren ? (
                     <button

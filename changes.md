@@ -1,4 +1,12 @@
 
+## 2026-06-18 — Fix tree view drag-and-drop reliability
+
+Three bugs fixed in `src/components/tree/TreeNode.tsx`:
+
+- **Stale drop zone on drop**: `handleDrop` was reading `dropZone` from React state (which could be stale by the time the drop event fired). Fixed by adding a `dropZoneRef` that is written synchronously in `handleDragOver`/`handleDragLeave` and read in `handleDrop`. Drops now always land in the correct position.
+- **Drop indicator flickering over children**: `onDragOver/onDragLeave/onDrop` were on the inner `.node` div; when the mouse moved into the `.children` sibling div, `dragLeave` fired and cleared the indicator. Moved the three handlers to the outer `.nodeWrapper` div so children are correctly seen as "inside" the drag target.
+- **Pages droppable into invalid containers**: Added validation in `handleDrop` — page shapes can never be dropped "into" another node (demoted to "after"), and non-container shapes (`rect`, `text`, `circle`, etc.) cannot receive "into" drops either.
+
 ## 2026-06-18 — Library template rename and canvas "Save to Library"
 
 - Template rename: double-click on a shape or page template in the Library panel now triggers inline rename (consistent with gradients/images); place/create actions remain in the right-click context menu only
