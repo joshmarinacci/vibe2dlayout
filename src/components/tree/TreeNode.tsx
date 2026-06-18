@@ -211,9 +211,12 @@ export function TreeNodeComp({
         const drag: DragPayload = JSON.parse(raw)
         if (drag.id === node.id) return  // dropped on self
 
-        // Validate: pages can't be nested inside other nodes
+        // Validate: pages must stay at root level
         const draggedShape = shapes[drag.id]
-        if (draggedShape?.type === 'page' && zone === 'into') zone = 'after'
+        if (draggedShape?.type === 'page') {
+            // 'into' would nest the page; parentId !== null means the target is inside another node
+            if (zone === 'into' || parentId !== null) return
+        }
 
         // Validate: non-container shapes can't receive children
         if (zone === 'into' && !VALID_CONTAINERS.has(shape.type)) zone = 'after'
