@@ -1,11 +1,12 @@
 
 ## 2026-06-18 — Fix tree view drag-and-drop reliability
 
-Three bugs fixed in `src/components/tree/TreeNode.tsx`:
+All fixes in `src/components/tree/TreeNode.tsx`:
 
-- **Stale drop zone on drop**: `handleDrop` was reading `dropZone` from React state (which could be stale by the time the drop event fired). Fixed by adding a `dropZoneRef` that is written synchronously in `handleDragOver`/`handleDragLeave` and read in `handleDrop`. Drops now always land in the correct position.
+- **Stale drop zone on drop**: `handleDrop` was reading `dropZone` from React state (which could be stale by the time the drop event fired). Fixed by adding a `dropZoneRef` written synchronously in `handleDragOver`/`handleDragLeave` and read in `handleDrop`. Drops now always land in the correct position.
 - **Drop indicator flickering over children**: `onDragOver/onDragLeave/onDrop` were on the inner `.node` div; when the mouse moved into the `.children` sibling div, `dragLeave` fired and cleared the indicator. Moved the three handlers to the outer `.nodeWrapper` div so children are correctly seen as "inside" the drag target.
-- **Pages droppable into invalid containers**: Added validation in `handleDrop` — page shapes can never be dropped "into" another node (demoted to "after"), and non-container shapes (`rect`, `text`, `circle`, etc.) cannot receive "into" drops either.
+- **Non-container shapes can't receive children**: `handleDrop` now validates that `zone === 'into'` is only allowed for container shape types (`page`, `frame`, `panel`, `scrollpanel`, `group`, `tabbed-panel`); otherwise demoted to `'after'`.
+- **Pages can't be dragged inside other pages**: `handleDrop` rejects the drop entirely when dragging a page onto a non-root-level target (`parentId !== null`). A module-level `draggingPageFlag` (set in `handleDragStart`, cleared in `handleDragEnd`) lets `handleDragOver` suppress the drop indicator and skip `preventDefault` on invalid targets, so the browser shows the "not allowed" cursor rather than a misleading highlight.
 
 ## 2026-06-18 — Library template rename and canvas "Save to Library"
 
