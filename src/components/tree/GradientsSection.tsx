@@ -1,9 +1,12 @@
 import type {GradientDef} from '@model/document'
 import type {AppAction} from '@store/types'
 import {gradientCSS} from '@utils/fillCSS'
+import {generateId} from '@utils/idgen'
 import {type Dispatch, useState} from 'react'
+import {createPortal} from 'react-dom'
 import styles from './StylesSection.module.css'
 import rowStyles from './StyleRow.module.css'
+import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
 
 interface Props {
     gradients: GradientDef[]
@@ -23,6 +26,17 @@ function swatchCSS(g: GradientDef): string {
 
 export function GradientsSection({gradients, selectedGradientId, dispatch}: Props) {
     const [collapsed, setCollapsed] = useState(false)
+    const [ctxMenu, setCtxMenu] = useState<{x: number; y: number; gradient: GradientDef} | null>(null)
+
+    const ctxGroups: ContextMenuGroup[] = ctxMenu ? [
+        {items: [{
+            label: 'Add to Library',
+            onClick: () => dispatch({
+                type: 'ADD_LIBRARY_GRADIENT',
+                gradient: {...ctxMenu.gradient, id: generateId()},
+            }),
+        }]},
+    ] : []
 
     return (
         <div>
@@ -42,6 +56,10 @@ export function GradientsSection({gradients, selectedGradientId, dispatch}: Prop
                     key={g.id}
                     className={`${rowStyles.row} ${g.id === selectedGradientId ? rowStyles.selected : ''}`}
                     onClick={() => dispatch({type: 'SELECT_GRADIENT', gradientId: g.id})}
+                    onContextMenu={e => {
+                        e.preventDefault()
+                        setCtxMenu({x: e.clientX, y: e.clientY, gradient: g})
+                    }}
                     title={g.name}
                 >
                     <div
@@ -61,6 +79,16 @@ export function GradientsSection({gradients, selectedGradientId, dispatch}: Prop
                 <div style={{padding: '4px 12px', fontSize: 11, color: 'var(--color-text-disabled)'}}>
                     No gradients
                 </div>
+            )}
+
+            {ctxMenu && createPortal(
+                <ContextMenu
+                    x={ctxMenu.x}
+                    y={ctxMenu.y}
+                    groups={ctxGroups}
+                    onClose={() => setCtxMenu(null)}
+                />,
+                document.body,
             )}
         </div>
     )

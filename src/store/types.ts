@@ -4,7 +4,7 @@ import type {DimensionAsset} from '@model/dimensionAsset'
 import type {GridSettings} from '@model/grid'
 import type {CanvasGuide} from '@model/guide'
 import type {ImageAsset} from '@model/imageAsset'
-import type {Library} from '@model/library'
+import type {Library, PageTemplate, ShapeTemplate} from '@model/library'
 import type {ColorPalette, PaletteColor} from '@model/palette'
 import type {PixelAsset} from '@model/pixelAsset'
 import type {SelectionState} from '@model/selection'
@@ -91,10 +91,13 @@ export interface AppState {
     selectedGradientId: string | null
     library: Library
     selectedLibraryItemId: string | null
-    selectedLibraryItemType: 'gradient' | 'image' | 'font' | 'dimension' | null
+    selectedLibraryItemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' | null
     physicsSimulationRunning: boolean
     leftPanelVisible: boolean
     rightPanelVisible: boolean
+    presentationMode: boolean
+    presentationSlideIndex: number
+    notesVisible: boolean
 }
 
 export interface ShapeTransformUpdate {
@@ -189,6 +192,8 @@ export type DocumentAction =
     featureId: string;
     patch: Record<string, unknown>
 }
+    | { type: 'PLACE_SHAPE_TEMPLATE'; template: ShapeTemplate; parentId: string | null; x: number; y: number }
+    | { type: 'PLACE_PAGE_TEMPLATE'; template: PageTemplate; newPageId: string }
 
 export type AlignType =
     | 'left' | 'center-h' | 'right'
@@ -240,6 +245,10 @@ export type ViewAction =
     | { type: 'APPLY_PHYSICS_TRANSFORMS'; updates: ShapeTransformUpdate[] }
     | { type: 'TOGGLE_LEFT_PANEL' }
     | { type: 'TOGGLE_RIGHT_PANEL' }
+    | { type: 'SET_PRESENTATION_MODE'; active: boolean; slideIndex?: number }
+    | { type: 'NEXT_SLIDE'; totalSlides: number }
+    | { type: 'PREV_SLIDE' }
+    | { type: 'TOGGLE_NOTES_PANEL' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.
@@ -266,8 +275,12 @@ export type LibraryAction =
     | { type: 'ADD_LIBRARY_FONT'; font: CustomFont }
     | { type: 'UPDATE_LIBRARY_FONT'; font: CustomFont }
     | { type: 'DELETE_LIBRARY_FONT'; id: string }
-    | { type: 'RENAME_LIBRARY_ITEM'; id: string; name: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' }
-    | { type: 'SELECT_LIBRARY_ITEM'; id: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' }
+    | { type: 'RENAME_LIBRARY_ITEM'; id: string; name: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' }
+    | { type: 'SELECT_LIBRARY_ITEM'; id: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' }
     | { type: 'DESELECT_LIBRARY_ITEM' }
+    | { type: 'ADD_LIBRARY_SHAPE_TEMPLATE'; template: ShapeTemplate }
+    | { type: 'DELETE_LIBRARY_SHAPE_TEMPLATE'; id: string }
+    | { type: 'ADD_LIBRARY_PAGE_TEMPLATE'; template: PageTemplate }
+    | { type: 'DELETE_LIBRARY_PAGE_TEMPLATE'; id: string }
 
 export type AppAction = DocumentAction | SelectionAction | ViewAction | DragAction | HistoryAction | LibraryAction

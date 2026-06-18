@@ -1,6 +1,7 @@
 import type {Library} from '@model/library'
 import type {AppAction} from '@store/types'
 import {gradientCSS} from '@utils/fillCSS'
+import {generateId} from '@utils/idgen'
 import type {Dispatch} from 'react'
 import {useEffect, useState} from 'react'
 import styles from '../PropertiesPanel.module.css'
@@ -8,7 +9,8 @@ import styles from '../PropertiesPanel.module.css'
 interface Props {
     library: Library
     itemId: string
-    itemType: 'gradient' | 'image' | 'font' | 'dimension'
+    itemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template'
+    activePageId: string | null
     dispatch: Dispatch<AppAction>
 }
 
@@ -110,7 +112,7 @@ function LibraryDimensionSection({
     )
 }
 
-export function LibraryItemSection({library, itemId, itemType, dispatch}: Props) {
+export function LibraryItemSection({library, itemId, itemType, activePageId, dispatch}: Props) {
     const [nameText, setNameText] = useState<string | null>(null)
 
     if (itemType === 'gradient') {
@@ -225,6 +227,125 @@ export function LibraryItemSection({library, itemId, itemType, dispatch}: Props)
                         <button
                             className={`${styles.actionBtn} ${styles.danger}`}
                             onClick={() => dispatch({type: 'DELETE_LIBRARY_IMAGE', id: img.id})}
+                        >
+                            Delete from Library
+                        </button>
+                    </div>
+                </div>
+            </>
+        )
+    }
+
+    if (itemType === 'shape-template') {
+        const t = library.shapeTemplates.find(x => x.id === itemId)
+        if (!t) return null
+        const displayName = nameText ?? t.name
+        return (
+            <>
+                <div className={styles.section}>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Name</span>
+                        <input
+                            className={styles.textInput}
+                            value={displayName}
+                            onChange={e => setNameText(e.target.value)}
+                            onBlur={() => {
+                                if (nameText !== null && nameText.trim()) {
+                                    dispatch({type: 'RENAME_LIBRARY_ITEM', id: t.id, name: nameText.trim(), itemType: 'shape-template'})
+                                }
+                                setNameText(null)
+                            }}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                                if (e.key === 'Escape') setNameText(null)
+                            }}
+                        />
+                    </div>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Type</span>
+                        <span className={styles.value}>Shape Template</span>
+                    </div>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Shapes</span>
+                        <span className={styles.value}>{Object.keys(t.shapes).length}</span>
+                    </div>
+                </div>
+                <div className={styles.section}>
+                    <div className={styles.row}>
+                        <button
+                            className={styles.actionBtn}
+                            disabled={!activePageId}
+                            onClick={() => {
+                                if (!activePageId) return
+                                dispatch({type: 'PLACE_SHAPE_TEMPLATE', template: t, parentId: activePageId, x: 50, y: 50})
+                            }}
+                        >
+                            Place on Canvas
+                        </button>
+                    </div>
+                    <div className={styles.row}>
+                        <button
+                            className={`${styles.actionBtn} ${styles.danger}`}
+                            onClick={() => dispatch({type: 'DELETE_LIBRARY_SHAPE_TEMPLATE', id: t.id})}
+                        >
+                            Delete from Library
+                        </button>
+                    </div>
+                </div>
+            </>
+        )
+    }
+
+    if (itemType === 'page-template') {
+        const t = library.pageTemplates.find(x => x.id === itemId)
+        if (!t) return null
+        const displayName = nameText ?? t.name
+        return (
+            <>
+                <div className={styles.section}>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Name</span>
+                        <input
+                            className={styles.textInput}
+                            value={displayName}
+                            onChange={e => setNameText(e.target.value)}
+                            onBlur={() => {
+                                if (nameText !== null && nameText.trim()) {
+                                    dispatch({type: 'RENAME_LIBRARY_ITEM', id: t.id, name: nameText.trim(), itemType: 'page-template'})
+                                }
+                                setNameText(null)
+                            }}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                                if (e.key === 'Escape') setNameText(null)
+                            }}
+                        />
+                    </div>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Type</span>
+                        <span className={styles.value}>Page Template</span>
+                    </div>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Shapes</span>
+                        <span className={styles.value}>{Object.keys(t.shapes).length}</span>
+                    </div>
+                </div>
+                <div className={styles.section}>
+                    <div className={styles.row}>
+                        <button
+                            className={styles.actionBtn}
+                            onClick={() => {
+                                const newPageId = generateId()
+                                dispatch({type: 'PLACE_PAGE_TEMPLATE', template: t, newPageId})
+                            }}
+                        >
+                            Create Page from Template
+                        </button>
+                    </div>
+                    <div className={styles.row}>
+                        <button
+                            className={`${styles.actionBtn} ${styles.danger}`}
+                            onClick={() => dispatch({type: 'DELETE_LIBRARY_PAGE_TEMPLATE', id: t.id})}
                         >
                             Delete from Library
                         </button>

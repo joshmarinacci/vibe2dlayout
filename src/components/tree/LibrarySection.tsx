@@ -1,5 +1,5 @@
 import type {GradientDef} from '@model/document'
-import type {Library} from '@model/library'
+import type {Library, PageTemplate, ShapeTemplate} from '@model/library'
 import type {MimeType} from '@model/shapes'
 import type {AppAction} from '@store/types'
 import {gradientCSS} from '@utils/fillCSS'
@@ -13,14 +13,16 @@ import {DimensionRow} from './DimensionRow'
 import {DimensionAddDialog} from './DimensionAddDialog'
 import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
 import styles from './LibrarySection.module.css'
+import {BookTemplate, FileText} from 'lucide-react'
 
 const MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
 
 interface Props {
     library: Library
     selectedId: string | null
-    selectedType: 'gradient' | 'image' | 'font' | 'dimension' | null
+    selectedType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' | null
     shapes: Record<string, Shape>
+    activePageId: string | null
     dispatch: Dispatch<AppAction>
 }
 
@@ -28,7 +30,7 @@ interface CtxState {
     x: number
     y: number
     id: string
-    itemType: 'gradient' | 'image' | 'font' | 'dimension'
+    itemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template'
 }
 
 function swatchCSS(g: GradientDef): string {
@@ -74,13 +76,15 @@ function SubSection({
     )
 }
 
-export function LibrarySection({library, selectedId, selectedType, shapes, dispatch}: Props) {
+export function LibrarySection({library, selectedId, selectedType, shapes, activePageId, dispatch}: Props) {
     useLibraryFontMetadataEnrichment(library.fonts, dispatch)
 
     const [gradientsCollapsed, setGradientsCollapsed] = useState(false)
     const [imagesCollapsed, setImagesCollapsed] = useState(false)
     const [dimensionsCollapsed, setDimensionsCollapsed] = useState(false)
     const [fontsCollapsed, setFontsCollapsed] = useState(false)
+    const [shapeTemplatesCollapsed, setShapeTemplatesCollapsed] = useState(false)
+    const [pageTemplatesCollapsed, setPageTemplatesCollapsed] = useState(false)
     const [ctxMenu, setCtxMenu] = useState<CtxState | null>(null)
     const [renamingId, setRenamingId] = useState<string | null>(null)
     const [renameText, setRenameText] = useState('')
@@ -90,7 +94,7 @@ export function LibrarySection({library, selectedId, selectedType, shapes, dispa
     const fileInputRef = useRef<HTMLInputElement>(null)
     const dimensionAddButtonRef = useRef<HTMLButtonElement>(null)
 
-    const openContextMenu = (e: React.MouseEvent, id: string, itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
+    const openContextMenu = (e: React.MouseEvent, id: string, itemType: CtxState['itemType']) => {
         e.preventDefault()
         e.stopPropagation()
         setCtxMenu({x: e.clientX, y: e.clientY, id, itemType})
@@ -101,13 +105,9 @@ export function LibrarySection({library, selectedId, selectedType, shapes, dispa
         setRenameText(currentName)
     }
 
-    const commitRename = (itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
+    const commitRename = (itemType: CtxState['itemType']) => {
         if (renamingId && renameText.trim()) {
-            if (itemType === 'dimension') {
-                dispatch({type: 'RENAME_LIBRARY_ITEM', id: renamingId, name: renameText.trim(), itemType})
-            } else {
-                dispatch({type: 'RENAME_LIBRARY_ITEM', id: renamingId, name: renameText.trim(), itemType})
-            }
+            dispatch({type: 'RENAME_LIBRARY_ITEM', id: renamingId, name: renameText.trim(), itemType})
         }
         setRenamingId(null)
     }
@@ -128,27 +128,68 @@ export function LibrarySection({library, selectedId, selectedType, shapes, dispa
         }
     }
 
-    const deleteItem = (id: string, itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
+    const deleteItem = (id: string, itemType: CtxState['itemType']) => {
         if (itemType === 'gradient') dispatch({type: 'DELETE_LIBRARY_GRADIENT', id})
         else if (itemType === 'image') dispatch({type: 'DELETE_LIBRARY_IMAGE', id})
         else if (itemType === 'dimension') dispatch({type: 'DELETE_LIBRARY_DIMENSION', id})
         else if (itemType === 'font') dispatch({type: 'DELETE_LIBRARY_FONT', id})
+        else if (itemType === 'shape-template') dispatch({type: 'DELETE_LIBRARY_SHAPE_TEMPLATE', id})
+        else if (itemType === 'page-template') dispatch({type: 'DELETE_LIBRARY_PAGE_TEMPLATE', id})
     }
 
-    const ctxGroups: ContextMenuGroup[] = ctxMenu ? [
-        {items: [{label: 'Add to Document', onClick: () => addToDocument(ctxMenu.id, ctxMenu.itemType)}]},
-        {items: [
-            {label: 'Rename', onClick: () => {
-                const item =
-                    ctxMenu.itemType === 'gradient' ? library.gradients.find(g => g.id === ctxMenu.id) :
-                    ctxMenu.itemType === 'image' ? library.images.find(i => i.id === ctxMenu.id) :
-                    ctxMenu.itemType === 'dimension' ? library.dimensions.find(d => d.id === ctxMenu.id) :
-                    library.fonts.find(f => f.id === ctxMenu.id)
-                if (item) startRename(ctxMenu.id, item.name)
-            }},
-            {label: 'Delete', danger: true, onClick: () => deleteItem(ctxMenu.id, ctxMenu.itemType)},
-        ]},
-    ] : []
+    const placeShapeTemplate = (template: ShapeTemplate) => {
+        if (!activePageId) return
+        dispatch({type: 'PLACE_SHAPE_TEMPLATE', template, parentId: activePageId, x: 50, y: 50})
+        dispatch({type: 'SELECT_SHAPES', ids: [], additive: false})
+    }
+
+    const placePageTemplate = (template: PageTemplate) => {
+        const newPageId = generateId()
+        dispatch({type: 'PLACE_PAGE_TEMPLATE', template, newPageId})
+    }
+
+    const buildCtxGroups = (): ContextMenuGroup[] => {
+        if (!ctxMenu) return []
+        const {id, itemType} = ctxMenu
+        if (itemType === 'shape-template') {
+            const template = library.shapeTemplates.find(t => t.id === id)
+            return [
+                {items: [{label: 'Place on Canvas', onClick: () => template && placeShapeTemplate(template)}]},
+                {items: [
+                    {label: 'Rename', onClick: () => {
+                        if (template) startRename(id, template.name)
+                    }},
+                    {label: 'Delete', danger: true, onClick: () => deleteItem(id, itemType)},
+                ]},
+            ]
+        }
+        if (itemType === 'page-template') {
+            const template = library.pageTemplates.find(t => t.id === id)
+            return [
+                {items: [{label: 'Create Page from Template', onClick: () => template && placePageTemplate(template)}]},
+                {items: [
+                    {label: 'Rename', onClick: () => {
+                        if (template) startRename(id, template.name)
+                    }},
+                    {label: 'Delete', danger: true, onClick: () => deleteItem(id, itemType)},
+                ]},
+            ]
+        }
+        return [
+            {items: [{label: 'Add to Document', onClick: () => addToDocument(id, itemType as 'gradient' | 'image' | 'font' | 'dimension')}]},
+            {items: [
+                {label: 'Rename', onClick: () => {
+                    const item =
+                        itemType === 'gradient' ? library.gradients.find(g => g.id === id) :
+                        itemType === 'image' ? library.images.find(i => i.id === id) :
+                        itemType === 'dimension' ? library.dimensions.find(d => d.id === id) :
+                        library.fonts.find(f => f.id === id)
+                    if (item) startRename(id, item.name)
+                }},
+                {label: 'Delete', danger: true, onClick: () => deleteItem(id, itemType)},
+            ]},
+        ]
+    }
 
     const addGradient = () => {
         dispatch({
@@ -193,7 +234,7 @@ export function LibrarySection({library, selectedId, selectedType, shapes, dispa
         setFontInputText('')
     }
 
-    const selectItem = (id: string, itemType: 'gradient' | 'image' | 'font' | 'dimension') => {
+    const selectItem = (id: string, itemType: CtxState['itemType']) => {
         dispatch({type: 'SELECT_LIBRARY_ITEM', id, itemType})
     }
 
@@ -378,11 +419,85 @@ export function LibrarySection({library, selectedId, selectedType, shapes, dispa
                 {library.fonts.length === 0 && !showFontInput && <div className={styles.empty}>No fonts</div>}
             </SubSection>
 
+            {/* Shape Templates subsection */}
+            <SubSection
+                title="Shape Templates"
+                collapsed={shapeTemplatesCollapsed}
+                onToggle={() => setShapeTemplatesCollapsed(v => !v)}
+            >
+                {library.shapeTemplates.map(t => (
+                    <div
+                        key={t.id}
+                        className={`${styles.row} ${selectedId === t.id && selectedType === 'shape-template' ? styles.rowSelected : ''}`}
+                        onClick={() => selectItem(t.id, 'shape-template')}
+                        onDoubleClick={() => startRename(t.id, t.name)}
+                        onContextMenu={e => openContextMenu(e, t.id, 'shape-template')}
+                    >
+                        <BookTemplate size={12} style={{flexShrink: 0, opacity: 0.6}}/>
+                        {renamingId === t.id
+                            ? <input
+                                autoFocus
+                                className={styles.renameInput}
+                                value={renameText}
+                                onChange={e => setRenameText(e.target.value)}
+                                onBlur={() => commitRename('shape-template')}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') commitRename('shape-template')
+                                    if (e.key === 'Escape') setRenamingId(null)
+                                }}
+                                onClick={e => e.stopPropagation()}
+                            />
+                            : <span className={styles.rowName}>{t.name}</span>
+                        }
+                    </div>
+                ))}
+                {library.shapeTemplates.length === 0 && (
+                    <div className={styles.empty}>No shape templates</div>
+                )}
+            </SubSection>
+
+            {/* Page Templates subsection */}
+            <SubSection
+                title="Page Templates"
+                collapsed={pageTemplatesCollapsed}
+                onToggle={() => setPageTemplatesCollapsed(v => !v)}
+            >
+                {library.pageTemplates.map(t => (
+                    <div
+                        key={t.id}
+                        className={`${styles.row} ${selectedId === t.id && selectedType === 'page-template' ? styles.rowSelected : ''}`}
+                        onClick={() => selectItem(t.id, 'page-template')}
+                        onDoubleClick={() => startRename(t.id, t.name)}
+                        onContextMenu={e => openContextMenu(e, t.id, 'page-template')}
+                    >
+                        <FileText size={12} style={{flexShrink: 0, opacity: 0.6}}/>
+                        {renamingId === t.id
+                            ? <input
+                                autoFocus
+                                className={styles.renameInput}
+                                value={renameText}
+                                onChange={e => setRenameText(e.target.value)}
+                                onBlur={() => commitRename('page-template')}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') commitRename('page-template')
+                                    if (e.key === 'Escape') setRenamingId(null)
+                                }}
+                                onClick={e => e.stopPropagation()}
+                            />
+                            : <span className={styles.rowName}>{t.name}</span>
+                        }
+                    </div>
+                ))}
+                {library.pageTemplates.length === 0 && (
+                    <div className={styles.empty}>No page templates</div>
+                )}
+            </SubSection>
+
             {ctxMenu && createPortal(
                 <ContextMenu
                     x={ctxMenu.x}
                     y={ctxMenu.y}
-                    groups={ctxGroups}
+                    groups={buildCtxGroups()}
                     onClose={() => setCtxMenu(null)}
                 />,
                 document.body,

@@ -55,7 +55,10 @@ export function DimensionRow({asset, isSelected, scope, dispatch, usageCount}: P
                 ...(scope === 'library' ? [{
                     label: 'Add to Document',
                     onClick: () => dispatch({type: 'ADD_DIMENSION_ASSET', asset: {...asset, id: crypto.randomUUID()}}),
-                }] : []),
+                }] : [{
+                    label: 'Add to Library',
+                    onClick: () => dispatch({type: 'ADD_LIBRARY_DIMENSION', dimension: {...asset, id: crypto.randomUUID()}}),
+                }]),
             ],
         },
         {

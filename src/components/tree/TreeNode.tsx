@@ -1,16 +1,19 @@
 import type {TreeNode} from '@model/document'
-import {findAncestorPage} from '@model/document'
+import {findAncestorPage, getAllIds} from '@model/document'
 import type {Shape, ShapeType} from '@model/shapes'
+import type {ShapeTemplate, PageTemplate} from '@model/library'
 import {getActiveTheme} from '@model/theme'
 import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppState} from '@store/context'
 import type {AppAction} from '@store/types'
+import {generateId} from '@utils/idgen'
 import {buildParentMap, getAbsoluteTransform, getContentOrigin} from '@utils/geometry'
 import {createShape} from '@utils/shapeFactory'
 import {exportPageAsHtml} from '@utils/exportHtml'
 import {
     AppWindow,
     BarChart2,
+    BookTemplate,
     CheckSquare,
     ChevronDown,
     ChevronRight,
@@ -273,6 +276,26 @@ export function TreeNodeComp({
         setContextMenu({x: e.clientX, y: e.clientY})
     }
 
+    const saveShapeToLibrary = () => {
+        const ids = getAllIds([node])
+        const templateShapes: Record<string, Shape> = {}
+        for (const id of ids) {
+            if (shapes[id]) templateShapes[id] = shapes[id]
+        }
+        const template: ShapeTemplate = {id: generateId(), name: shape.name, rootNode: node, shapes: templateShapes}
+        dispatch({type: 'ADD_LIBRARY_SHAPE_TEMPLATE', template})
+    }
+
+    const savePageAsTemplate = () => {
+        const ids = getAllIds([node])
+        const templateShapes: Record<string, Shape> = {}
+        for (const id of ids) {
+            if (shapes[id]) templateShapes[id] = shapes[id]
+        }
+        const template: PageTemplate = {id: generateId(), name: shape.name, rootNode: node, shapes: templateShapes}
+        dispatch({type: 'ADD_LIBRARY_PAGE_TEMPLATE', template})
+    }
+
     const addShapeTo = useCallback((parentId: string, type: string) => {
         const newShape = createShape(type, 50, 50, getActiveTheme(state.document))
         dispatch({type: 'ADD_SHAPE', parentId, shape: newShape})
@@ -322,6 +345,11 @@ export function TreeNodeComp({
                             onClick: () => exportPageAsHtml({...state, activePageId: node.id}),
                             disabled: !pageShape?.fixedSize,
                         },
+                        {
+                            label: 'Save as Template',
+                            icon: <BookTemplate size={14}/>,
+                            onClick: savePageAsTemplate,
+                        },
                     ],
                 },
                 ...addShapeGroups,
@@ -350,6 +378,39 @@ export function TreeNodeComp({
                 {
                     items: [
                         {
+                            label: 'Duplicate',
+                            icon: <Copy size={14}/>,
+                            onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [node.id]}),
+                        },
+                    ],
+                },
+                {
+                    items: [
+                        {
+                            label: 'Move Up',
+                            icon: <ChevronUp size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'up'}),
+                        },
+                        {
+                            label: 'Move Down',
+                            icon: <ChevronDown size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'down'}),
+                        },
+                        {
+                            label: 'Move to Top',
+                            icon: <ChevronsUp size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'to-front'}),
+                        },
+                        {
+                            label: 'Move to Bottom',
+                            icon: <ChevronsDown size={14}/>,
+                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'to-back'}),
+                        },
+                    ],
+                },
+                {
+                    items: [
+                        {
                             label: 'Delete',
                             icon: <Trash2 size={14}/>,
                             danger: true,
@@ -372,6 +433,11 @@ export function TreeNodeComp({
                         label: 'Duplicate',
                         icon: <Copy size={14}/>,
                         onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [node.id]}),
+                    },
+                    {
+                        label: 'Save to Library',
+                        icon: <BookTemplate size={14}/>,
+                        onClick: saveShapeToLibrary,
                     },
                 ],
             },

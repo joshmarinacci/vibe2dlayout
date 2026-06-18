@@ -1,4 +1,6 @@
 import {CanvasView} from '@components/canvas/CanvasView'
+import {PresentationMode} from '@components/presentation/PresentationMode'
+import {SpeakerNotesPanel} from '@components/presentation/SpeakerNotesPanel'
 import {PropertiesPanel} from '@components/properties/PropertiesPanel'
 import {Toolbar} from '@components/toolbar/Toolbar'
 import {TreePanel} from '@components/tree/TreePanel'
@@ -107,6 +109,8 @@ export function AppShell() {
             <ShortcutsModal/>
             <SettingsModal/>
             <ShortcutIndicator/>
+            <PresentationMode/>
+            <SpeakerNotesPanel/>
         </div>
     )
 }

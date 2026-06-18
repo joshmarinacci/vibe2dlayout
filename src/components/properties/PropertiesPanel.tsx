@@ -79,6 +79,7 @@ export function PropertiesPanel() {
                     library={state.library}
                     itemId={state.selectedLibraryItemId}
                     itemType={state.selectedLibraryItemType}
+                    activePageId={state.activePageId}
                     dispatch={dispatch}
                 />
             </div>

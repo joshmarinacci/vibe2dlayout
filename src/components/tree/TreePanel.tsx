@@ -36,6 +36,8 @@ export function TreePanel() {
     const formControls = registeredShapes.filter(s => s.category === 'forms')
     const mockupTypes = registeredShapes.filter(s => s.category === 'mockups')
     const [showAddMenu, setShowAddMenu] = useState(false)
+    const [assetsCollapsed, setAssetsCollapsed] = useState(false)
+    const [libraryCollapsed, setLibraryCollapsed] = useState(false)
     const addMenuRef = useRef<HTMLDivElement>(null)
 
     // Close menu when clicking outside (but not inside the menu itself)
@@ -206,49 +208,52 @@ export function TreePanel() {
                 <div className={styles.separator}/>
 
                 {/* Asset sections */}
-                <SectionHeader label="Assets"/>
-                <AssetsSection
-                    assets={state.document.images}
-                    selectedAssetId={state.selectedAssetId}
-                    dispatch={dispatch}
-                    shapes={state.document.shapes}
-                />
-                <DimensionsSection
-                    assets={state.document.dimensions}
-                    selectedDimensionAssetId={state.selectedDimensionAssetId}
-                    dispatch={dispatch}
-                    shapes={state.document.shapes}
-                />
-                <PixelAssetsSection
-                    assets={state.document.pixelAssets}
-                    selectedPixelAssetId={state.selectedPixelAssetId}
-                    dispatch={dispatch}
-                    shapes={state.document.shapes}
-                />
-                <FontsSection
-                    customFonts={state.document.customFonts}
-                    selectedFontName={state.selectedFontName}
-                    dispatch={dispatch}
-                />
-                <GradientsSection
-                    gradients={state.document.gradients ?? []}
-                    selectedGradientId={state.selectedGradientId}
-                    dispatch={dispatch}
-                />
-                <SketchStylesSection
-                    sketchStyles={state.document.sketchStyles ?? []}
-                    dispatch={dispatch}
-                />
+                <SectionHeader label="Assets" collapsible collapsed={assetsCollapsed} onToggle={() => setAssetsCollapsed(v => !v)}/>
+                {!assetsCollapsed && <>
+                    <AssetsSection
+                        assets={state.document.images}
+                        selectedAssetId={state.selectedAssetId}
+                        dispatch={dispatch}
+                        shapes={state.document.shapes}
+                    />
+                    <DimensionsSection
+                        assets={state.document.dimensions}
+                        selectedDimensionAssetId={state.selectedDimensionAssetId}
+                        dispatch={dispatch}
+                        shapes={state.document.shapes}
+                    />
+                    <PixelAssetsSection
+                        assets={state.document.pixelAssets}
+                        selectedPixelAssetId={state.selectedPixelAssetId}
+                        dispatch={dispatch}
+                        shapes={state.document.shapes}
+                    />
+                    <FontsSection
+                        customFonts={state.document.customFonts}
+                        selectedFontName={state.selectedFontName}
+                        dispatch={dispatch}
+                    />
+                    <GradientsSection
+                        gradients={state.document.gradients ?? []}
+                        selectedGradientId={state.selectedGradientId}
+                        dispatch={dispatch}
+                    />
+                    <SketchStylesSection
+                        sketchStyles={state.document.sketchStyles ?? []}
+                        dispatch={dispatch}
+                    />
+                </>}
 
                 <div className={styles.separator}/>
-                <SectionHeader label="Library"/>
-                <LibrarySection
+                <SectionHeader label="Library" collapsible collapsed={libraryCollapsed} onToggle={() => setLibraryCollapsed(v => !v)}/>
+                {!libraryCollapsed && <LibrarySection
                     library={state.library}
                     selectedId={state.selectedLibraryItemId}
                     selectedType={state.selectedLibraryItemType}
                     shapes={state.document.shapes}
+                    activePageId={state.activePageId}
                     dispatch={dispatch}
-                />
+                />}
             </div>
         </div>
     )

@@ -1,4 +1,6 @@
 import type {TreeNode} from '@model/document'
+import {getAllIds} from '@model/document'
+import type {ShapeTemplate} from '@model/library'
 import {createEmptyPixelAsset} from '@model/pixelAsset'
 import type {ImageShape, Shape, ShapeType} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
@@ -19,6 +21,7 @@ import {
   AlignVerticalJustifyStart,
   ArrowLeftRight,
   ArrowUpDown,
+  BookTemplate,
   ChevronDown,
   ChevronsDown,
   ChevronsUp,
@@ -112,6 +115,20 @@ export function CanvasContextMenu({
         }
         dispatch({type: 'ADD_SHAPE', parentId, shape: newShape})
         dispatch({type: 'SELECT_SHAPES', ids: [newShape.id], additive: false})
+    }
+
+    const saveShapeToLibrary = (id: string) => {
+        const node = rootNodes.flatMap(function walk(n: TreeNode): TreeNode[] {
+            return n.id === id ? [n] : n.children.flatMap(walk)
+        })[0]
+        if (!node) return
+        const ids = getAllIds([node])
+        const templateShapes: Record<string, Shape> = {}
+        for (const sid of ids) {
+            if (shapes[sid]) templateShapes[sid] = shapes[sid]
+        }
+        const template: ShapeTemplate = {id: generateId(), name: shapes[id]?.name ?? 'Shape', rootNode: node, shapes: templateShapes}
+        dispatch({type: 'ADD_LIBRARY_SHAPE_TEMPLATE', template})
     }
 
     const parentId = shapeId ?? activePageId
@@ -243,6 +260,11 @@ export function CanvasContextMenu({
                         icon: <Copy size={14}/>,
                         shortcut: '⌘D',
                         onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [shapeId!]}),
+                    },
+                    {
+                        label: 'Save to Library',
+                        icon: <BookTemplate size={14}/>,
+                        onClick: () => saveShapeToLibrary(shapeId!),
                     },
                     ...(shape.type === 'text' ? [
                         {
