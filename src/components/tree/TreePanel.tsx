@@ -1,22 +1,31 @@
-import {getUnfiledPageIds} from '@model/document'
-import type {ShapeType} from '@model/shapes'
+import {findNode, getAllIds, getUnfiledPageIds} from '@model/document'
+import type {ImageAsset} from '@model/imageAsset'
+import type {PageTemplate, ShapeTemplate} from '@model/library'
+import type {MimeType} from '@model/shapes'
+import type {Shape, ShapeType} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
 import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppDispatch, useAppState} from '@store/context'
 import {generateId} from '@utils/idgen'
+import {createEmptyPixelAsset} from '@model/pixelAsset'
 import {createShape} from '@utils/shapeFactory'
-import {useEffect, useRef, useState} from 'react'
+import {useEffect, useRef, useState, type ChangeEvent, type MouseEvent} from 'react'
 import {AssetsSection} from './AssetsSection'
+import {DimensionAddDialog} from './DimensionAddDialog'
 import {DimensionsSection} from './DimensionsSection'
+import {FontAddDialog} from './FontAddDialog'
 import {DocumentRow} from './DocumentRow'
 import {FontsSection} from './FontsSection'
 import {GradientsSection} from './GradientsSection'
 import {LibrarySection} from './LibrarySection'
+import {ImageUrlAddDialog} from './ImageUrlAddDialog'
 import {PageFolderRow} from './PageFolderRow'
 import {PixelAssetsSection} from './PixelAssetsSection'
 import {SectionHeader} from './SectionHeader'
 import {SketchStylesSection} from './SketchStylesSection'
+import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
 import {TreeNodeComp} from './TreeNode'
+import {createPortal} from 'react-dom'
 import styles from './TreePanel.module.css'
 
 const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
@@ -26,6 +35,8 @@ const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
     {type: 'text', label: 'Text'},
     {type: 'image', label: 'Image'},
 ]
+
+const MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
 
 
 export function TreePanel() {
@@ -39,6 +50,15 @@ export function TreePanel() {
     const [assetsCollapsed, setAssetsCollapsed] = useState(false)
     const [libraryCollapsed, setLibraryCollapsed] = useState(false)
     const addMenuRef = useRef<HTMLDivElement>(null)
+    const assetsActionButtonRef = useRef<HTMLButtonElement>(null)
+    const libraryActionButtonRef = useRef<HTMLButtonElement>(null)
+    const libraryImageInputRef = useRef<HTMLInputElement>(null)
+    const [sectionMenu, setSectionMenu] = useState<{x: number; y: number; section: 'assets' | 'library'} | null>(null)
+    const [showAssetImageDialog, setShowAssetImageDialog] = useState(false)
+    const [showAssetDimensionDialog, setShowAssetDimensionDialog] = useState(false)
+    const [showAssetFontDialog, setShowAssetFontDialog] = useState(false)
+    const [showLibraryDimensionDialog, setShowLibraryDimensionDialog] = useState(false)
+    const [showLibraryFontDialog, setShowLibraryFontDialog] = useState(false)
 
     // Close menu when clicking outside (but not inside the menu itself)
     useEffect(() => {
@@ -76,6 +96,135 @@ export function TreePanel() {
         }
         dispatch({type: 'ADD_PAGE_FOLDER', folder})
         setShowAddMenu(false)
+    }
+
+    const addDocumentImage = (asset: ImageAsset) => {
+        dispatch({type: 'ADD_IMAGE_ASSET', asset})
+        dispatch({type: 'SELECT_IMAGE_ASSET', assetId: asset.id})
+    }
+
+    const addLibraryImage = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file || !MIME_TYPES.includes(file.type)) return
+        const reader = new FileReader()
+        reader.onload = () => {
+            const dataUrl = reader.result as string
+            const base64 = dataUrl.split(',')[1] ?? ''
+            const img = new Image()
+            img.onload = () => {
+                const id = generateId()
+                dispatch({
+                    type: 'ADD_LIBRARY_IMAGE',
+                    image: {
+                        id,
+                        name: file.name.replace(/\.[^.]+$/, ''),
+                        src: base64,
+                        mimeType: file.type as MimeType,
+                        width: img.naturalWidth,
+                        height: img.naturalHeight,
+                    },
+                })
+            }
+            img.src = dataUrl
+        }
+        reader.readAsDataURL(file)
+        e.target.value = ''
+    }
+
+    const addLibraryGradient = () => {
+        dispatch({
+            type: 'ADD_LIBRARY_GRADIENT',
+            gradient: {
+                id: generateId(),
+                name: 'New Gradient',
+                stops: [{color: '#000000', position: 0}, {color: '#ffffff', position: 1}],
+            },
+        })
+    }
+
+    const addDocumentPixelImage = () => {
+        const asset = createEmptyPixelAsset(generateId(), 'Pixel Image')
+        dispatch({type: 'ADD_PIXEL_ASSET', asset})
+        dispatch({type: 'SELECT_PIXEL_ASSET', assetId: asset.id})
+    }
+
+    const selectedShapeId = state.selection.ids.find(id => {
+        const shape = state.document.shapes[id]
+        return shape && shape.type !== 'page'
+    }) ?? null
+    const selectedShapeNode = selectedShapeId ? findNode(state.document.rootNodes, selectedShapeId) : null
+    const activePageNode = state.activePageId ? findNode(state.document.rootNodes, state.activePageId) : null
+
+    const saveSelectedShapeTemplate = () => {
+        if (!selectedShapeId || !selectedShapeNode) return
+        const ids = getAllIds([selectedShapeNode])
+        const templateShapes: Record<string, Shape> = {}
+        for (const id of ids) {
+            if (state.document.shapes[id]) templateShapes[id] = state.document.shapes[id]
+        }
+        const shape = state.document.shapes[selectedShapeId]
+        const template: ShapeTemplate = {
+            id: generateId(),
+            name: shape?.name ?? 'Shape',
+            rootNode: selectedShapeNode,
+            shapes: templateShapes,
+        }
+        dispatch({type: 'ADD_LIBRARY_SHAPE_TEMPLATE', template})
+    }
+
+    const saveActivePageTemplate = () => {
+        if (!state.activePageId || !activePageNode) return
+        const ids = getAllIds([activePageNode])
+        const templateShapes: Record<string, Shape> = {}
+        for (const id of ids) {
+            if (state.document.shapes[id]) templateShapes[id] = state.document.shapes[id]
+        }
+        const page = state.document.shapes[state.activePageId]
+        const template: PageTemplate = {
+            id: generateId(),
+            name: page?.name ?? 'Page',
+            rootNode: activePageNode,
+            shapes: templateShapes,
+        }
+        dispatch({type: 'ADD_LIBRARY_PAGE_TEMPLATE', template})
+    }
+
+    const assetsMenuGroups: ContextMenuGroup[] = [
+        {
+            items: [
+                {label: 'Images', onClick: () => setShowAssetImageDialog(true)},
+                {label: 'Dimensions', onClick: () => setShowAssetDimensionDialog(true)},
+                {label: 'Pixel Images', onClick: addDocumentPixelImage},
+            ],
+        },
+        {
+            items: [
+                {label: 'Fonts', onClick: () => setShowAssetFontDialog(true)},
+                {label: 'Gradients', onClick: () => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})},
+                {label: 'Sketch Styles', onClick: () => dispatch({type: 'TOGGLE_SKETCH_STYLE_MODAL'})},
+            ],
+        },
+    ]
+
+    const libraryMenuGroups: ContextMenuGroup[] = [
+        {
+            items: [
+                {label: 'Gradients', onClick: addLibraryGradient},
+                {label: 'Images', onClick: () => libraryImageInputRef.current?.click()},
+                {label: 'Dimensions', onClick: () => setShowLibraryDimensionDialog(true)},
+                {label: 'Fonts', onClick: () => setShowLibraryFontDialog(true)},
+            ],
+        },
+        {
+            items: [
+                {label: 'Shape Templates', onClick: saveSelectedShapeTemplate, disabled: !selectedShapeNode},
+                {label: 'Page Templates', onClick: saveActivePageTemplate, disabled: !activePageNode},
+            ],
+        },
+    ]
+
+    const openSectionMenu = (section: 'assets' | 'library', e: MouseEvent<HTMLButtonElement>) => {
+        setSectionMenu({x: e.clientX, y: e.clientY, section})
     }
 
     const unfiledPageIds = getUnfiledPageIds(rootNodes, pageFolders, shapes)
@@ -208,7 +357,15 @@ export function TreePanel() {
                 <div className={styles.separator}/>
 
                 {/* Asset sections */}
-                <SectionHeader label="Assets" collapsible collapsed={assetsCollapsed} onToggle={() => setAssetsCollapsed(v => !v)}/>
+                <SectionHeader
+                    label="Assets"
+                    collapsible
+                    collapsed={assetsCollapsed}
+                    onToggle={() => setAssetsCollapsed(v => !v)}
+                    actionButtonRef={assetsActionButtonRef}
+                    actionTitle="Add asset"
+                    onAction={e => openSectionMenu('assets', e)}
+                />
                 {!assetsCollapsed && <>
                     <AssetsSection
                         assets={state.document.images}
@@ -245,7 +402,15 @@ export function TreePanel() {
                 </>}
 
                 <div className={styles.separator}/>
-                <SectionHeader label="Library" collapsible collapsed={libraryCollapsed} onToggle={() => setLibraryCollapsed(v => !v)}/>
+                <SectionHeader
+                    label="Library"
+                    collapsible
+                    collapsed={libraryCollapsed}
+                    onToggle={() => setLibraryCollapsed(v => !v)}
+                    actionButtonRef={libraryActionButtonRef}
+                    actionTitle="Add library item"
+                    onAction={e => openSectionMenu('library', e)}
+                />
                 {!libraryCollapsed && <LibrarySection
                     library={state.library}
                     selectedId={state.selectedLibraryItemId}
@@ -255,6 +420,67 @@ export function TreePanel() {
                     dispatch={dispatch}
                 />}
             </div>
+
+            {sectionMenu && createPortal(
+                <ContextMenu
+                    x={sectionMenu.x}
+                    y={sectionMenu.y}
+                    groups={sectionMenu.section === 'assets' ? assetsMenuGroups : libraryMenuGroups}
+                    onClose={() => setSectionMenu(null)}
+                />,
+                document.body,
+            )}
+
+            <ImageUrlAddDialog
+                open={showAssetImageDialog}
+                anchorRef={assetsActionButtonRef}
+                title="Image"
+                onCancel={() => setShowAssetImageDialog(false)}
+                onCreate={addDocumentImage}
+            />
+
+            <DimensionAddDialog
+                open={showAssetDimensionDialog}
+                anchorRef={assetsActionButtonRef}
+                title="Dimension"
+                onCancel={() => setShowAssetDimensionDialog(false)}
+                onCreate={asset => {
+                    dispatch({type: 'ADD_DIMENSION_ASSET', asset})
+                    dispatch({type: 'SELECT_DIMENSION_ASSET', assetId: asset.id})
+                }}
+            />
+
+            <FontAddDialog
+                open={showAssetFontDialog}
+                anchorRef={assetsActionButtonRef}
+                title="Font"
+                onCancel={() => setShowAssetFontDialog(false)}
+                onCreate={font => dispatch({type: 'ADD_CUSTOM_FONT', font})}
+            />
+
+            <DimensionAddDialog
+                open={showLibraryDimensionDialog}
+                anchorRef={libraryActionButtonRef}
+                title="Dimension"
+                onCancel={() => setShowLibraryDimensionDialog(false)}
+                onCreate={asset => dispatch({type: 'ADD_LIBRARY_DIMENSION', dimension: asset})}
+            />
+
+            <FontAddDialog
+                open={showLibraryFontDialog}
+                anchorRef={libraryActionButtonRef}
+                title="Font"
+                onCancel={() => setShowLibraryFontDialog(false)}
+                onCreate={font => dispatch({type: 'ADD_LIBRARY_FONT', font})}
+            />
+
+            <input
+                ref={libraryImageInputRef}
+                type="file"
+                accept={MIME_TYPES.join(',')}
+                style={{display: 'none'}}
+                onChange={addLibraryImage}
+            />
         </div>
     )
 }

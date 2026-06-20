@@ -1,4 +1,11 @@
 
+## 2026-06-20 — Tree section add menus
+
+- Added top-level `+` buttons to the Assets and Library tree headers
+- Each header now opens a dropdown menu for creating the section’s item types from one place
+- Assets actions include image URL adds, dimension presets, pixel images, custom fonts, gradients, and sketch styles
+- Library actions include gradients, image imports, dimension presets, custom fonts, and template creation from the current selection/page
+
 ## 2026-06-20 — Fixed-unit gradient sizing
 
 - Gradient fills and strokes now render in fixed SVG user space instead of object-bounding-box space, so rectangular shapes no longer squish the gradient
