@@ -1,4 +1,10 @@
 
+## 2026-06-20 — Fixed-unit gradient sizing
+
+- Gradient fills and strokes now render in fixed SVG user space instead of object-bounding-box space, so rectangular shapes no longer squish the gradient
+- Added shared gradient angle bounds/clamping, and negative angles like `-45` now stay valid in the property sheet
+- Repeat/mirror gradients keep using the same editor controls, with the span setting controlling how visible the tiling is
+
 ## 2026-06-20 — Library gradients in property pickers
 
 - Fill, stroke, and text gradient pickers in the property sheet now show gradients from both the current document and the library

@@ -7,7 +7,7 @@ import {ColorInput} from '../inputs/ColorInput'
 import {NumberInput} from '../inputs/NumberInput'
 import {useAppDispatch, useAppState} from '@store/context'
 import '../propsheet.css'
-import {mergedGradients} from '../gradientUtils'
+import {clampGradientAngle, GRADIENT_ANGLE_MAX, GRADIENT_ANGLE_MIN, mergedGradients} from '../gradientUtils'
 import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
 
 interface Props {
@@ -71,6 +71,8 @@ export function StrokeSection({stroke, onChange}: Props) {
             width: stroke.width,
             opacity: stroke.opacity,
             gradientId: first?.id,
+            spreadMethod: 'pad',
+            span: 1,
         }
         onChange(gs)
     }
@@ -90,6 +92,8 @@ export function StrokeSection({stroke, onChange}: Props) {
     const colorStroke = (stroke.type === 'solid' || stroke.type === 'dashed' || stroke.type === 'none') ? stroke as ColorStroke : null
     const gradStroke = stroke.type === 'gradient' ? stroke as GradientStroke : null
     const sketchStroke = stroke.type === 'sketch' ? stroke as SketchStroke : null
+    const gradientTypeValue = gradStroke?.gradientType === 'radial' ? 'radial' : 'linear'
+    const gradientSpanValue = Math.round((gradStroke?.span ?? 1) * 100)
 
     const handleGradientSelect = (gradientId: string) => {
         const g = gradients.find(x => x.id === gradientId)
@@ -168,7 +172,7 @@ export function StrokeSection({stroke, onChange}: Props) {
                         <label className={'left align-right'}>Type</label>
                         <select
                             className={'right'}
-                            value={gradStroke?.gradientType ?? 'linear'}
+                            value={gradientTypeValue}
                             onChange={e => gradStroke && onChange({
                                 ...gradStroke,
                                 gradientType: e.target.value as GradientFill['gradientType']
@@ -176,21 +180,46 @@ export function StrokeSection({stroke, onChange}: Props) {
                         >
                             <option value='linear'>Linear</option>
                             <option value='radial'>Radial</option>
-                            <option value='conic'>Conic</option>
                         </select>
                         {gradStroke?.gradientType !== 'radial' && <>
                             <label className={'left align-right'}>Angle</label>
                             <NumberInput
                                 className={'right'}
                                 value={gradStroke?.angle ?? 90}
-                                min={0} max={360}
+                                min={GRADIENT_ANGLE_MIN} max={GRADIENT_ANGLE_MAX}
                                 onChange={v => gradStroke && onChange({
                                     ...gradStroke,
-                                    angle: v || 0
+                                    angle: clampGradientAngle(v)
                                 })}
                                 unit={'°'}
                             />
                         </>}
+                        <label className={'left align-right'}>Span</label>
+                        <NumberInput
+                            className={'right'}
+                            value={gradientSpanValue}
+                            min={1}
+                            max={100}
+                            step={1}
+                            unit={'%'}
+                            onChange={v => gradStroke && onChange({
+                                ...gradStroke,
+                                span: Math.max(0.01, v / 100),
+                            })}
+                        />
+                        <label className={'left align-right'}>Spread</label>
+                        <select
+                            className={'right'}
+                            value={gradStroke?.spreadMethod ?? 'pad'}
+                            onChange={e => gradStroke && onChange({
+                                ...gradStroke,
+                                spreadMethod: e.target.value as NonNullable<GradientStroke['spreadMethod']>
+                            })}
+                        >
+                            <option value='pad'>Pad</option>
+                            <option value='repeat'>Repeat</option>
+                            <option value='reflect'>Mirror</option>
+                        </select>
                         <NumberInput className={'right'}
                                      label={'Opacity'}
                                      value={Math.round(stroke.opacity * 100)}

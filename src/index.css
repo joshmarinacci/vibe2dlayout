@@ -62,4 +62,5 @@ html, body, #root {
     font-size: 13px;
     color: var(--color-text-primary);
     background: var(--color-bg-app);
+    interpolate-size: allow-keywords;
 }

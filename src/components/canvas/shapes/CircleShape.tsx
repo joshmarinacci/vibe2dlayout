@@ -16,8 +16,8 @@ export function CircleShapeComp({shape, onClick, onDoubleClick, children}: Props
     const {transform, fill, stroke} = shape
     const {x, y, width: w, height: h} = transform
 
-    const fillResult = svgFill(fill, shape.id)
-    const strokeResult = svgStroke(stroke, shape.id)
+    const fillResult = svgFill(fill, shape.id, w, h)
+    const strokeResult = svgStroke(stroke, shape.id, w, h)
     const shadow = svgDropShadow(shape.boxShadow, shape.id)
 
     const hasDefs = fillResult.defs || strokeResult.defs || shadow

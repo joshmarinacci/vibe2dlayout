@@ -31,7 +31,7 @@ export function TextShapeComp({
         content: text.content, isEditing, shapeId: shape.id, dispatch,
     })
 
-    const fillResult = svgFill(fill, shape.id)
+    const fillResult = svgFill(fill, shape.id, w, h)
     const shadow = svgDropShadow(shape.boxShadow, shape.id)
     const hasDefs = fillResult.defs || shadow
     const filterAttr = shadow ? `url(#shadow-${shape.id})` : undefined

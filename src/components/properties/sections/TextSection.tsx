@@ -17,7 +17,7 @@ import inputStyles from '../inputs/inputs.module.css'
 import {NumberInput} from '../inputs/NumberInput'
 import {SelectInput} from '../inputs/SelectInput'
 import {useAppDispatch, useAppState} from '@store/context'
-import {mergedGradients} from '../gradientUtils'
+import {clampGradientAngle, GRADIENT_ANGLE_MAX, GRADIENT_ANGLE_MIN, mergedGradients} from '../gradientUtils'
 import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
 import "../propsheet.css"
 import {CollapsibleSection} from "@components/properties/CollapsibleSection.tsx";
@@ -134,6 +134,8 @@ export function TextSection({
     const [strokeTab, setStrokeTab] = useState<'color' | 'gradient'>(() =>
         text.textStrokeGradient ? 'gradient' : 'color'
     )
+    const colorGradientTypeValue = text.textGradient?.gradientType === 'radial' ? 'radial' : 'linear'
+    const strokeGradientTypeValue = text.textStrokeGradient?.gradientType === 'radial' ? 'radial' : 'linear'
 
     const switchColorToColor = () => applyChange({textGradient: null})
     const switchColorToGradient = () => {
@@ -145,6 +147,8 @@ export function TextSection({
             stops: first ? first.stops : [{color: text.color, position: 0}, {color: '#ffffff', position: 1}],
             opacity: 1,
             gradientId: first?.id,
+            spreadMethod: 'pad',
+            span: 1,
         }
         applyChange({textGradient: gf})
     }
@@ -167,6 +171,8 @@ export function TextSection({
             }],
             opacity: 1,
             gradientId: first?.id,
+            spreadMethod: 'pad',
+            span: 1,
         }
         applyChange({textStrokeGradient: gf})
     }
@@ -178,6 +184,8 @@ export function TextSection({
 
     const colorTabProps = {selectedTab: colorTab, setSelectedTab: setColorTab}
     const strokeTabProps = {selectedTab: strokeTab, setSelectedTab: setStrokeTab}
+    const colorGradientSpanValue = Math.round((text.textGradient?.span ?? 1) * 100)
+    const strokeGradientSpanValue = Math.round((text.textStrokeGradient?.span ?? 1) * 100)
 
     const customFontEntries = (customFonts ?? []).map(name => ({value: name, label: name}))
     const fontOptions = [...COMMON_FONTS, ...customFontEntries]
@@ -337,7 +345,7 @@ export function TextSection({
                             <label className={'s'}>Type</label>
                             <select
                                 className={'mid1span3'}
-                                value={text.textGradient?.gradientType ?? 'linear'}
+                                value={colorGradientTypeValue}
                                 onChange={e => text.textGradient && applyChange({
                                     textGradient: {
                                         ...text.textGradient,
@@ -347,21 +355,50 @@ export function TextSection({
                             >
                                 <option value='linear'>Linear</option>
                                 <option value='radial'>Radial</option>
-                                <option value='conic'>Conic</option>
                             </select>
                             {text.textGradient?.gradientType !== 'radial' && <>
-                                <NumberInput
+                                    <NumberInput
                                     label={'Angle'}
-                                    value={text.textGradient?.angle ?? 90} min={0} max={360}
+                                    value={text.textGradient?.angle ?? 90} min={GRADIENT_ANGLE_MIN} max={GRADIENT_ANGLE_MAX}
                                     onChange={v => text.textGradient && applyChange({
                                         textGradient: {
                                             ...text.textGradient,
-                                            angle: v || 0
+                                            angle: clampGradientAngle(v)
                                         }
                                     })}
                                     unit={'°'}
                                 />
                             </>}
+                            <label className={'s'}>Span</label>
+                            <NumberInput
+                                className={'mid1span3'}
+                                value={colorGradientSpanValue}
+                                min={1}
+                                max={100}
+                                step={1}
+                                unit={'%'}
+                                onChange={v => text.textGradient && applyChange({
+                                    textGradient: {
+                                        ...text.textGradient,
+                                        span: Math.max(0.01, v / 100),
+                                    }
+                                })}
+                            />
+                            <label className={'s'}>Spread</label>
+                            <select
+                                className={'mid1span3'}
+                                value={text.textGradient?.spreadMethod ?? 'pad'}
+                                onChange={e => text.textGradient && applyChange({
+                                    textGradient: {
+                                        ...text.textGradient,
+                                        spreadMethod: e.target.value as NonNullable<GradientFill['spreadMethod']>
+                                    }
+                                })}
+                            >
+                                <option value='pad'>Pad</option>
+                                <option value='repeat'>Repeat</option>
+                                <option value='reflect'>Mirror</option>
+                            </select>
                             <button className={'mid1span3'}
                                     onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}>Edit Gradients…
                             </button>
@@ -562,7 +599,7 @@ export function TextSection({
                                     <label className={'s'}>Type</label>
                                     <select
                                         className={'mid1span3'}
-                                        value={text.textStrokeGradient?.gradientType ?? 'linear'}
+                                        value={strokeGradientTypeValue}
                                         onChange={e => text.textStrokeGradient && applyChange({
                                             textStrokeGradient: {
                                                 ...text.textStrokeGradient,
@@ -572,21 +609,50 @@ export function TextSection({
                                     >
                                         <option value='linear'>Linear</option>
                                         <option value='radial'>Radial</option>
-                                        <option value='conic'>Conic</option>
                                     </select>
                                     {text.textStrokeGradient?.gradientType !== 'radial' && <>
                                         <NumberInput
                                             label={"Angle"}
-                                            value={text.textStrokeGradient?.angle ?? 90} min={0} max={360}
+                                            value={text.textStrokeGradient?.angle ?? 90} min={GRADIENT_ANGLE_MIN} max={GRADIENT_ANGLE_MAX}
                                             onChange={v => text.textStrokeGradient && applyChange({
                                                 textStrokeGradient: {
                                                     ...text.textStrokeGradient,
-                                                    angle: v || 0
+                                                    angle: clampGradientAngle(v)
                                                 }
                                             })}
                                             unit={"°"}
                                         />
                                     </>}
+                                    <label className={'s'}>Span</label>
+                                    <NumberInput
+                                        className={'mid1span3'}
+                                        value={strokeGradientSpanValue}
+                                        min={1}
+                                        max={100}
+                                        step={1}
+                                        unit={'%'}
+                                        onChange={v => text.textStrokeGradient && applyChange({
+                                            textStrokeGradient: {
+                                                ...text.textStrokeGradient,
+                                                span: Math.max(0.01, v / 100),
+                                            }
+                                        })}
+                                    />
+                                    <label className={'s'}>Spread</label>
+                                    <select
+                                        className={'mid1span3'}
+                                        value={text.textStrokeGradient?.spreadMethod ?? 'pad'}
+                                        onChange={e => text.textStrokeGradient && applyChange({
+                                            textStrokeGradient: {
+                                                ...text.textStrokeGradient,
+                                                spreadMethod: e.target.value as NonNullable<GradientFill['spreadMethod']>
+                                            }
+                                        })}
+                                    >
+                                        <option value='pad'>Pad</option>
+                                        <option value='repeat'>Repeat</option>
+                                        <option value='reflect'>Mirror</option>
+                                    </select>
                                     <button className={'mid1span3'}
                                             onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}>Edit Gradients…
                                     </button>

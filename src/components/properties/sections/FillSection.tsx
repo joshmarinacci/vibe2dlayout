@@ -6,7 +6,7 @@ import {CollapsibleSection} from '../CollapsibleSection'
 import {ColorInput} from '../inputs/ColorInput'
 import {useAppDispatch, useAppState} from '@store/context'
 import '../propsheet.css'
-import {mergedGradients} from '../gradientUtils'
+import {clampGradientAngle, GRADIENT_ANGLE_MAX, GRADIENT_ANGLE_MIN, mergedGradients} from '../gradientUtils'
 import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
 import {NumberInput} from "@components/properties/inputs/NumberInput.tsx";
 
@@ -46,6 +46,8 @@ export function FillSection({fill, onChange, title}: Props) {
             stops: first ? first.stops : [{color: fillColor(fill), position: 0}, {color: '#ffffff', position: 1}],
             opacity: fill.opacity,
             gradientId: first?.id,
+            spreadMethod: 'pad',
+            span: 1,
         }
         onChange(gf)
     }
@@ -69,6 +71,8 @@ export function FillSection({fill, onChange, title}: Props) {
     const colorFill = fill.type === 'color' ? fill : null
     const gradFill = fill.type === 'gradient' ? fill : null
     const sketchFill = fill.type === 'sketch' ? fill : null
+    const gradientTypeValue = gradFill?.gradientType === 'radial' ? 'radial' : 'linear'
+    const gradientSpanValue = Math.round((gradFill?.span ?? 1) * 100)
 
     const handleGradientSelect = (gradientId: string) => {
         const g = gradients.find(x => x.id === gradientId)
@@ -144,7 +148,7 @@ export function FillSection({fill, onChange, title}: Props) {
                         <label className={'left align-right'}>Type</label>
                         <select
                             className={'right'}
-                            value={gradFill?.gradientType ?? 'linear'}
+                            value={gradientTypeValue}
                             onChange={e => gradFill && onChange({
                                 ...gradFill,
                                 gradientType: e.target.value as GradientFill['gradientType']
@@ -152,20 +156,45 @@ export function FillSection({fill, onChange, title}: Props) {
                         >
                             <option value='linear'>Linear</option>
                             <option value='radial'>Radial</option>
-                            <option value='conic'>Conic</option>
                         </select>
                         {gradFill?.gradientType !== 'radial' && <>
                             <label className={'left align-right'}>Angle</label>
                             <NumberInput
                                 className={'mid1span2'}
                                 value={gradFill?.angle ?? 90}
-                                min={0} max={360}
+                                min={GRADIENT_ANGLE_MIN} max={GRADIENT_ANGLE_MAX}
                                 onChange={v => gradFill && onChange({
                                     ...gradFill,
-                                    angle: v || 0
+                                    angle: clampGradientAngle(v)
                                 })}
                             />
                         </>}
+                        <label className={'left align-right'}>Span</label>
+                        <NumberInput
+                            className={'right'}
+                            value={gradientSpanValue}
+                            min={1}
+                            max={100}
+                            step={1}
+                            unit={'%'}
+                            onChange={v => gradFill && onChange({
+                                ...gradFill,
+                                span: Math.max(0.01, v / 100),
+                            })}
+                        />
+                        <label className={'left align-right'}>Spread</label>
+                        <select
+                            className={'right'}
+                            value={gradFill?.spreadMethod ?? 'pad'}
+                            onChange={e => gradFill && onChange({
+                                ...gradFill,
+                                spreadMethod: e.target.value as NonNullable<GradientFill['spreadMethod']>
+                            })}
+                        >
+                            <option value='pad'>Pad</option>
+                            <option value='repeat'>Repeat</option>
+                            <option value='reflect'>Mirror</option>
+                        </select>
                         <button className={'right'}
                                 onClick={() => dispatch({type: 'TOGGLE_GRADIENT_MODAL'})}
                         >Edit Gradients

@@ -13,6 +13,8 @@ export interface GradientStop {
     paletteColorId?: string
 }
 
+export type GradientSpreadMethod = 'pad' | 'repeat' | 'reflect'
+
 export interface ColorFill {
     type: 'color'
     color: string
@@ -27,6 +29,8 @@ export interface GradientFill {
     stops: GradientStop[]
     opacity: number          // 0–1
     gradientId?: string      // links to VibeDocument.gradients[]
+    spreadMethod?: GradientSpreadMethod
+    span?: number            // fraction of the object covered by one gradient cycle, default 1
 }
 
 export interface SketchFill {
@@ -80,6 +84,8 @@ export interface GradientStroke {
     width: number
     opacity: number
     gradientId?: string      // links to VibeDocument.gradients[]
+    spreadMethod?: GradientSpreadMethod
+    span?: number            // fraction of the object covered by one gradient cycle, default 1
 }
 
 export interface SketchStroke {

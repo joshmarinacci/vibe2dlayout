@@ -9,11 +9,22 @@ export interface SvgStroke {
     defs?: ReactElement
 }
 
-function gradientStrokeEl(id: string, gs: GradientStroke): ReactElement {
+function gradientStrokeEl(id: string, gs: GradientStroke, width: number, height: number): ReactElement {
     const stops = [...gs.stops].sort((a, b) => a.position - b.position)
+    const span = Math.max(0.01, gs.span ?? 1)
+    const spanPx = span * 100
+    const halfSpan = spanPx / 2
     if (gs.gradientType === 'radial') {
         return (
-            <radialGradient key={id} id={id} cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox">
+            <radialGradient
+                key={id}
+                id={id}
+                cx={width / 2}
+                cy={height / 2}
+                r={Math.max(1, spanPx / 2)}
+                gradientUnits="userSpaceOnUse"
+                spreadMethod={gs.spreadMethod ?? 'pad'}
+            >
                 {stops.map((s, i) => (
                     <stop key={i} offset={`${Math.round(s.position * 100)}%`} stopColor={s.color}/>
                 ))}
@@ -24,9 +35,13 @@ function gradientStrokeEl(id: string, gs: GradientStroke): ReactElement {
         <linearGradient
             key={id}
             id={id}
-            x1="0.5" y1="1" x2="0.5" y2="0"
-            gradientUnits="objectBoundingBox"
-            gradientTransform={gs.angle ? `rotate(${gs.angle}, 0.5, 0.5)` : undefined}
+            x1={width / 2}
+            y1={height / 2 + halfSpan}
+            x2={width / 2}
+            y2={height / 2 - halfSpan}
+            gradientUnits="userSpaceOnUse"
+            gradientTransform={gs.angle ? `rotate(${gs.angle}, ${width / 2}, ${height / 2})` : undefined}
+            spreadMethod={gs.spreadMethod ?? 'pad'}
         >
             {stops.map((s, i) => (
                 <stop key={i} offset={`${Math.round(s.position * 100)}%`} stopColor={s.color}/>
@@ -35,7 +50,7 @@ function gradientStrokeEl(id: string, gs: GradientStroke): ReactElement {
     )
 }
 
-export function svgStroke(stroke: StrokeStyle, shapeId: string): SvgStroke {
+export function svgStroke(stroke: StrokeStyle, shapeId: string, width: number, height: number): SvgStroke {
     if (stroke.type === 'none') {
         return {stroke: 'none', strokeWidth: 0, strokeOpacity: 0}
     }
@@ -46,7 +61,7 @@ export function svgStroke(stroke: StrokeStyle, shapeId: string): SvgStroke {
             stroke: `url(#${id})`,
             strokeWidth: stroke.width,
             strokeOpacity: stroke.opacity,
-            defs: gradientStrokeEl(id, stroke),
+            defs: gradientStrokeEl(id, stroke, width, height),
         }
     }
 

@@ -20,6 +20,27 @@ describe('gradientCSS', () => {
         expect(gradientCSS(f)).toBe('conic-gradient(from 90deg, #ff0000 0%, #0000ff 100%)')
     })
 
+    it('repeat gradient uses svg data url', () => {
+        const f: GradientFill = {type: 'gradient', gradientType: 'linear', angle: 45, stops, opacity: 1, spreadMethod: 'repeat'}
+        const css = gradientCSS(f)
+        expect(css).toContain('data:image/svg+xml')
+        expect(css).toContain('spreadMethod%3D%22repeat%22')
+    })
+
+    it('short span uses svg data url', () => {
+        const f: GradientFill = {type: 'gradient', gradientType: 'linear', angle: 45, stops, opacity: 1, span: 0.25}
+        const css = gradientCSS(f)
+        expect(css).toContain('data:image/svg+xml')
+        expect(css).toContain('y1%3D%2262.5%22')
+    })
+
+    it('mirror gradient uses svg data url', () => {
+        const f: GradientFill = {type: 'gradient', gradientType: 'radial', angle: 0, stops, opacity: 1, spreadMethod: 'reflect'}
+        const css = gradientCSS(f)
+        expect(css).toContain('data:image/svg+xml')
+        expect(css).toContain('spreadMethod%3D%22reflect%22')
+    })
+
     it('rounds stop positions', () => {
         const f: GradientFill = {
             type: 'gradient', gradientType: 'linear', angle: 0,
@@ -60,6 +81,12 @@ describe('fillBackground', () => {
         const stops = [{color: '#ff0000', position: 0}, {color: '#0000ff', position: 1}]
         const f: GradientFill = {type: 'gradient', gradientType: 'linear', angle: 90, stops, opacity: 1}
         expect(fillBackground(f)).toContain('linear-gradient')
+    })
+
+    it('GradientFill repeat returns svg data url', () => {
+        const stops = [{color: '#ff0000', position: 0}, {color: '#0000ff', position: 1}]
+        const f: GradientFill = {type: 'gradient', gradientType: 'linear', angle: 90, stops, opacity: 1, spreadMethod: 'repeat'}
+        expect(fillBackground(f)).toContain('spreadMethod%3D%22repeat%22')
     })
 
     it('SketchFill solid returns color', () => {

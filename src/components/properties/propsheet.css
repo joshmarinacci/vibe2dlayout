@@ -54,6 +54,20 @@ details.collapsible-section {
         }
     }
 }
+details.collapsible-section::details-content {
+    --speed: 0.1s;
+    opacity: 0;
+    block-size: 0;
+    overflow: hidden;
+    transition:
+        block-size var(--speed) ease,
+        opacity var(--speed) ease,
+        content-visibility var(--speed) ease allow-discrete;
+}
+details[open]::details-content {
+    opacity: 1;
+    block-size: auto;
+}
 
 .hbox {
     display: flex;
