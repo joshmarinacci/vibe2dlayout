@@ -1,4 +1,9 @@
 
+## 2026-06-20 — Library gradients in property pickers
+
+- Fill, stroke, and text gradient pickers in the property sheet now show gradients from both the current document and the library
+- Added a shared `mergeUniqueById` helper plus a `mergedGradients` wrapper so the doc-first, library-fallback behavior stays consistent
+
 ## 2026-06-18 — Fix tree view drag-and-drop reliability
 
 All fixes in `src/components/tree/TreeNode.tsx`:

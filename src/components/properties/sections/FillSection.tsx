@@ -6,6 +6,7 @@ import {CollapsibleSection} from '../CollapsibleSection'
 import {ColorInput} from '../inputs/ColorInput'
 import {useAppDispatch, useAppState} from '@store/context'
 import '../propsheet.css'
+import {mergedGradients} from '../gradientUtils'
 import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
 import {NumberInput} from "@components/properties/inputs/NumberInput.tsx";
 
@@ -25,6 +26,8 @@ export function FillSection({fill, onChange, title}: Props) {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
     const docGradients: GradientDef[] = state.document.gradients ?? []
+    const libraryGradients: GradientDef[] = state.library.gradients ?? []
+    const gradients = mergedGradients(docGradients, libraryGradients)
     const docStyles: SketchStyleDef[] = state.document.sketchStyles ?? []
 
     const [selectedTab, setSelectedTab] = useState<FillType>(() => initialTab(fill))
@@ -35,7 +38,7 @@ export function FillSection({fill, onChange, title}: Props) {
     }
 
     const switchToGradient = () => {
-        const first = docGradients[0]
+        const first = gradients[0]
         const gf: GradientFill = {
             type: 'gradient',
             gradientType: 'linear',
@@ -68,7 +71,7 @@ export function FillSection({fill, onChange, title}: Props) {
     const sketchFill = fill.type === 'sketch' ? fill : null
 
     const handleGradientSelect = (gradientId: string) => {
-        const g = docGradients.find(x => x.id === gradientId)
+        const g = gradients.find(x => x.id === gradientId)
         if (!g || !gradFill) return
         onChange({
             ...gradFill,
@@ -133,7 +136,7 @@ export function FillSection({fill, onChange, title}: Props) {
                         <label className={'left align-right'}>Stops</label>
                         <GradientPicker
                             className={'mid1span3'}
-                            gradients={docGradients}
+                            gradients={gradients}
                             value={gradFill?.gradientId ?? ''}
                             onChange={handleGradientSelect}
                             showCustom={!gradFill?.gradientId}

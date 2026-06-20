@@ -7,6 +7,7 @@ import {ColorInput} from '../inputs/ColorInput'
 import {NumberInput} from '../inputs/NumberInput'
 import {useAppDispatch, useAppState} from '@store/context'
 import '../propsheet.css'
+import {mergedGradients} from '../gradientUtils'
 import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
 
 interface Props {
@@ -44,6 +45,8 @@ export function StrokeSection({stroke, onChange}: Props) {
     const {state} = useAppState()
     const dispatch = useAppDispatch()
     const docGradients: GradientDef[] = state.document.gradients ?? []
+    const libraryGradients: GradientDef[] = state.library.gradients ?? []
+    const gradients = mergedGradients(docGradients, libraryGradients)
 
     const [selectedTab, setSelectedTab] = useState<StrokeTab>(() => initialTab(stroke))
 
@@ -59,7 +62,7 @@ export function StrokeSection({stroke, onChange}: Props) {
     }
 
     const switchToGradient = () => {
-        const first = docGradients[0]
+        const first = gradients[0]
         const gs: GradientStroke = {
             type: 'gradient',
             gradientType: 'linear',
@@ -89,7 +92,7 @@ export function StrokeSection({stroke, onChange}: Props) {
     const sketchStroke = stroke.type === 'sketch' ? stroke as SketchStroke : null
 
     const handleGradientSelect = (gradientId: string) => {
-        const g = docGradients.find(x => x.id === gradientId)
+        const g = gradients.find(x => x.id === gradientId)
         if (!g || !gradStroke) return
         onChange({...gradStroke, stops: g.stops, gradientId: g.id})
     }
@@ -157,7 +160,7 @@ export function StrokeSection({stroke, onChange}: Props) {
                         <label className={'left align-right'}>Stops</label>
                         <GradientPicker
                             className={'right'}
-                            gradients={docGradients}
+                            gradients={gradients}
                             value={gradStroke?.gradientId ?? ''}
                             onChange={handleGradientSelect}
                             showCustom={!gradStroke?.gradientId}

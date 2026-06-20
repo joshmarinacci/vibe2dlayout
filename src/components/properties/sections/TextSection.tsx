@@ -17,6 +17,7 @@ import inputStyles from '../inputs/inputs.module.css'
 import {NumberInput} from '../inputs/NumberInput'
 import {SelectInput} from '../inputs/SelectInput'
 import {useAppDispatch, useAppState} from '@store/context'
+import {mergedGradients} from '../gradientUtils'
 import {GradientPicker, TabbedPanel, TabbedPanelContent, TabbedPanelTab, TabbedPanelTabs} from '../TabbedPanel'
 import "../propsheet.css"
 import {CollapsibleSection} from "@components/properties/CollapsibleSection.tsx";
@@ -120,6 +121,8 @@ export function TextSection({
     const {state} = useAppState()
     const dispatch = useAppDispatch()
     const docGradients: GradientDef[] = state.document.gradients ?? []
+    const libraryGradients: GradientDef[] = state.library.gradients ?? []
+    const gradients = mergedGradients(docGradients, libraryGradients)
 
     const applyChange = (changes: Partial<TextStyle>) => {
         onChange({...text, ...changes})
@@ -134,7 +137,7 @@ export function TextSection({
 
     const switchColorToColor = () => applyChange({textGradient: null})
     const switchColorToGradient = () => {
-        const first = docGradients[0]
+        const first = gradients[0]
         const gf: GradientFill = {
             type: 'gradient',
             gradientType: 'linear',
@@ -146,14 +149,14 @@ export function TextSection({
         applyChange({textGradient: gf})
     }
     const handleColorGradientSelect = (gradientId: string) => {
-        const g = docGradients.find(x => x.id === gradientId)
+        const g = gradients.find(x => x.id === gradientId)
         if (!g || !text.textGradient) return
         applyChange({textGradient: {...text.textGradient, stops: g.stops, gradientId: g.id}})
     }
 
     const switchStrokeToColor = () => applyChange({textStrokeGradient: null})
     const switchStrokeToGradient = () => {
-        const first = docGradients[0]
+        const first = gradients[0]
         const gf: GradientFill = {
             type: 'gradient',
             gradientType: 'linear',
@@ -168,7 +171,7 @@ export function TextSection({
         applyChange({textStrokeGradient: gf})
     }
     const handleStrokeGradientSelect = (gradientId: string) => {
-        const g = docGradients.find(x => x.id === gradientId)
+        const g = gradients.find(x => x.id === gradientId)
         if (!g || !text.textStrokeGradient) return
         applyChange({textStrokeGradient: {...text.textStrokeGradient, stops: g.stops, gradientId: g.id}})
     }
@@ -326,7 +329,7 @@ export function TextSection({
                             <label className={'s'}>Stops</label>
                             <GradientPicker
                                 className={'mid1span3'}
-                                gradients={docGradients}
+                                gradients={gradients}
                                 value={text.textGradient?.gradientId ?? ''}
                                 onChange={handleColorGradientSelect}
                                 showCustom={!text.textGradient?.gradientId}
@@ -551,7 +554,7 @@ export function TextSection({
                                     <label className={'s'}>Stops</label>
                                     <GradientPicker
                                         className={'mid1span3'}
-                                        gradients={docGradients}
+                                        gradients={gradients}
                                         value={text.textStrokeGradient?.gradientId ?? ''}
                                         onChange={handleStrokeGradientSelect}
                                         showCustom={!text.textStrokeGradient?.gradientId}
