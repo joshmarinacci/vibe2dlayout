@@ -1,4 +1,18 @@
 
+## 2026-06-22 — Unit tests for shapeMenuGroups
+
+- Added `tests/utils/shapeMenuGroups.test.tsx` with 50 tests covering all four builder functions
+- Tests verify group structure, item labels, keyboard shortcuts, dispatch actions, disabled states, and callback invocations
+
+## 2026-06-22 — Consolidate shape/page context menu actions
+
+- Extracted shared `src/utils/shapeMenuGroups.tsx` with four builder functions: `buildAddShapeGroups`, `buildSingleShapeGroups`, `buildPageGroups`, `buildMultiSelectGroups`
+- Canvas and tree right-click menus now use identical action sets for shapes and pages (same items, order, labels, and keyboard shortcuts)
+- Page right-click in canvas now shows the full page menu (Set Active, Export HTML, Save as Template, reorder, etc.) instead of only the Add shapes submenu
+- Unified "Add shapes" submenu structure: separate Containers, Form Controls, and Mockups submenus in both views
+- Tree's `addShapeTo` now correctly handles pixelimage type (creates a linked pixel asset)
+- Reorder labels standardized to "Move Up / Move Down / Bring to Front / Send to Back" across both views
+
 ## 2026-06-20 — Tree section add menus
 
 - Added top-level `+` buttons to the Assets and Library tree headers

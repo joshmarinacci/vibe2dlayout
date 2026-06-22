@@ -1,31 +1,26 @@
 import type {TreeNode} from '@model/document'
 import {findAncestorPage, getAllIds} from '@model/document'
-import type {Shape, ShapeType} from '@model/shapes'
+import type {Shape} from '@model/shapes'
 import type {ShapeTemplate, PageTemplate} from '@model/library'
 import {getActiveTheme} from '@model/theme'
+import {createEmptyPixelAsset} from '@model/pixelAsset'
 import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppState} from '@store/context'
 import type {AppAction} from '@store/types'
 import {generateId} from '@utils/idgen'
 import {buildParentMap, getAbsoluteTransform, getContentOrigin} from '@utils/geometry'
 import {createShape} from '@utils/shapeFactory'
-import {exportPageAsHtml} from '@utils/exportHtml'
+import {buildAddShapeGroups, buildPageGroups, buildSingleShapeGroups} from '@utils/shapeMenuGroups'
 import {
     AppWindow,
     BarChart2,
-    BookTemplate,
     CheckSquare,
     ChevronDown,
     ChevronRight,
-    ChevronsDown,
-    ChevronsUp,
-    ChevronUp,
     Circle,
     CircleDot,
-    Copy,
     Eye,
     EyeOff,
-    FileCode,
     FileText,
     GanttChart,
     Grid2X2,
@@ -49,7 +44,7 @@ import {
 } from 'lucide-react'
 import {type Dispatch, useCallback, useEffect, useRef, useState} from 'react'
 import {createPortal} from 'react-dom'
-import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
+import {ContextMenu} from './ContextMenu'
 import styles from './TreeNode.module.css'
 
 const SHAPE_ICON_MAP: Record<string, React.ReactNode> = {
@@ -76,16 +71,6 @@ const SHAPE_ICON_MAP: Record<string, React.ReactNode> = {
     chartmock: <BarChart2 size={11}/>,
     pixelimage: <Grid2X2 size={11}/>,
 }
-
-const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
-    {type: 'rect', label: 'Rectangle'},
-    {type: 'circle', label: 'Circle'},
-    {type: 'line', label: 'Line'},
-    {type: 'text', label: 'Text'},
-    {type: 'image', label: 'Image'},
-    {type: 'page', label: 'Page'},
-]
-
 
 interface DragPayload {
     id: string
@@ -336,225 +321,42 @@ export function TreeNodeComp({
 
     const addShapeTo = useCallback((parentId: string, type: string) => {
         const newShape = createShape(type, 50, 50, getActiveTheme(state.document))
-        dispatch({type: 'ADD_SHAPE', parentId, shape: newShape})
-        dispatch({type: 'SELECT_SHAPES', ids: [newShape.id], additive: false})
+        if (newShape.type === 'pixelimage') {
+            const asset = createEmptyPixelAsset(generateId(), 'Pixel Image')
+            const shapeWithAsset = {...newShape, assetId: asset.id}
+            dispatch({type: 'ADD_PIXEL_ASSET', asset})
+            dispatch({type: 'ADD_SHAPE', parentId, shape: shapeWithAsset})
+            dispatch({type: 'SELECT_SHAPES', ids: [shapeWithAsset.id], additive: false})
+        } else {
+            dispatch({type: 'ADD_SHAPE', parentId, shape: newShape})
+            dispatch({type: 'SELECT_SHAPES', ids: [newShape.id], additive: false})
+        }
         if (!expanded) setExpanded(true)
     }, [dispatch, expanded, state.document])
 
-    const buildContextMenuGroups = (): ContextMenuGroup[] => {
-        const basicItems = BASIC_SHAPES.map(opt => ({
-            label: opt.label,
-            onClick: () => addShapeTo(node.id, opt.type),
-        }))
-        const containerItems = registeredShapes
-            .filter(s => s.category === 'containers')
-            .map(s => ({label: s.name, onClick: () => addShapeTo(node.id, s.type)}))
-        const formItems = registeredShapes
-            .filter(s => s.category === 'forms')
-            .map(s => ({label: s.name, onClick: () => addShapeTo(node.id, s.type)}))
-        const mockupItems = registeredShapes
-            .filter(s => s.category === 'mockups')
-            .map(s => ({label: s.name, onClick: () => addShapeTo(node.id, s.type)}))
-        const addShapeGroups: ContextMenuGroup[] = [
-            {
-                items: [
-                    {label: 'Shapes', submenu: basicItems},
-                    ...(containerItems.length > 0 ? [{label: 'Containers', submenu: containerItems}] : []),
-                    ...(formItems.length > 0 ? [{label: 'Form Controls', submenu: formItems}] : []),
-                    ...(mockupItems.length > 0 ? [{label: 'Mockups', submenu: mockupItems}] : []),
-                ],
-            },
-        ]
-
+    const buildContextMenuGroups = () => {
+        const addShapeGroups = buildAddShapeGroups(
+            (type) => addShapeTo(node.id, type),
+            registeredShapes,
+        )
         if (isPage) {
-            const pageShape = shape.type === 'page' ? shape : null
-            return [
-                {
-                    items: [
-                        {
-                            label: 'Set as Active Page',
-                            icon: <FileText size={14}/>,
-                            onClick: () => dispatch({type: 'SET_ACTIVE_PAGE', pageId: node.id}),
-                            disabled: isActivePage,
-                        },
-                        {
-                            label: 'Export HTML…',
-                            icon: <FileCode size={14}/>,
-                            onClick: () => exportPageAsHtml({...state, activePageId: node.id}),
-                            disabled: !pageShape?.fixedSize,
-                        },
-                        {
-                            label: 'Save as Template',
-                            icon: <BookTemplate size={14}/>,
-                            onClick: savePageAsTemplate,
-                        },
-                    ],
-                },
-                ...addShapeGroups,
-                {
-                    items: [
-                        {
-                            label: shape.visible ? 'Hide' : 'Show',
-                            icon: shape.visible ? <Eye size={14}/> : <EyeOff size={14}/>,
-                            onClick: () => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: node.id,
-                                patch: {visible: !shape.visible}
-                            }),
-                        },
-                        {
-                            label: shape.locked ? 'Unlock' : 'Lock',
-                            icon: shape.locked ? <Unlock size={14}/> : <Lock size={14}/>,
-                            onClick: () => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: node.id,
-                                patch: {locked: !shape.locked}
-                            }),
-                        },
-                    ],
-                },
-                {
-                    items: [
-                        {
-                            label: 'Duplicate',
-                            icon: <Copy size={14}/>,
-                            onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [node.id]}),
-                        },
-                    ],
-                },
-                {
-                    items: [
-                        {
-                            label: 'Move Up',
-                            icon: <ChevronUp size={14}/>,
-                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'up'}),
-                        },
-                        {
-                            label: 'Move Down',
-                            icon: <ChevronDown size={14}/>,
-                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'down'}),
-                        },
-                        {
-                            label: 'Move to Top',
-                            icon: <ChevronsUp size={14}/>,
-                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'to-front'}),
-                        },
-                        {
-                            label: 'Move to Bottom',
-                            icon: <ChevronsDown size={14}/>,
-                            onClick: () => dispatch({type: 'REORDER_SHAPE', id: node.id, direction: 'to-back'}),
-                        },
-                    ],
-                },
-                {
-                    items: [
-                        {
-                            label: 'Delete',
-                            icon: <Trash2 size={14}/>,
-                            danger: true,
-                            onClick: () => {
-                                dispatch({type: 'DELETE_SHAPES', ids: [node.id]})
-                                dispatch({type: 'DESELECT_ALL'})
-                            },
-                        },
-                    ],
-                },
-            ]
+            return buildPageGroups({
+                shape,
+                nodeId: node.id,
+                dispatch,
+                addShapeGroups,
+                isActivePage,
+                appState: state,
+                onSaveAsTemplate: savePageAsTemplate,
+            })
         }
-
-        // Non-page shape
-        return [
-            ...addShapeGroups,
-            {
-                items: [
-                    {
-                        label: 'Duplicate',
-                        icon: <Copy size={14}/>,
-                        onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [node.id]}),
-                    },
-                    {
-                        label: 'Save to Library',
-                        icon: <BookTemplate size={14}/>,
-                        onClick: saveShapeToLibrary,
-                    },
-                ],
-            },
-            {
-                items: [
-                    {
-                        label: 'Move Up',
-                        icon: <ChevronUp size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: node.id,
-                            direction: 'up'
-                        }),
-                    },
-                    {
-                        label: 'Move Down',
-                        icon: <ChevronDown size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: node.id,
-                            direction: 'down'
-                        }),
-                    },
-                    {
-                        label: 'Bring to Front',
-                        icon: <ChevronsUp size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: node.id,
-                            direction: 'to-front'
-                        }),
-                    },
-                    {
-                        label: 'Send to Back',
-                        icon: <ChevronsDown size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: node.id,
-                            direction: 'to-back'
-                        }),
-                    },
-                ],
-            },
-            {
-                items: [
-                    {
-                        label: shape.visible ? 'Hide' : 'Show',
-                        icon: shape.visible ? <Eye size={14}/> : <EyeOff size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'PATCH_SHAPE',
-                            id: node.id,
-                            patch: {visible: !shape.visible}
-                        }),
-                    },
-                    {
-                        label: shape.locked ? 'Unlock' : 'Lock',
-                        icon: shape.locked ? <Unlock size={14}/> : <Lock size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'PATCH_SHAPE',
-                            id: node.id,
-                            patch: {locked: !shape.locked}
-                        }),
-                    },
-                ],
-            },
-            {
-                items: [
-                    {
-                        label: 'Delete',
-                        icon: <Trash2 size={14}/>,
-                        danger: true,
-                        onClick: () => {
-                            dispatch({type: 'DELETE_SHAPES', ids: [node.id]})
-                            dispatch({type: 'DESELECT_ALL'})
-                        },
-                    },
-                ],
-            },
-        ]
+        return buildSingleShapeGroups({
+            shape,
+            shapeId: node.id,
+            dispatch,
+            addShapeGroups,
+            onSaveToLibrary: saveShapeToLibrary,
+        })
     }
 
     return (

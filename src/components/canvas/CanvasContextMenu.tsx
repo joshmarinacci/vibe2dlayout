@@ -1,47 +1,33 @@
 import type {TreeNode} from '@model/document'
 import {getAllIds} from '@model/document'
-import type {ShapeTemplate} from '@model/library'
+import type {PageTemplate, ShapeTemplate} from '@model/library'
 import {createEmptyPixelAsset} from '@model/pixelAsset'
-import type {ImageShape, Shape, ShapeType} from '@model/shapes'
+import type {ImageShape, Shape} from '@model/shapes'
 import {getActiveTheme} from '@model/theme'
 import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppState} from '@store/context'
-import type {AlignType, AppAction} from '@store/types'
+import type {AppAction} from '@store/types'
 import {exportGroupAsPng} from '@utils/exportPng'
 import {buildParentMap, getAbsoluteTransform} from '@utils/geometry'
 import {generateId} from '@utils/idgen'
 import {createShape} from '@utils/shapeFactory'
+import {
+    buildAddShapeGroups,
+    buildMultiSelectGroups,
+    buildPageGroups,
+    buildSingleShapeGroups,
+} from '@utils/shapeMenuGroups'
 import {textStyleToCss} from '@utils/textShapeCss'
 import {
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
-  AlignVerticalJustifyCenter,
-  AlignVerticalJustifyEnd,
-  AlignVerticalJustifyStart,
-  ArrowLeftRight,
-  ArrowUpDown,
-  BookTemplate,
-  ChevronDown,
-  ChevronsDown,
-  ChevronsUp,
-  ChevronUp,
-  Code2,
-  Copy,
-  Crop,
-  Eye,
-  EyeOff,
-  FileImage,
-  Group,
-  Lock,
-  Maximize2,
-  Trash2,
-  Ungroup,
-  Unlock,
+    Code2,
+    Crop,
+    FileImage,
+    Maximize2,
+    Ungroup,
 } from 'lucide-react'
 import type {Dispatch} from 'react'
 import {createPortal} from 'react-dom'
-import {ContextMenu, type ContextMenuGroup} from '../tree/ContextMenu'
+import {ContextMenu} from '../tree/ContextMenu'
 import type {CanvasContextMenuState} from './useCanvasPointer'
 
 export interface CssDialogState {
@@ -58,16 +44,6 @@ interface Props {
     onClose: () => void
     onShowCssDialog: (state: CssDialogState) => void
 }
-
-const BASIC_SHAPES: { type: ShapeType; label: string }[] = [
-    {type: 'rect', label: 'Rectangle'},
-    {type: 'circle', label: 'Circle'},
-    {type: 'line', label: 'Line'},
-    {type: 'text', label: 'Text'},
-    {type: 'image', label: 'Image'},
-    {type: 'pixelimage', label: 'Pixel Image'},
-]
-
 
 export function CanvasContextMenu({
                                       menuState,
@@ -132,266 +108,93 @@ export function CanvasContextMenu({
     }
 
     const parentId = shapeId ?? activePageId
+    const addShapeGroups = buildAddShapeGroups(
+        (type) => addShape(type, parentId),
+        registeredShapes,
+    )
 
-    const basicItems = BASIC_SHAPES.map(opt => ({
-        label: opt.label,
-        onClick: () => addShape(opt.type, parentId),
-    }))
-
-    const containerItems = registeredShapes
-        .filter(s => s.category === 'containers')
-        .map(s => ({label: s.name, onClick: () => addShape(s.type, parentId)}))
-
-    const formItems = registeredShapes
-        .filter(s => s.category === 'forms')
-        .map(s => ({label: s.name, onClick: () => addShape(s.type, parentId)}))
-
-    const mockupItems = registeredShapes
-        .filter(s => s.category === 'mockups')
-        .map(s => ({label: s.name, onClick: () => addShape(s.type, parentId)}))
-
-    const formsSubParts = [
-        ...containerItems,
-        ...(containerItems.length > 0 && formItems.length > 0 ? [{label: '', divider: true as const}] : []),
-        ...formItems,
-        ...(mockupItems.length > 0 && (containerItems.length > 0 || formItems.length > 0) ? [{label: '', divider: true as const}] : []),
-        ...mockupItems,
-    ]
-
-    const addShapeGroups: ContextMenuGroup[] = [
-        {
-            items: [
-                {label: 'Shapes', submenu: basicItems},
-                ...(formsSubParts.length > 0 ? [{label: 'Forms', submenu: formsSubParts}] : []),
-            ],
-        },
-    ]
-
-    const align = (alignment: AlignType) => dispatch({
-        type: 'ALIGN_SHAPES',
-        ids: selectedIds,
-        alignment
-    })
-
-    const multiSelectGroups: ContextMenuGroup[] = [
-        {
-            items: [
-                {
-                    label: 'Duplicate',
-                    icon: <Copy size={14}/>,
-                    shortcut: '⌘D',
-                    onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: selectedIds}),
-                },
-                {
-                    label: 'Group',
-                    icon: <Group size={14}/>,
-                    shortcut: '⌘G',
-                    onClick: () => dispatch({type: 'GROUP_SHAPES', ids: selectedIds}),
-                },
-            ],
-        },
-        {
-            items: [
-                {label: 'Align Left', icon: <AlignLeft size={14}/>, onClick: () => align('left')},
-                {
-                    label: 'Align Center',
-                    icon: <AlignCenter size={14}/>,
-                    onClick: () => align('center-h')
-                },
-                {
-                    label: 'Align Right',
-                    icon: <AlignRight size={14}/>,
-                    onClick: () => align('right')
-                },
-                {
-                    label: 'Align Top',
-                    icon: <AlignVerticalJustifyStart size={14}/>,
-                    onClick: () => align('top')
-                },
-                {
-                    label: 'Align Middle',
-                    icon: <AlignVerticalJustifyCenter size={14}/>,
-                    onClick: () => align('middle-v')
-                },
-                {
-                    label: 'Align Bottom',
-                    icon: <AlignVerticalJustifyEnd size={14}/>,
-                    onClick: () => align('bottom')
-                },
-                {
-                    label: 'Match Width',
-                    icon: <ArrowLeftRight size={14}/>,
-                    onClick: () => align('match-width')
-                },
-                {
-                    label: 'Match Height',
-                    icon: <ArrowUpDown size={14}/>,
-                    onClick: () => align('match-height')
-                },
-            ],
-        },
-        {
-            items: [
-                {
-                    label: 'Delete',
-                    icon: <Trash2 size={14}/>,
-                    shortcut: '⌫',
-                    danger: true,
-                    onClick: () => {
-                        dispatch({type: 'DELETE_SHAPES', ids: selectedIds})
-                        dispatch({type: 'DESELECT_ALL'})
-                    },
-                },
-            ],
-        },
-    ]
-
-    let groups: ContextMenuGroup[]
-
+    let groups
     if (isMultiSelect) {
-        groups = multiSelectGroups
-    } else if (shape && shape.type !== 'page') {
-        groups = [
-            ...addShapeGroups,
-            {
-                items: [
-                    {
-                        label: 'Duplicate',
-                        icon: <Copy size={14}/>,
-                        shortcut: '⌘D',
-                        onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [shapeId!]}),
+        groups = buildMultiSelectGroups({selectedIds, dispatch})
+    } else if (shape && shape.type === 'page') {
+        const savePageAsTemplate = () => {
+            const node = rootNodes.flatMap(function walk(n: TreeNode): TreeNode[] {
+                return n.id === shapeId ? [n] : n.children.flatMap(walk)
+            })[0]
+            if (!node) return
+            const ids = getAllIds([node])
+            const templateShapes: Record<string, Shape> = {}
+            for (const sid of ids) {
+                if (shapes[sid]) templateShapes[sid] = shapes[sid]
+            }
+            const template: PageTemplate = {id: generateId(), name: shape.name, rootNode: node, shapes: templateShapes}
+            dispatch({type: 'ADD_LIBRARY_PAGE_TEMPLATE', template})
+        }
+        groups = buildPageGroups({
+            shape,
+            nodeId: shapeId!,
+            dispatch,
+            addShapeGroups,
+            isActivePage: shapeId === activePageId,
+            appState: state,
+            onSaveAsTemplate: savePageAsTemplate,
+        })
+    } else if (shape) {
+        const extraActionItems = [
+            ...(shape.type === 'text' ? [
+                {
+                    label: 'Export CSS',
+                    icon: <Code2 size={14}/>,
+                    onClick: () => {
+                        const selector = `.${shape.name.toLowerCase().replace(/\s+/g, '-') || 'text'}`
+                        const css = textStyleToCss(shape.text, selector)
+                        onShowCssDialog({css, name: shape.name})
+                        onClose()
                     },
-                    {
-                        label: 'Save to Library',
-                        icon: <BookTemplate size={14}/>,
-                        onClick: () => saveShapeToLibrary(shapeId!),
-                    },
-                    ...(shape.type === 'text' ? [
-                        {
-                            label: 'Export CSS',
-                            icon: <Code2 size={14}/>,
-                            onClick: () => {
-                                const selector = `.${shape.name.toLowerCase().replace(/\s+/g, '-') || 'text'}`
-                                const css = textStyleToCss(shape.text, selector)
-                                onShowCssDialog({css, name: shape.name})
-                                onClose()
-                            },
-                        },
-                    ] : []),
-                    ...(shape.type === 'image' && (shape as ImageShape).src && !shape.locked ? [
-                        {
-                            label: (shape as ImageShape).crop ? 'Edit Crop' : 'Crop',
-                            icon: <Crop size={14}/>,
-                            onClick: () => dispatch({type: 'ENTER_CROP_MODE', shapeId: shapeId!}),
-                        },
-                    ] : []),
-                    ...(shape.type === 'image' && actualW && actualH ? [
-                        {
-                            label: `Actual Size (${actualW} × ${actualH})`,
-                            icon: <Maximize2 size={14}/>,
-                            onClick: () => dispatch({
-                                type: 'PATCH_SHAPE',
-                                id: shapeId!,
-                                patch: {transform: {...shape.transform, width: actualW, height: actualH}} as Partial<ImageShape>,
-                            }),
-                        },
-                    ] : []),
-                    ...(shape.type === 'group' ? [
-                        {
-                            label: 'Ungroup',
-                            icon: <Ungroup size={14}/>,
-                            shortcut: '⌘⇧G',
-                            onClick: () => dispatch({type: 'UNGROUP_SHAPES', id: shapeId!}),
-                        },
-                        {
-                            label: 'Export as PNG',
-                            icon: <FileImage size={14}/>,
-                            onClick: () => exportGroupAsPng(shapeId!, state),
-                        },
-                    ] : []),
-                ],
-            },
-            {
-                items: [
-                    {
-                        label: 'Bring to Front',
-                        icon: <ChevronsUp size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: shapeId!,
-                            direction: 'to-front'
-                        }),
-                    },
-                    {
-                        label: 'Send to Back',
-                        icon: <ChevronsDown size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: shapeId!,
-                            direction: 'to-back'
-                        }),
-                    },
-                    {
-                        label: 'Move Up',
-                        icon: <ChevronUp size={14}/>,
-                        shortcut: '⌘]',
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: shapeId!,
-                            direction: 'up'
-                        }),
-                    },
-                    {
-                        label: 'Move Down',
-                        icon: <ChevronDown size={14}/>,
-                        shortcut: '⌘[',
-                        onClick: () => dispatch({
-                            type: 'REORDER_SHAPE',
-                            id: shapeId!,
-                            direction: 'down'
-                        }),
-                    },
-                ],
-            },
-            {
-                items: [
-                    {
-                        label: shape.visible ? 'Hide' : 'Show',
-                        icon: shape.visible ? <Eye size={14}/> : <EyeOff size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'PATCH_SHAPE',
-                            id: shapeId!,
-                            patch: {visible: !shape.visible}
-                        }),
-                    },
-                    {
-                        label: shape.locked ? 'Unlock' : 'Lock',
-                        icon: shape.locked ? <Unlock size={14}/> : <Lock size={14}/>,
-                        onClick: () => dispatch({
-                            type: 'PATCH_SHAPE',
-                            id: shapeId!,
-                            patch: {locked: !shape.locked}
-                        }),
-                    },
-                ],
-            },
-            {
-                items: [
-                    {
-                        label: 'Delete',
-                        icon: <Trash2 size={14}/>,
-                        shortcut: '⌫',
-                        danger: true,
-                        onClick: () => {
-                            dispatch({type: 'DELETE_SHAPES', ids: [shapeId!]})
-                            dispatch({type: 'DESELECT_ALL'})
-                        },
-                    },
-                ],
-            },
+                },
+            ] : []),
+            ...(shape.type === 'image' && (shape as ImageShape).src && !shape.locked ? [
+                {
+                    label: (shape as ImageShape).crop ? 'Edit Crop' : 'Crop',
+                    icon: <Crop size={14}/>,
+                    onClick: () => dispatch({type: 'ENTER_CROP_MODE', shapeId: shapeId!}),
+                },
+            ] : []),
+            ...(shape.type === 'image' && actualW && actualH ? [
+                {
+                    label: `Actual Size (${actualW} × ${actualH})`,
+                    icon: <Maximize2 size={14}/>,
+                    onClick: () => dispatch({
+                        type: 'PATCH_SHAPE',
+                        id: shapeId!,
+                        patch: {transform: {...shape.transform, width: actualW, height: actualH}} as Partial<ImageShape>,
+                    }),
+                },
+            ] : []),
+            ...(shape.type === 'group' ? [
+                {
+                    label: 'Ungroup',
+                    icon: <Ungroup size={14}/>,
+                    shortcut: '⌘⇧G',
+                    onClick: () => dispatch({type: 'UNGROUP_SHAPES', id: shapeId!}),
+                },
+                {
+                    label: 'Export as PNG',
+                    icon: <FileImage size={14}/>,
+                    onClick: () => exportGroupAsPng(shapeId!, state),
+                },
+            ] : []),
         ]
+        groups = buildSingleShapeGroups({
+            shape,
+            shapeId: shapeId!,
+            dispatch,
+            addShapeGroups,
+            onSaveToLibrary: () => saveShapeToLibrary(shapeId!),
+            extraActionItems,
+        })
     } else {
-        // Empty canvas or page shape — add to active page
+        // Empty canvas — add to active page
         groups = addShapeGroups
     }
 
