@@ -1,4 +1,9 @@
 
+## 2026-06-22 — Fix multi-select properties showing type-specific sections
+
+- Text/font properties now only appear in the multi-select panel when every selected shape has text (e.g. selecting rect + text no longer shows font controls)
+- Fill and stroke sections are unchanged — they intentionally show when any selected shape has them since nearly all shapes support both
+
 ## 2026-06-22 — Unit tests for shapeMenuGroups
 
 - Added `tests/utils/shapeMenuGroups.test.tsx` with 50 tests covering all four builder functions

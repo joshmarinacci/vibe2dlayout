@@ -24,7 +24,7 @@ function makeShape(overrides: Partial<Shape> = {}): Shape {
         stroke: null,
         opacity: 1,
         ...overrides,
-    } as Shape
+    } as unknown as Shape
 }
 
 function makePageShape(overrides: Partial<Shape> = {}): Shape {

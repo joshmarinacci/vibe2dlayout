@@ -248,7 +248,7 @@ export function PropertiesPanel() {
         const commonStrokeWidth = commonValue(withStroke.map(s => s.stroke.width))
         const commonStrokeOpacity = commonValue(withStroke.map(s => s.stroke.opacity))
 
-        // Shapes with text style (show section if any have it; apply only to those that do)
+        // Shapes with text style (show section only if ALL selected shapes have it)
         const withText = selected.filter(s => 'text' in s) as Extract<Shape, { text: TextStyle }>[]
         // Use first shape's text as representative; on change, apply only the changed fields to each shape
         const repText = withText[0]?.text
@@ -389,7 +389,7 @@ export function PropertiesPanel() {
                         />
                     </CollapsibleSection>
                 )}
-                {repText && withText[0] && (
+                {withText.length === selected.length && repText && (
                     <TextSection
                         text={repText}
                         onChange={onChangeText}
