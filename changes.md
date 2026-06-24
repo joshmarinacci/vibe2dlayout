@@ -1,4 +1,32 @@
 
+## 2026-06-24 — Add Command Palette to View menu
+
+- Added "Command Palette ⌘K" as the first item in the View menu, separated from panel toggles by a divider
+
+## 2026-06-24 — Fix command palette infinite loop
+
+- `registry.ts`: `getAll()` was returning a new array on every call; `useSyncExternalStore` requires a stable reference between mutations, causing an infinite re-render loop. Fixed by caching `_snapshot` at module level and only rebuilding it inside `notify()`.
+- `registerMany` also now notifies once after all registrations rather than once per action.
+
+## 2026-06-24 — Unified action system: foundation + command palette (Phases 1 & 2)
+
+### Phase 1: Foundation
+- Added `src/actions/` module with `ActionDefinition` type (id, title, description, icon, tags, shortcut, surfaces, run, isEnabled, isDanger)
+- `ActionContext` type mirrors `PowerUpActionContext` — same shape, no circular dep
+- `actionRegistry` singleton (mirrors `shapeRegistry` pattern) with `register`, `registerMany`, `getAll`, `getById`, `subscribe`
+- `useActionRegistry()` hook using `useSyncExternalStore` for reactive palette reads
+- `adapters.ts` with `adaptPowerUpToolbarAction`, `adaptPowerUpMenuAction`, `actionToContextMenuItem` — bridges existing PowerUp types without breaking them
+- `coreActions.ts` registers ~15 global actions (undo, redo, select-all, delete, duplicate, group, ungroup, z-order, view toggles, settings)
+- Added `@actions` path alias to `vite.config.ts` and `tsconfig.json`
+
+### Phase 2: Command Palette
+- Added `showCommandPalette: boolean` to `AppState` with `OPEN_COMMAND_PALETTE`, `CLOSE_COMMAND_PALETTE`, `TOGGLE_COMMAND_PALETTE` actions
+- `Cmd+K` keyboard shortcut opens/closes the palette (added to `useDocumentShortcuts.ts`)
+- New `CommandPalette.tsx` component: search input, keyboard navigation (↑/↓/Enter/Esc), shows all registered actions + PowerUp actions (adapted automatically)
+- Search matches on title, description, and tags; no external library
+- Greyed-out styling for disabled actions; red title for danger actions
+- Integrated into `AppShell.tsx`
+
 ## 2026-06-22 — Fix multi-select properties showing type-specific sections
 
 - Text/font properties now only appear in the multi-select panel when every selected shape has text (e.g. selecting rect + text no longer shows font controls)

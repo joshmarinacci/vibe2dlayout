@@ -16,6 +16,13 @@ export function useDocumentShortcuts() {
         const onKeyDown = (e: KeyboardEvent) => {
             const meta = e.metaKey || e.ctrlKey
 
+            // Cmd+K: open command palette — intercept before input guard
+            if (meta && e.key === 'k') {
+                e.preventDefault()
+                dispatch({type: 'TOGGLE_COMMAND_PALETTE'})
+                return
+            }
+
             // Cmd+S: save document — intercept before input guard to prevent browser save dialog
             if (meta && e.key === 's' && !e.shiftKey) {
                 if (!IS_TAURI) {

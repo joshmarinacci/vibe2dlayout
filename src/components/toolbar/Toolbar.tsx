@@ -417,6 +417,15 @@ export function Toolbar() {
                             {showViewMenu && (
                                 <div className={styles.formMenu} style={{minWidth: 200}}>
                                     <button className={styles.formMenuItem} onClick={() => {
+                                        dispatch({type: 'OPEN_COMMAND_PALETTE'});
+                                        setShowViewMenu(false)
+                                    }}>
+                                        <Search size={13}/>
+                                        <span>Command Palette</span>
+                                        <span style={{marginLeft: 'auto', fontSize: 11, opacity: 0.6}}>⌘K</span>
+                                    </button>
+                                    <div className={styles.formMenuDivider}/>
+                                    <button className={styles.formMenuItem} onClick={() => {
                                         dispatch({type: 'TOGGLE_LEFT_PANEL'});
                                         setShowViewMenu(false)
                                     }}>

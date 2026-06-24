@@ -1320,6 +1320,7 @@ export const initialState: AppState = {
     presentationMode: false,
     presentationSlideIndex: 0,
     notesVisible: false,
+    showCommandPalette: false,
 }
 
 // ─── Main reducer ──────────────────────────────────────────────────────────
@@ -1557,6 +1558,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             }
         case 'TOGGLE_NOTES_PANEL':
             return {...state, notesVisible: !state.notesVisible}
+        case 'OPEN_COMMAND_PALETTE':
+            return {...state, showCommandPalette: true}
+        case 'CLOSE_COMMAND_PALETTE':
+            return {...state, showCommandPalette: false}
+        case 'TOGGLE_COMMAND_PALETTE':
+            return {...state, showCommandPalette: !state.showCommandPalette}
         case 'SET_DOCUMENT_META':
             return {...state, documentId: action.id, documentName: action.name, isDirty: false}
         case 'ENTER_DRILL_MODE':

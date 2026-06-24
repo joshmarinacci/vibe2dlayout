@@ -98,6 +98,7 @@ export interface AppState {
     presentationMode: boolean
     presentationSlideIndex: number
     notesVisible: boolean
+    showCommandPalette: boolean
 }
 
 export interface ShapeTransformUpdate {
@@ -249,6 +250,9 @@ export type ViewAction =
     | { type: 'NEXT_SLIDE'; totalSlides: number }
     | { type: 'PREV_SLIDE' }
     | { type: 'TOGGLE_NOTES_PANEL' }
+    | { type: 'OPEN_COMMAND_PALETTE' }
+    | { type: 'CLOSE_COMMAND_PALETTE' }
+    | { type: 'TOGGLE_COMMAND_PALETTE' }
 
 // Drag moves — same semantics as MOVE_SHAPES but NOT recorded in undo history.
 // A MOVE_SHAPES_START (DocumentAction) fires once at drag start to record the undo point.

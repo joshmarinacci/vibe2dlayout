@@ -13,6 +13,7 @@ import {ResizeHandle} from './ResizeHandle'
 import {SettingsModal} from './SettingsModal'
 import {ShortcutIndicator} from './ShortcutIndicator'
 import {ShortcutsModal} from './ShortcutsModal'
+import {CommandPalette} from './CommandPalette'
 import {LogConsole} from './LogConsole'
 import {StatusBar} from './StatusBar'
 
@@ -108,6 +109,7 @@ export function AppShell() {
             <StatusBar/>
             <ShortcutsModal/>
             <SettingsModal/>
+            <CommandPalette/>
             <ShortcutIndicator/>
             <PresentationMode/>
             <SpeakerNotesPanel/>
