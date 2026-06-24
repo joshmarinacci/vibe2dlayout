@@ -48,6 +48,9 @@ export function buildAddShapeGroups(
         label: opt.label,
         onClick: () => addShape(opt.type),
     }))
+    const extraShapeItems = registeredShapes
+        .filter(s => s.category === 'shapes')
+        .map(s => ({label: s.name, onClick: () => addShape(s.type)}))
     const containerItems = registeredShapes
         .filter(s => s.category === 'containers')
         .map(s => ({label: s.name, onClick: () => addShape(s.type)}))
@@ -60,7 +63,7 @@ export function buildAddShapeGroups(
 
     return [{
         items: [
-            {label: 'Shapes', submenu: basicItems},
+            {label: 'Shapes', submenu: [...basicItems, ...extraShapeItems]},
             ...(containerItems.length > 0 ? [{label: 'Containers', submenu: containerItems}] : []),
             ...(formItems.length > 0 ? [{label: 'Form Controls', submenu: formItems}] : []),
             ...(mockupItems.length > 0 ? [{label: 'Mockups', submenu: mockupItems}] : []),

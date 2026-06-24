@@ -32,6 +32,8 @@ import {ImageAssetSection} from './sections/ImageAssetSection'
 import {ImageSection} from './sections/ImageSection'
 import {DocumentGradientSection} from './sections/DocumentGradientSection'
 import {LibraryItemSection} from './sections/LibraryItemSection'
+import {RichTextStyleSetSection} from './sections/RichTextStyleSetSection'
+import type {RichTextDocumentSettings} from '@powerups/richText/types'
 import {PageSection} from './sections/PageSection'
 import {PixelImageSection} from './sections/PixelImageSection'
 import {DocumentPowerUpsSection, ShapePowerUpsSection, UnknownDocumentPowerUpsSection} from './sections/PowerUpsSection'
@@ -84,6 +86,39 @@ export function PropertiesPanel() {
                 />
             </div>
         )
+    }
+
+    if (state.selectedRichTextStyleSetId !== null && state.selectedRichTextStyleSetSource !== null) {
+        const source = state.selectedRichTextStyleSetSource
+        const styleSet = source === 'document'
+            ? (() => {
+                const entry = state.document.powerUps?.find(p => p.id === 'powerup.rich-text')
+                const settings = entry?.settings as unknown as RichTextDocumentSettings | undefined
+                return settings?.styleSets.find(s => s.id === state.selectedRichTextStyleSetId) ?? null
+            })()
+            : (state.library.richTextStyleSets ?? []).find(s => s.id === state.selectedRichTextStyleSetId) ?? null
+
+        const documentSettings = (() => {
+            const entry = state.document.powerUps?.find(p => p.id === 'powerup.rich-text')
+            return entry ? (entry.settings as unknown as RichTextDocumentSettings) : null
+        })()
+
+        if (styleSet) {
+            return (
+                <div className={styles.panel}>
+                    <div className={styles.header}>
+                        <span className={styles.shapeType}>rich text style</span>
+                        <span className={styles.shapeName}>{styleSet.name}</span>
+                    </div>
+                    <RichTextStyleSetSection
+                        styleSet={styleSet}
+                        source={source}
+                        documentSettings={documentSettings}
+                        dispatch={dispatch}
+                    />
+                </div>
+            )
+        }
     }
 
     if (state.selectedPixelAssetId !== null) {

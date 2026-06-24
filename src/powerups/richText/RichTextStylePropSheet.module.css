@@ -1,0 +1,34 @@
+.sheet {
+    margin: 2px 8px 8px 18px;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 6px;
+    background: var(--color-bg-surface);
+    overflow: hidden;
+}
+
+.previewOuter {
+    height: 80px;
+    overflow: hidden;
+    padding: 8px 10px 4px;
+    background: var(--color-bg-canvas, #fafafa);
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+    padding: 6px 8px;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.btn {
+    flex: 1;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+}
+
+.btn:hover { background: var(--color-bg-hover); }

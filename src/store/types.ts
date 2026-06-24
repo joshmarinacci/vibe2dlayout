@@ -5,6 +5,7 @@ import type {GridSettings} from '@model/grid'
 import type {CanvasGuide} from '@model/guide'
 import type {ImageAsset} from '@model/imageAsset'
 import type {Library, PageTemplate, ShapeTemplate} from '@model/library'
+import type {RichTextStyleSet} from '../powerups/richText/types'
 import type {ColorPalette, PaletteColor} from '@model/palette'
 import type {PixelAsset} from '@model/pixelAsset'
 import type {SelectionState} from '@model/selection'
@@ -92,6 +93,8 @@ export interface AppState {
     library: Library
     selectedLibraryItemId: string | null
     selectedLibraryItemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' | null
+    selectedRichTextStyleSetId: string | null
+    selectedRichTextStyleSetSource: 'document' | 'library' | null
     physicsSimulationRunning: boolean
     leftPanelVisible: boolean
     rightPanelVisible: boolean
@@ -239,6 +242,8 @@ export type ViewAction =
     | { type: 'TOGGLE_GRADIENT_MODAL' }
     | { type: 'TOGGLE_SKETCH_STYLE_MODAL' }
     | { type: 'SELECT_GRADIENT'; gradientId: string | null }
+    | { type: 'SELECT_RICH_TEXT_STYLE_SET'; id: string; source: 'document' | 'library' }
+    | { type: 'DESELECT_RICH_TEXT_STYLE_SET' }
     | { type: 'SET_FILE_PATH'; path: string | null }
     | { type: 'ENTER_CROP_MODE'; shapeId: string }
     | { type: 'EXIT_CROP_MODE' }
@@ -286,5 +291,8 @@ export type LibraryAction =
     | { type: 'DELETE_LIBRARY_SHAPE_TEMPLATE'; id: string }
     | { type: 'ADD_LIBRARY_PAGE_TEMPLATE'; template: PageTemplate }
     | { type: 'DELETE_LIBRARY_PAGE_TEMPLATE'; id: string }
+    | { type: 'ADD_RICH_TEXT_STYLE_SET_TO_LIBRARY'; styleSet: RichTextStyleSet }
+    | { type: 'REMOVE_RICH_TEXT_STYLE_SET_FROM_LIBRARY'; id: string }
+    | { type: 'ADD_RICH_TEXT_STYLE_SET_TO_DOCUMENT'; styleSet: RichTextStyleSet }
 
 export type AppAction = DocumentAction | SelectionAction | ViewAction | DragAction | HistoryAction | LibraryAction

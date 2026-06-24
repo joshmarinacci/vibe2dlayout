@@ -78,6 +78,9 @@ export function Toolbar() {
     const {state, canUndo, canRedo} = useAppState()
     const dispatch = useAppDispatch()
     const registeredShapes = useShapeRegistry()
+    const extraShapeTools: ToolButton[] = registeredShapes
+        .filter(s => s.category === 'shapes')
+        .map(s => ({mode: s.toolMode, icon: s.icon, title: s.name}))
     const containerTools: ToolButton[] = registeredShapes
         .filter(s => s.category === 'containers')
         .map(s => ({mode: s.toolMode, icon: s.icon, title: s.name}))
@@ -144,7 +147,7 @@ export function Toolbar() {
     }, [anyMenuOpen])
 
 
-    const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode)
+    const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode) ?? extraShapeTools.find(t => t.mode === state.toolMode)
     const activeComponentTool = allComponentTools.find(t => t.mode === state.toolMode)
     const powerUpToolbarActions = getActivePowerUpToolbarActions(state.document)
     const powerUpMenuActions = getActivePowerUpMenuActions(state.document)
@@ -724,7 +727,7 @@ export function Toolbar() {
                     </button>
                     {showShapesMenu && (
                         <div className={styles.formMenu}>
-                            {SHAPE_TOOLS.map(t => (
+                            {[...SHAPE_TOOLS, ...extraShapeTools].map(t => (
                                 <button
                                     key={t.mode}
                                     className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}

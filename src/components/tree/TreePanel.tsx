@@ -23,6 +23,7 @@ import {PageFolderRow} from './PageFolderRow'
 import {PixelAssetsSection} from './PixelAssetsSection'
 import {SectionHeader} from './SectionHeader'
 import {SketchStylesSection} from './SketchStylesSection'
+import {RichTextStyleSetsSection} from './RichTextStyleSetsSection'
 import {ContextMenu, type ContextMenuGroup} from './ContextMenu'
 import {TreeNodeComp} from './TreeNode'
 import {createPortal} from 'react-dom'
@@ -399,6 +400,7 @@ export function TreePanel() {
                         sketchStyles={state.document.sketchStyles ?? []}
                         dispatch={dispatch}
                     />
+                    <RichTextStyleSetsSection />
                 </>}
 
                 <div className={styles.separator}/>

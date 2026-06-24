@@ -384,6 +384,14 @@ export interface PixelImageShape extends ShapeBase {
     assetId: string   // references PixelAsset.id in document.pixelAssets
 }
 
+export interface RichTextShape extends ShapeBase, TransformedShape {
+    type: 'rich-text'
+    content: string
+    styleSetId: string
+    padding: number
+    backgroundColor?: string
+}
+
 // ─── Union ────────────────────────────────────────────────────────────────
 
 export type Shape =
@@ -395,6 +403,7 @@ export type Shape =
     | StickyNoteShape | ListShape | ScrollPanelShape | TableShape
     | GroupShape | ImageMockShape | ChartMockShape
     | PixelImageShape | TabbedPanelShape
+    | RichTextShape
 
 export type ShapeType = Shape['type']
 

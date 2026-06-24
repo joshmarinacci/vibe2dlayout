@@ -1,4 +1,67 @@
 
+## 2026-06-24 14:30 — Rich Text style font list
+
+The Font Family field in the StyleSetEditor now lists fonts added to the document (from the Assets panel) at the top of the dropdown, followed by the built-in common fonts. Duplicates are suppressed.
+
+- `StyleSetEditor`: reads `state.document.customFonts` via `useAppState()` and passes names as `customFonts` prop to `StyleElementEditor`
+- `StyleElementEditor`: added `customFonts?: string[]` prop; merges document fonts first, then common fonts (deduped)
+
+## 2026-06-24 14:00 — Rich Text style prop sheet (right panel)
+
+Selecting a rich text style in the assets panel or library now shows its prop sheet in the right-side Properties panel, matching the pattern of gradients and fonts.
+
+- `AppState`: added `selectedRichTextStyleSetId` and `selectedRichTextStyleSetSource` ('document'|'library')
+- `ViewAction`: added `SELECT_RICH_TEXT_STYLE_SET` and `DESELECT_RICH_TEXT_STYLE_SET` actions; reducer clears all other selection state
+- New `RichTextStyleSetSection` component (`src/components/properties/sections/RichTextStyleSetSection.tsx`): editable name field (document only), 0.6× scaled preview of H1/H2/body text, "Edit Style Set…" / "Save to Library" for document styles, "Add to Document" / "Delete from Library" for library styles
+- `PropertiesPanel`: handles `selectedRichTextStyleSetId` state — looks up the styleset from document powerup settings or library and renders `RichTextStyleSetSection`
+- `RichTextStyleSetsSection` and `LibrarySection`: dispatch `SELECT_RICH_TEXT_STYLE_SET` on row click; selection highlight driven by Redux state
+- `RichTextStylePropSheet` (inline card) is no longer used in tree views — kept for possible future reuse
+
+## 2026-06-24 — Rich Text PowerUp bug fixes
+
+**Shapes dropdown / right-click menu** (`src/utils/shapeMenuGroups.tsx`, `src/components/toolbar/Toolbar.tsx`)
+- `buildAddShapeGroups` now includes registry shapes with `category === 'shapes'` in the Shapes submenu
+- Toolbar shapes dropdown also includes registry `'shapes'` category entries alongside hardcoded SHAPE_TOOLS
+
+**CSS scoping fix** (`src/powerups/richText/styleSetToCSS.ts`, `RichTextRenderer.tsx`)
+- `styleSetToCSS` now takes a `scopeClass` parameter; each shape uses `.rt-${shape.id}`, the editor preview uses `.rt-preview` — prevents one shape's stylesheet from bleeding into other rich-text shapes on the same canvas
+
+**StyleSetEditor duplicate fix** (`src/powerups/richText/StyleSetEditor.tsx`)
+- Added `activeId` local state initialised from `styleSetId` prop; `handleDuplicate` now switches `activeId` to the copy's id and enters rename mode immediately
+
+**Page assets panel** (`src/components/tree/RichTextStyleSetsSection.tsx`, `src/components/tree/TreePanel.tsx`)
+- New `RichTextStyleSetsSection` component showing document-level rich-text stylesets with H1/body color swatches; right-click context menu (Edit, Duplicate, Save to Library, Delete)
+- Mounted in `TreePanel` after `SketchStylesSection`; returns `null` when the Rich Text PowerUp is not installed
+
+## 2026-06-24 — Rich Text PowerUp
+
+Added a new built-in PowerUp that contributes a `rich-text` shape type supporting Markdown content rendered with per-element styled typography.
+
+**Shape model** (`src/model/shapes.ts`)
+- New `RichTextShape` interface: `content` (markdown string), `styleSetId`, `padding`, optional `backgroundColor`
+- Added to the `Shape` union type
+
+**PowerUp core** (`src/powerups/richText/`)
+- `types.ts`: `RichTextStyleEntry`, `RichTextStyleSet`, `StyleKey`, `RichTextDocumentSettings`
+- `defaultStyleSet.ts`: clean system-ui default styleset (body/h1–h3/blockquote/code/codeBlock/link)
+- `styleSetToCSS.ts`: converts a `RichTextStyleSet` into scoped CSS for `.rt-content`
+- `RichTextRenderer.tsx`: canvas renderer using `position:absolute` div + `dangerouslySetInnerHTML` from `marked`; edit mode shows a textarea overlay via `useTextEdit`
+- `RichTextPropsRenderer.tsx`: properties panel with markdown textarea, styleset selector, background fill toggle/color picker, and "Edit Style Set…" / "New Style Set" buttons
+- `richTextPowerUp.ts`: `PowerUpDefinition` that registers/unregisters the shape type on load/unload
+
+**StyleSet editor** (Phase 2)
+- `StyleSetEditor.tsx`: draggable modal (portal) with element list, per-element style form, live preview, Rename/Duplicate/Save-to-Library actions
+- `StyleElementEditor.tsx`: font family (with datalist), size, weight, italic, color, line height, letter spacing controls using existing inputs
+- `StyleSetEditor.module.css`: two-column layout
+
+**Library integration** (Phase 3)
+- `src/model/library.ts`: added optional `richTextStyleSets?: RichTextStyleSet[]`
+- `src/store/types.ts`: `ADD_RICH_TEXT_STYLE_SET_TO_LIBRARY`, `REMOVE_RICH_TEXT_STYLE_SET_FROM_LIBRARY`, `ADD_RICH_TEXT_STYLE_SET_TO_DOCUMENT` actions
+- `src/store/reducer.ts`: handles all three actions; "add to document" appends a copy with a fresh id to the PowerUp settings
+- `LibrarySection.tsx`: "Rich Text Styles" subsection with color swatches, Add to Document, and delete buttons
+
+**Dependency**: `marked` (markdown parser, no transitive deps)
+
 ## 2026-06-24 — Action system Phase 5: toolbar migration
 
 - `Toolbar.tsx` imports `useActionRegistry` and computes `uniqueRegistryToolbarActions`: all registry actions with `surfaces: ['toolbar']` that are not already covered by a legacy `toolbarActions` entry (deduped by `powerup.toolbar.${id}`)
