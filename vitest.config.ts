@@ -16,6 +16,7 @@ export default defineConfig({
             '@hooks': resolve(__dirname, 'src/hooks'),
             '@logging': resolve(__dirname, 'src/logging'),
             '@powerups': resolve(__dirname, 'src/powerups'),
+            '@actions': resolve(__dirname, 'src/actions'),
         },
     },
 })

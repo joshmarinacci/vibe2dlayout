@@ -97,7 +97,7 @@ export function useDocumentShortcuts() {
             if (meta && e.key === ']') {
                 if (!IS_TAURI && state.selection.ids.length === 1) {
                     e.preventDefault()
-                    dispatch({type: 'REORDER_SHAPE', id: state.selection.ids[0], direction: 'up'})
+                    dispatch({type: 'REORDER_SHAPE', id: state.selection.ids[0], direction: 'down'})
                     shortcutEvents.emit('⌘]', 'Bring forward')
                 }
                 return
@@ -105,7 +105,7 @@ export function useDocumentShortcuts() {
             if (meta && e.key === '[') {
                 if (!IS_TAURI && state.selection.ids.length === 1) {
                     e.preventDefault()
-                    dispatch({type: 'REORDER_SHAPE', id: state.selection.ids[0], direction: 'down'})
+                    dispatch({type: 'REORDER_SHAPE', id: state.selection.ids[0], direction: 'up'})
                     shortcutEvents.emit('⌘[', 'Send backward')
                 }
                 return

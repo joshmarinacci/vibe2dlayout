@@ -1,4 +1,11 @@
 
+## 2026-06-24 — Fix bring-forward/send-backward directions and vitest alias
+
+- `vitest.config.ts` was missing the `@actions` alias, causing all tests in files that import from `shapeMenuGroups.tsx` to fail at the module-resolution stage
+- `core.bring-forward` and `⌘]` in `useDocumentShortcuts.ts` were using `direction: 'up'` (decreases array index = rendered earlier = visually behind), which is the wrong direction; corrected to `direction: 'down'` (increases index = rendered later = visually in front)
+- `core.send-backward` and `⌘[` corrected to `direction: 'up'` for the same reason
+- The `direction` naming convention in the reducer is relative to the tree panel position, not the visual z-order; `'down'` = higher array index = visually in front
+
 ## 2026-06-24 — Action system Phase 4: PowerUp self-registration
 
 - `PowerUpDefinition` gains optional `actions?: ActionDefinition[]` field — additive, all existing PowerUps unchanged

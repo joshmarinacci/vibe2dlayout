@@ -107,7 +107,9 @@ actionRegistry.registerMany([
         surfaces: ['palette', 'context-menu'],
         run: ({state, dispatch}) => {
             const id = state.selection.ids[0]
-            if (id) dispatch({type: 'REORDER_SHAPE', id, direction: 'up'})
+            // 'down' increases the array index; ShapeRenderer renders in index order
+            // so higher index = rendered later = visually in front
+            if (id) dispatch({type: 'REORDER_SHAPE', id, direction: 'down'})
         },
         isEnabled: ({state}) => state.selection.ids.length === 1,
     },
@@ -120,7 +122,7 @@ actionRegistry.registerMany([
         surfaces: ['palette', 'context-menu'],
         run: ({state, dispatch}) => {
             const id = state.selection.ids[0]
-            if (id) dispatch({type: 'REORDER_SHAPE', id, direction: 'down'})
+            if (id) dispatch({type: 'REORDER_SHAPE', id, direction: 'up'})
         },
         isEnabled: ({state}) => state.selection.ids.length === 1,
     },
