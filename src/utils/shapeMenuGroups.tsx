@@ -1,3 +1,5 @@
+import type {ActionContext, ActionDefinition} from '@actions/types'
+import {actionToContextMenuItem} from '@actions/adapters'
 import type {Shape, ShapeType} from '@model/shapes'
 import type {PowerUpShapeTypeDefinition} from '@powerups/types'
 import type {AppAction, AppState, AlignType} from '@store/types'
@@ -73,18 +75,72 @@ export function buildSingleShapeGroups(opts: {
     addShapeGroups: ContextMenuGroup[]
     onSaveToLibrary: () => void
     extraActionItems?: ContextMenuItem[]
+    // When provided, registry-driven items replace the hardcoded generic actions
+    registryItems?: ActionDefinition[]
+    actionCtx?: ActionContext
+    onClose?: () => void
 }): ContextMenuGroup[] {
-    const {shape, shapeId, dispatch, addShapeGroups, onSaveToLibrary, extraActionItems = []} = opts
+    const {shape, shapeId, dispatch, addShapeGroups, onSaveToLibrary, extraActionItems = [], registryItems, actionCtx, onClose = () => {}} = opts
+
+    // Split registry items into groups by role for placement
+    const regDuplicate = registryItems?.filter(a => a.id === 'core.duplicate') ?? []
+    const regZOrder = registryItems?.filter(a => ['core.bring-forward', 'core.send-backward', 'core.bring-to-front', 'core.send-to-back'].includes(a.id)) ?? []
+    const regDelete = registryItems?.filter(a => a.id === 'core.delete') ?? []
+
+    const duplicateGroup: ContextMenuItem[] = regDuplicate.length > 0 && actionCtx
+        ? regDuplicate.map(a => actionToContextMenuItem(a, actionCtx, onClose))
+        : [{
+            label: 'Duplicate',
+            icon: <Copy size={14}/>,
+            shortcut: '⌘D',
+            onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [shapeId]}),
+        }]
+
+    const zOrderGroup: ContextMenuItem[] = regZOrder.length > 0 && actionCtx
+        ? regZOrder.map(a => actionToContextMenuItem(a, actionCtx, onClose))
+        : [
+            {
+                label: 'Move Up',
+                icon: <ChevronUp size={14}/>,
+                shortcut: '⌘]',
+                onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'up'}),
+            },
+            {
+                label: 'Move Down',
+                icon: <ChevronDown size={14}/>,
+                shortcut: '⌘[',
+                onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'down'}),
+            },
+            {
+                label: 'Bring to Front',
+                icon: <ChevronsUp size={14}/>,
+                onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'to-front'}),
+            },
+            {
+                label: 'Send to Back',
+                icon: <ChevronsDown size={14}/>,
+                onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'to-back'}),
+            },
+        ]
+
+    const deleteGroup: ContextMenuItem[] = regDelete.length > 0 && actionCtx
+        ? regDelete.map(a => actionToContextMenuItem(a, actionCtx, onClose))
+        : [{
+            label: 'Delete',
+            icon: <Trash2 size={14}/>,
+            shortcut: '⌫',
+            danger: true,
+            onClick: () => {
+                dispatch({type: 'DELETE_SHAPES', ids: [shapeId]})
+                dispatch({type: 'DESELECT_ALL'})
+            },
+        }]
+
     return [
         ...addShapeGroups,
         {
             items: [
-                {
-                    label: 'Duplicate',
-                    icon: <Copy size={14}/>,
-                    shortcut: '⌘D',
-                    onClick: () => dispatch({type: 'DUPLICATE_SHAPES', ids: [shapeId]}),
-                },
+                ...duplicateGroup,
                 {
                     label: 'Save to Library',
                     icon: <BookTemplate size={14}/>,
@@ -93,32 +149,7 @@ export function buildSingleShapeGroups(opts: {
                 ...extraActionItems,
             ],
         },
-        {
-            items: [
-                {
-                    label: 'Move Up',
-                    icon: <ChevronUp size={14}/>,
-                    shortcut: '⌘]',
-                    onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'up'}),
-                },
-                {
-                    label: 'Move Down',
-                    icon: <ChevronDown size={14}/>,
-                    shortcut: '⌘[',
-                    onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'down'}),
-                },
-                {
-                    label: 'Bring to Front',
-                    icon: <ChevronsUp size={14}/>,
-                    onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'to-front'}),
-                },
-                {
-                    label: 'Send to Back',
-                    icon: <ChevronsDown size={14}/>,
-                    onClick: () => dispatch({type: 'REORDER_SHAPE', id: shapeId, direction: 'to-back'}),
-                },
-            ],
-        },
+        {items: zOrderGroup},
         {
             items: [
                 {
@@ -133,20 +164,7 @@ export function buildSingleShapeGroups(opts: {
                 },
             ],
         },
-        {
-            items: [
-                {
-                    label: 'Delete',
-                    icon: <Trash2 size={14}/>,
-                    shortcut: '⌫',
-                    danger: true,
-                    onClick: () => {
-                        dispatch({type: 'DELETE_SHAPES', ids: [shapeId]})
-                        dispatch({type: 'DESELECT_ALL'})
-                    },
-                },
-            ],
-        },
+        {items: deleteGroup},
     ]
 }
 

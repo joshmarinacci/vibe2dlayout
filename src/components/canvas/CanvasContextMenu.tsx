@@ -1,3 +1,4 @@
+import {canvasContextMenuManager} from '@actions/managers/canvasContextMenuManager'
 import type {TreeNode} from '@model/document'
 import {getAllIds} from '@model/document'
 import type {PageTemplate, ShapeTemplate} from '@model/library'
@@ -140,6 +141,8 @@ export function CanvasContextMenu({
             onSaveAsTemplate: savePageAsTemplate,
         })
     } else if (shape) {
+        const actionCtx = {state, dispatch}
+        const registryItems = canvasContextMenuManager(actionCtx)
         const extraActionItems = [
             ...(shape.type === 'text' ? [
                 {
@@ -192,6 +195,9 @@ export function CanvasContextMenu({
             addShapeGroups,
             onSaveToLibrary: () => saveShapeToLibrary(shapeId!),
             extraActionItems,
+            registryItems,
+            actionCtx,
+            onClose,
         })
     } else {
         // Empty canvas — add to active page

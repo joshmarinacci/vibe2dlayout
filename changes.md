@@ -1,4 +1,10 @@
 
+## 2026-06-24 — Action system Phase 3: context menu migration
+
+- New `src/actions/managers/canvasContextMenuManager.ts`: `ActionManager` function that returns registry actions tagged `shape-action` + `context-menu` surface that are currently enabled
+- `buildSingleShapeGroups` in `shapeMenuGroups.tsx` accepts optional `registryItems`, `actionCtx`, `onClose` — when provided, registry-driven items replace the hardcoded Duplicate, z-order, and Delete entries via `actionToContextMenuItem`; callers that don't pass these get the original hardcoded items unchanged
+- `CanvasContextMenu.tsx` wires in the manager — shortcut strings in the context menu now come from `ActionDefinition.shortcut`, the same source as the command palette
+
 ## 2026-06-24 — Add Command Palette to View menu
 
 - Added "Command Palette ⌘K" as the first item in the View menu, separated from panel toggles by a divider
