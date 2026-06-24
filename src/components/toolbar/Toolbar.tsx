@@ -7,6 +7,7 @@ import {PaletteEditorModal} from '@components/palette/PaletteEditorModal'
 import {useTheme} from '@hooks/useTheme'
 import {notifyPowerUpsDocumentSaved} from '@hooks/usePowerUpsRuntime'
 import type {VibeDocument} from '@model/document'
+import {useActionRegistry} from '@actions/useActionRegistry'
 import {getActivePowerUpMenuActions, getActivePowerUpToolbarActions, listAvailablePowerUps, runPowerUpMenuAction, runPowerUpToolbarAction} from '@powerups/registry'
 import {useShapeRegistry} from '@powerups/shapeRegistry'
 import {useAppDispatch, useAppState} from '@store/context'
@@ -147,6 +148,9 @@ export function Toolbar() {
     const activeComponentTool = allComponentTools.find(t => t.mode === state.toolMode)
     const powerUpToolbarActions = getActivePowerUpToolbarActions(state.document)
     const powerUpMenuActions = getActivePowerUpMenuActions(state.document)
+    const registryToolbarActions = useActionRegistry().filter(a => a.surfaces?.includes('toolbar'))
+    const legacyToolbarIds = new Set(powerUpToolbarActions.map(a => `powerup.toolbar.${a.id}`))
+    const uniqueRegistryToolbarActions = registryToolbarActions.filter(a => !legacyToolbarIds.has(a.id))
     const availablePowerUps = listAvailablePowerUps()
     const activePowerUpIds = new Set((state.document.powerUps ?? []).map(powerUp => powerUp.id))
 
@@ -647,7 +651,7 @@ export function Toolbar() {
 
             <div className={styles.separator}/>
 
-            {powerUpToolbarActions.length > 0 && (
+            {(powerUpToolbarActions.length > 0 || uniqueRegistryToolbarActions.length > 0) && (
                 <>
                     <div className={styles.group}>
                         {powerUpToolbarActions.map(action => {
@@ -670,6 +674,22 @@ export function Toolbar() {
                             </button>
                             )
                         })}
+                        {uniqueRegistryToolbarActions.map(action => (
+                            <button
+                                key={action.id}
+                                className={styles.btn}
+                                title={action.title}
+                                disabled={action.isEnabled ? !action.isEnabled({state, dispatch}) : false}
+                                onClick={() => {
+                                    const result = action.run({state, dispatch})
+                                    if (result instanceof Promise) {
+                                        result.catch(err => appLogger.error(`Registry toolbar action failed: ${action.id}`, err))
+                                    }
+                                }}
+                            >
+                                {action.icon}
+                            </button>
+                        ))}
                     </div>
                     <div className={styles.separator}/>
                 </>

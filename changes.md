@@ -1,4 +1,10 @@
 
+## 2026-06-24 — Action system Phase 5: toolbar migration
+
+- `Toolbar.tsx` imports `useActionRegistry` and computes `uniqueRegistryToolbarActions`: all registry actions with `surfaces: ['toolbar']` that are not already covered by a legacy `toolbarActions` entry (deduped by `powerup.toolbar.${id}`)
+- The PowerUp toolbar group now shows legacy toolbar actions (with existing physics stop-icon special case) followed by any unique registry toolbar actions
+- The group renders whenever either source has entries, so PowerUps using the new `actions` API with `surfaces: ['toolbar']` gain toolbar buttons without touching `toolbarActions`
+
 ## 2026-06-24 — Fix bring-forward/send-backward directions and vitest alias
 
 - `vitest.config.ts` was missing the `@actions` alias, causing all tests in files that import from `shapeMenuGroups.tsx` to fail at the module-resolution stage
