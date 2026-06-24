@@ -1,3 +1,4 @@
+import {actionRegistry} from '@actions/registry'
 import {useAppDispatch, useAppState} from '@store/context'
 import {useEffect, useRef} from 'react'
 import {getPowerUpDefinition, getRegisteredDocumentPowerUps} from '@powerups/registry'
@@ -27,6 +28,8 @@ export function usePowerUpsRuntime(): void {
     const dispatch = useAppDispatch()
     const previousEntriesRef = useRef<DocumentPowerUpEntry[]>(state.document.powerUps ?? [])
     const previousSelectedShapeIdRef = useRef<string | null>(null)
+    // Holds unregister functions for each installed PowerUp's actions, keyed by PowerUp id
+    const actionUnregistersRef = useRef<Map<string, () => void>>(new Map())
 
     useEffect(() => {
         const currentEntries = state.document.powerUps ?? []
@@ -41,6 +44,9 @@ export function usePowerUpsRuntime(): void {
             if (!definition) continue
             const logger = createPowerUpLogger(entry.id)
             logger.info('Power-up installed')
+            if (definition.actions?.length) {
+                actionUnregistersRef.current.set(entry.id, actionRegistry.registerMany(definition.actions))
+            }
             Promise.resolve(definition.lifecycle?.onInstall?.(ctx, entry)).catch(err => {
                 logger.error('onInstall failed', err)
             })
@@ -55,6 +61,8 @@ export function usePowerUpsRuntime(): void {
             if (!definition) continue
             const logger = createPowerUpLogger(entry.id)
             logger.info('Power-up unloaded')
+            actionUnregistersRef.current.get(entry.id)?.()
+            actionUnregistersRef.current.delete(entry.id)
             Promise.resolve(definition.lifecycle?.onUnload?.(ctx, entry)).catch(err => {
                 logger.error('onUnload failed', err)
             })

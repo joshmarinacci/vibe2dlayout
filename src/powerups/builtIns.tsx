@@ -134,6 +134,32 @@ export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
                 },
             },
         ],
+        actions: [
+            {
+                id: 'powerup.physics.simulate',
+                title: 'Run / Stop Physics Simulation',
+                description: 'Toggle the physics simulation on the active page',
+                icon: <Play size={14}/>,
+                tags: ['physics', 'simulation', 'powerup'],
+                surfaces: ['palette'],
+                run: (ctx) => {
+                    physicsLogger.info('Toggling physics simulation from palette')
+                    togglePhysicsSimulation(ctx)
+                },
+            },
+            {
+                id: 'powerup.physics.export-html',
+                title: 'Export Physics HTML…',
+                description: 'Export the active page as a self-contained physics simulation HTML file',
+                tags: ['physics', 'export', 'powerup'],
+                surfaces: ['palette'],
+                isEnabled: ({state}) => !!state.activePageId,
+                run: ({state}) => {
+                    physicsLogger.info('Exporting physics HTML from palette', {pageId: state.activePageId})
+                    exportPhysicsHtml(state, `${state.documentName || 'physics'}-simulation.html`)
+                },
+            },
+        ],
         lifecycle: {
             onUnload: async (ctx) => {
                 stopPhysicsSimulation()

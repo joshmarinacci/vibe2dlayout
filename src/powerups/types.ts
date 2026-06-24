@@ -1,3 +1,4 @@
+import type {ActionDefinition} from '@actions/types'
 import type {DocumentPowerUpEntry, ShapePowerUpEntry} from '@model/powerUps'
 import type {Shape} from '@model/shapes'
 import type {Theme} from '@model/theme'
@@ -14,6 +15,10 @@ export interface PowerUpDefinition {
     shapeTypes?: PowerUpShapeTypeDefinition[]
     toolbarActions?: PowerUpToolbarActionDefinition[]
     menuActions?: PowerUpMenuActionDefinition[]
+    // New unified actions — registered into the action registry on install, unregistered on unload.
+    // These appear in the command palette automatically. Use surfaces: ['toolbar'] to also render
+    // in the toolbar alongside toolbarActions.
+    actions?: ActionDefinition[]
     lifecycle?: PowerUpLifecycleHooks
     migrateDocument?: (ctx: PowerUpDocumentMigrationContext) => DocumentPowerUpEntry
     migrateShape?: (ctx: PowerUpShapeMigrationContext) => ShapePowerUpEntry

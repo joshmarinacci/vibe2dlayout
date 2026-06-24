@@ -1,4 +1,11 @@
 
+## 2026-06-24 — Action system Phase 4: PowerUp self-registration
+
+- `PowerUpDefinition` gains optional `actions?: ActionDefinition[]` field — additive, all existing PowerUps unchanged
+- `usePowerUpsRuntime.ts` registers `definition.actions` into the action registry when a PowerUp is installed and unregisters them when it is unloaded
+- Physics PowerUp demonstrates the new API: two `actions` entries (simulate, export-html) with tags/description appear in the command palette when Physics is installed; existing `toolbarActions`/`menuActions` still work unchanged
+- New PowerUps can skip `toolbarActions`/`menuActions` entirely and declare `actions` with appropriate `surfaces` instead
+
 ## 2026-06-24 — Action system Phase 3: context menu migration
 
 - New `src/actions/managers/canvasContextMenuManager.ts`: `ActionManager` function that returns registry actions tagged `shape-action` + `context-menu` surface that are currently enabled
