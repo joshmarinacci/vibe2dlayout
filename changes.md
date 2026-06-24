@@ -1,4 +1,38 @@
 
+## 2026-06-24 16:00 — Fix toolbar shape dropdown clipped on narrow screens
+
+The shape and component dropdowns were hidden behind the canvas when the browser window was narrow. Root cause: the `@media (max-width: 640px)` rule on the toolbar sets `overflow-x: auto`, which browsers coerce to `overflow: auto` on both axes, clipping `position: absolute` children that extend below the toolbar row.
+
+Fix: the dropdown button now measures its `getBoundingClientRect()` on open and the menu renders with `position: fixed` at those coordinates, escaping all overflow containers. Applied to both the shapes dropdown and the components dropdown in `Toolbar.tsx`.
+
+## 2026-06-24 15:30 — Mobile web improvements (light editing)
+
+Six targeted improvements to make the app usable for basic editing on mobile/touch devices.
+
+**1. Safe-area insets** (`index.html`, `AppShell.module.css`)
+- Added `viewport-fit=cover` to the viewport meta tag
+- Toolbar padding-top uses `env(safe-area-inset-top)` so content clears the notch on iPhones with Dynamic Island / Face ID notch
+
+**2. iOS input auto-zoom fix** (`inputs.module.css`)
+- iOS Safari zooms the viewport when an input has `font-size < 16px`. Added `@media (hover: none) and (pointer: coarse)` rule setting `font-size: 16px` on `numberInput`, `textInput`, `select`, and `contentTextarea`
+
+**3. Larger toolbar touch targets** (`Toolbar.module.css`)
+- Added `@media (hover: none) and (pointer: coarse)` rule: all `.btn` buttons get `min-height: 44px; min-width: 44px` (Apple/Google recommended minimum). `zoomSelect` also bumped to 44px and 16px font
+
+**4. Larger selection handle hit areas** (`SelectionOverlay.tsx`)
+- Module-level `IS_TOUCH` constant detects coarse pointer devices once at load
+- On touch, each resize handle renders a transparent 44px hit zone wrapper with the 8px visual dot centered inside; desktop behaviour unchanged
+
+**5. Long-press context menu** (`useCanvasPointer.ts`)
+- On `pointerType === 'touch'`, a 500ms `setTimeout` is started on `pointerdown`
+- Cancelled on move > 8px or `pointerup`; also cancelled immediately if a second pointer goes down (handles pinch-zoom cancellation)
+- On fire: performs hit-test, selects the tapped shape, and opens the same `CanvasContextMenu` used by right-click
+
+**6. Mobile bottom bar** (`MobileBar.tsx`, `MobileBar.module.css`, `AppShell.tsx`)
+- New `<MobileBar>` component: only visible on `(hover: none) and (pointer: coarse)` devices via CSS, only renders when `selection.ids.length > 0`
+- Fixed bar at bottom (respects `env(safe-area-inset-bottom)`), 56px tall, frosted-glass background
+- Buttons: Layers (toggle left panel), Properties (toggle right panel), Duplicate, Delete
+
 ## 2026-06-24 14:30 — Rich Text style font list
 
 The Font Family field in the StyleSetEditor now lists fonts added to the document (from the Assets panel) at the top of the dropdown, followed by the built-in common fonts. Duplicates are suppressed.

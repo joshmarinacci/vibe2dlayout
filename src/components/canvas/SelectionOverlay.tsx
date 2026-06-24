@@ -14,6 +14,8 @@ import {type RefObject, useCallback, useRef} from 'react'
 import {RULER_SIZE} from './CanvasRuler'
 
 const HANDLE_PX = 8  // visual size in screen pixels
+const TOUCH_HIT_PX = 44  // hit zone size on touch devices
+const IS_TOUCH = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
 const ANCHORS: Anchor[] = [
     'top-left', 'top-center', 'top-right',
@@ -273,25 +275,37 @@ function ResizeHandle({
         dragStart.current = null
     }, [])
 
+    const zoom = state.viewTransform.zoom
+    const hitSize = IS_TOUCH ? TOUCH_HIT_PX / zoom : handleSize
+
     return (
         <div
             style={{
                 position: 'absolute',
-                left: cx - handleSize / 2,
-                top: cy - handleSize / 2,
-                width: handleSize,
-                height: handleSize,
-                background: 'white',
-                border: `${1 / state.viewTransform.zoom}px solid #3b82f6`,
-                borderRadius: 1 / state.viewTransform.zoom,
+                left: cx - hitSize / 2,
+                top: cy - hitSize / 2,
+                width: hitSize,
+                height: hitSize,
                 cursor: CURSOR_MAP[anchor],
                 pointerEvents: 'all',
                 zIndex: 100,
-                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
             }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
-        />
+        >
+            <div style={{
+                width: handleSize,
+                height: handleSize,
+                background: 'white',
+                border: `${1 / zoom}px solid #3b82f6`,
+                borderRadius: 1 / zoom,
+                boxSizing: 'border-box',
+                flexShrink: 0,
+            }}/>
+        </div>
     )
 }
