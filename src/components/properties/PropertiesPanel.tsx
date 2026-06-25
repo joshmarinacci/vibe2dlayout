@@ -283,12 +283,10 @@ export function PropertiesPanel() {
                 </CollapsibleSection>
                 {transformable.length > 0 && (
                     <CollapsibleSection title="Transform">
-                        <div>
-                            <TField label="X" value={cx} onChange={v => applyTransformField('x', v)}/>
-                            <TField label="Y" value={cy} onChange={v => applyTransformField('y', v)}/>
-                            <TField label="W" value={cw} onChange={v => applyTransformField('width', v)} min={1}/>
-                            <TField label="H" value={ch} onChange={v => applyTransformField('height', v)} min={1}/>
-                        </div>
+                        <TField className={'left'} label="X" value={cx} onChange={v => applyTransformField('x', v)}/>
+                        <TField className={'right'} label="Y" value={cy} onChange={v => applyTransformField('y', v)}/>
+                        <TField className={'left'} label="W" value={cw} onChange={v => applyTransformField('width', v)} min={1}/>
+                        <TField className={'right'} label="H" value={ch} onChange={v => applyTransformField('height', v)} min={1}/>
                     </CollapsibleSection>
                 )}
                 {withFill.length > 0 && (
@@ -311,6 +309,7 @@ export function PropertiesPanel() {
                             )}
                         />
                         <NumberInput
+                            className={'left'}
                             label="Opacity"
                             value={commonFillOpacity !== null ? Math.round(commonFillOpacity * 100) : 0}
                             min={0} max={100} unit="%"
@@ -345,6 +344,7 @@ export function PropertiesPanel() {
                         />
                         <NumberInput
                             label="Width"
+                            className={'left'}
                             value={commonStrokeWidth ?? 0}
                             min={0} step={0.5} unit="px"
                             onChange={v => withStroke.forEach(s =>
@@ -356,6 +356,7 @@ export function PropertiesPanel() {
                             )}
                         />
                         <NumberInput
+                            className={'left'}
                             label="Opacity"
                             value={commonStrokeOpacity !== null ? Math.round(commonStrokeOpacity * 100) : 0}
                             min={0} max={100} unit="%"

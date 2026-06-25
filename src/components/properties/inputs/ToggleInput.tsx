@@ -5,14 +5,12 @@ interface Props {
     label: string
     value: boolean
     onChange: (v: boolean) => void
-    className?: string
 }
 
 export function ToggleInput({
                                 label,
                                 value,
                                 onChange,
-                                className,
                             }: Props) {
     const [showDropdown, setShowDropdown] = useState(false)
     const wrapRef = useRef<HTMLDivElement>(null)
@@ -29,10 +27,9 @@ export function ToggleInput({
         return () => document.removeEventListener('mousedown', handler)
     }, [showDropdown])
 
-    return (
-        <div className={styles.field + (className?(' ' + className):'')}>
-            <label className={styles.label}>{label}</label>
-            <div style={{display: 'flex', alignItems: 'center', gap: 6, position: 'relative'}}
+    return (<>
+            <label className={'left'}>{label}</label>
+            <div className={'right'} style={{display: 'flex', alignItems: 'center', gap: 6, position: 'relative'}}
                  ref={wrapRef}>
                 <input
                     type="checkbox"
@@ -41,6 +38,5 @@ export function ToggleInput({
                     className={styles.checkbox}
                 />
             </div>
-        </div>
-    )
+        </>)
 }
