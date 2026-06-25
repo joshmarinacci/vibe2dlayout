@@ -35,6 +35,7 @@ import {LibraryItemSection} from './sections/LibraryItemSection'
 import {RichTextStyleSetSection} from './sections/RichTextStyleSetSection'
 import type {RichTextDocumentSettings} from '@powerups/richText/types'
 import {PageSection} from './sections/PageSection'
+import {PixelAssetSection} from './sections/PixelAssetSection'
 import {PixelImageSection} from './sections/PixelImageSection'
 import {DocumentPowerUpsSection, ShapePowerUpsSection, UnknownDocumentPowerUpsSection} from './sections/PowerUpsSection'
 import {ShadowSection} from './sections/ShadowSection'
@@ -121,22 +122,7 @@ export function PropertiesPanel() {
                         .filter(s => s.type === 'pixelimage' && (s as {assetId?: string}).assetId === pixelAsset.id)
                     return (
                         <PanelShell type="pixel image" name={pixelAsset.name}>
-                            <div className={styles.section}>
-                                <div className={styles.row}>
-                                    <span className={styles.label}>Size</span>
-                                    <span className={styles.value}>{pixelAsset.width}×{pixelAsset.height} px</span>
-                                </div>
-                                <div className={styles.row}>
-                                    <span className={styles.label}>Used by</span>
-                                    <span className={styles.value}>{usedByShapes.length} shape{usedByShapes.length !== 1 ? 's' : ''}</span>
-                                </div>
-                                <div className={styles.row}>
-                                    <button className={styles.actionBtn}
-                                            onClick={() => dispatch({type: 'START_PIXEL_EDIT', assetId: pixelAsset.id})}>
-                                        Edit Pixels
-                                    </button>
-                                </div>
-                            </div>
+                            <PixelAssetSection asset={pixelAsset} usageCount={usedByShapes.length} dispatch={dispatch}/>
                         </PanelShell>
                     )
                 }

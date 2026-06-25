@@ -1,4 +1,8 @@
 
+## 2026-06-25 — Extract PixelAssetSection component
+
+Moved the inline pixel asset details (size, usage count, Edit Pixels button) from PropertiesPanel into a new `PixelAssetSection.tsx`, matching the pattern used by `ImageAssetSection` and `DimensionAssetSection`.
+
 ## 2026-06-25 — Extract PanelShell wrapper in PropertiesPanel
 
 Added a local `PanelShell` component that renders the common `panel → header → shapeType + shapeName` wrapper. All 8 branches of the `panelSelection` switch now use it, eliminating the repeated div/span structure.
