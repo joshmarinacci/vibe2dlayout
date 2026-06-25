@@ -43,6 +43,18 @@ import {TextSection} from './sections/TextSection'
 import {TField, TransformSection} from './sections/TransformSection'
 import {CornerRadiusControl} from "./inputs/CornerRadiusControl";
 
+function PanelShell({type, name, children}: {type: string; name: string; children: React.ReactNode}) {
+    return (
+        <div className={styles.panel}>
+            <div className={styles.header}>
+                <span className={styles.shapeType}>{type}</span>
+                <span className={styles.shapeName}>{name}</span>
+            </div>
+            {children}
+        </div>
+    )
+}
+
 function commonValue<T>(vals: T[]): T | null {
     if (vals.length === 0) return null
     const first = vals[0]
@@ -60,23 +72,15 @@ export function PropertiesPanel() {
             case 'gradient': {
                 const gradient = (state.document.gradients ?? []).find(g => g.id === sel.id)
                 if (gradient) return (
-                    <div className={styles.panel}>
-                        <div className={styles.header}>
-                            <span className={styles.shapeType}>gradient</span>
-                            <span className={styles.shapeName}>{gradient.name}</span>
-                        </div>
+                    <PanelShell type="gradient" name={gradient.name}>
                         <DocumentGradientSection gradient={gradient} dispatch={dispatch}/>
-                    </div>
+                    </PanelShell>
                 )
                 break
             }
             case 'library-item':
                 return (
-                    <div className={styles.panel}>
-                        <div className={styles.header}>
-                            <span className={styles.shapeType}>library</span>
-                            <span className={styles.shapeName}>{sel.itemType}</span>
-                        </div>
+                    <PanelShell type="library" name={sel.itemType}>
                         <LibraryItemSection
                             library={state.library}
                             itemId={sel.id}
@@ -84,7 +88,7 @@ export function PropertiesPanel() {
                             activePageId={state.activePageId}
                             dispatch={dispatch}
                         />
-                    </div>
+                    </PanelShell>
                 )
             case 'rich-text-style-set': {
                 const styleSet = sel.source === 'document'
@@ -99,18 +103,14 @@ export function PropertiesPanel() {
                     return entry ? (entry.settings as unknown as RichTextDocumentSettings) : null
                 })()
                 if (styleSet) return (
-                    <div className={styles.panel}>
-                        <div className={styles.header}>
-                            <span className={styles.shapeType}>rich text style</span>
-                            <span className={styles.shapeName}>{styleSet.name}</span>
-                        </div>
+                    <PanelShell type="rich text style" name={styleSet.name}>
                         <RichTextStyleSetSection
                             styleSet={styleSet}
                             source={sel.source}
                             documentSettings={documentSettings}
                             dispatch={dispatch}
                         />
-                    </div>
+                    </PanelShell>
                 )
                 break
             }
@@ -120,11 +120,7 @@ export function PropertiesPanel() {
                     const usedByShapes = Object.values(state.document.shapes)
                         .filter(s => s.type === 'pixelimage' && (s as {assetId?: string}).assetId === pixelAsset.id)
                     return (
-                        <div className={styles.panel}>
-                            <div className={styles.header}>
-                                <span className={styles.shapeType}>pixel image</span>
-                                <span className={styles.shapeName}>{pixelAsset.name}</span>
-                            </div>
+                        <PanelShell type="pixel image" name={pixelAsset.name}>
                             <div className={styles.section}>
                                 <div className={styles.row}>
                                     <span className={styles.label}>Size</span>
@@ -141,7 +137,7 @@ export function PropertiesPanel() {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </PanelShell>
                     )
                 }
                 break
@@ -158,13 +154,9 @@ export function PropertiesPanel() {
                             pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
                         }).pageSize?.assetId === asset.id)
                     return (
-                        <div className={styles.panel}>
-                            <div className={styles.header}>
-                                <span className={styles.shapeType}>dimension</span>
-                                <span className={styles.shapeName}>{asset.name}</span>
-                            </div>
+                        <PanelShell type="dimension" name={asset.name}>
                             <DimensionAssetSection asset={asset} usageCount={usedByPages.length} dispatch={dispatch}/>
-                        </div>
+                        </PanelShell>
                     )
                 }
                 break
@@ -172,13 +164,9 @@ export function PropertiesPanel() {
             case 'font': {
                 const font = state.document.customFonts.find(f => f.name === sel.name)
                 if (font) return (
-                    <div className={styles.panel}>
-                        <div className={styles.header}>
-                            <span className={styles.shapeType}>font</span>
-                            <span className={styles.shapeName}>{font.name}</span>
-                        </div>
+                    <PanelShell type="font" name={font.name}>
                         <FontInfoSection font={font} dispatch={dispatch}/>
-                    </div>
+                    </PanelShell>
                 )
                 break
             }
@@ -188,18 +176,14 @@ export function PropertiesPanel() {
                     const usedByShapes = Object.values(state.document.shapes)
                         .filter(s => s.type === 'image' && (s as ImageShape).assetId === asset.id)
                     return (
-                        <div className={styles.panel}>
-                            <div className={styles.header}>
-                                <span className={styles.shapeType}>asset</span>
-                                <span className={styles.shapeName}>{asset.name}</span>
-                            </div>
+                        <PanelShell type="asset" name={asset.name}>
                             <ImageAssetSection
                                 asset={asset}
                                 usageCount={usedByShapes.length}
                                 usedByShapes={usedByShapes.map(s => ({id: s.id, name: s.name}))}
                                 dispatch={dispatch}
                             />
-                        </div>
+                        </PanelShell>
                     )
                 }
                 break
@@ -210,11 +194,7 @@ export function PropertiesPanel() {
                     .filter(entry => !getPowerUpDefinition(entry.id))
                     .map(entry => ({id: entry.id, version: entry.version}))
                 return (
-                    <div className={styles.panel}>
-                        <div className={styles.header}>
-                            <span className={styles.shapeType}>document</span>
-                            <span className={styles.shapeName}>{state.documentName}</span>
-                        </div>
+                    <PanelShell type="document" name={state.documentName}>
                         <DocumentSection
                             documentName={state.documentName}
                             documentId={state.documentId}
@@ -224,7 +204,7 @@ export function PropertiesPanel() {
                         />
                         <DocumentPowerUpsSection registeredPowerUps={registeredPowerUps} dispatch={dispatch}/>
                         <UnknownDocumentPowerUpsSection unknownEntries={unknownPowerUps} dispatch={dispatch}/>
-                    </div>
+                    </PanelShell>
                 )
             }
         }

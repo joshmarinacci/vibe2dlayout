@@ -1,4 +1,8 @@
 
+## 2026-06-25 — Extract PanelShell wrapper in PropertiesPanel
+
+Added a local `PanelShell` component that renders the common `panel → header → shapeType + shapeName` wrapper. All 8 branches of the `panelSelection` switch now use it, eliminating the repeated div/span structure.
+
 ## 2026-06-25 — Consolidate panel selection into a single discriminated union
 
 Replaced 10 separate `selected*` / `documentSelected` fields in `AppState` with a single `panelSelection: PanelSelection` discriminated union field.
