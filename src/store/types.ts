@@ -50,6 +50,21 @@ export const DEFAULT_SETTINGS: UserSettings = {
     panelOpacity: 0.92,
 }
 
+// ─── Panel selection ───────────────────────────────────────────────────────
+
+export type LibraryItemType = 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template'
+
+export type PanelSelection =
+    | { kind: 'document' }
+    | { kind: 'image-asset'; id: string }
+    | { kind: 'dimension-asset'; id: string }
+    | { kind: 'pixel-asset'; id: string }
+    | { kind: 'font'; name: string }
+    | { kind: 'gradient'; id: string }
+    | { kind: 'library-item'; id: string; itemType: LibraryItemType }
+    | { kind: 'rich-text-style-set'; id: string; source: 'document' | 'library' }
+    | null
+
 // ─── App State ─────────────────────────────────────────────────────────────
 
 export interface AppState {
@@ -72,29 +87,16 @@ export interface AppState {
     documentName: string
     currentFilePath: string | null  // Tauri mode only: absolute path of the open file
     isDirty: boolean  // true when document has unsaved changes
-    // true when user clicked the Document row in the tree (shows document properties)
-    documentSelected: boolean
-    // ID of the image asset selected in the tree (shows asset editor in props panel)
-    selectedAssetId: string | null
-    // ID of the dimension asset selected in the tree
-    selectedDimensionAssetId: string | null
-    // ID of the pixel asset selected in the tree
-    selectedPixelAssetId: string | null
+    // What is currently shown in the properties panel (non-shape selections)
+    panelSelection: PanelSelection
     // ID of the pixel asset currently being edited in the overlay
     editingPixelAssetId: string | null
-    // Name of the font selected in the tree (shows font info in props panel)
-    selectedFontName: string | null
     // One-shot signal from useTauriMenu to open the documents modal
     pendingDocumentsModalMode: 'open' | 'save-as' | null
     showGradientModal: boolean
     showSketchStyleModal: boolean
     croppingShapeId: string | null
-    selectedGradientId: string | null
     library: Library
-    selectedLibraryItemId: string | null
-    selectedLibraryItemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' | null
-    selectedRichTextStyleSetId: string | null
-    selectedRichTextStyleSetSource: 'document' | 'library' | null
     physicsSimulationRunning: boolean
     leftPanelVisible: boolean
     rightPanelVisible: boolean
@@ -284,8 +286,8 @@ export type LibraryAction =
     | { type: 'ADD_LIBRARY_FONT'; font: CustomFont }
     | { type: 'UPDATE_LIBRARY_FONT'; font: CustomFont }
     | { type: 'DELETE_LIBRARY_FONT'; id: string }
-    | { type: 'RENAME_LIBRARY_ITEM'; id: string; name: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' }
-    | { type: 'SELECT_LIBRARY_ITEM'; id: string; itemType: 'gradient' | 'image' | 'font' | 'dimension' | 'shape-template' | 'page-template' }
+    | { type: 'RENAME_LIBRARY_ITEM'; id: string; name: string; itemType: LibraryItemType }
+    | { type: 'SELECT_LIBRARY_ITEM'; id: string; itemType: LibraryItemType }
     | { type: 'DESELECT_LIBRARY_ITEM' }
     | { type: 'ADD_LIBRARY_SHAPE_TEMPLATE'; template: ShapeTemplate }
     | { type: 'DELETE_LIBRARY_SHAPE_TEMPLATE'; id: string }

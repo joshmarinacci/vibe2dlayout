@@ -54,196 +54,180 @@ export function PropertiesPanel() {
     const dispatch = useAppDispatch()
     const selected = selectSelectedShapes(state)
 
-    if (state.selectedGradientId !== null) {
-        const gradient = (state.document.gradients ?? []).find(g => g.id === state.selectedGradientId)
-        if (gradient) {
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>gradient</span>
-                        <span className={styles.shapeName}>{gradient.name}</span>
-                    </div>
-                    <DocumentGradientSection gradient={gradient} dispatch={dispatch}/>
-                </div>
-            )
-        }
-    }
-
-    if (state.selectedLibraryItemId !== null && state.selectedLibraryItemType !== null) {
-        const typeLabel = state.selectedLibraryItemType
-        return (
-            <div className={styles.panel}>
-                <div className={styles.header}>
-                    <span className={styles.shapeType}>library</span>
-                    <span className={styles.shapeName}>{typeLabel}</span>
-                </div>
-                <LibraryItemSection
-                    library={state.library}
-                    itemId={state.selectedLibraryItemId}
-                    itemType={state.selectedLibraryItemType}
-                    activePageId={state.activePageId}
-                    dispatch={dispatch}
-                />
-            </div>
-        )
-    }
-
-    if (state.selectedRichTextStyleSetId !== null && state.selectedRichTextStyleSetSource !== null) {
-        const source = state.selectedRichTextStyleSetSource
-        const styleSet = source === 'document'
-            ? (() => {
-                const entry = state.document.powerUps?.find(p => p.id === 'powerup.rich-text')
-                const settings = entry?.settings as unknown as RichTextDocumentSettings | undefined
-                return settings?.styleSets.find(s => s.id === state.selectedRichTextStyleSetId) ?? null
-            })()
-            : (state.library.richTextStyleSets ?? []).find(s => s.id === state.selectedRichTextStyleSetId) ?? null
-
-        const documentSettings = (() => {
-            const entry = state.document.powerUps?.find(p => p.id === 'powerup.rich-text')
-            return entry ? (entry.settings as unknown as RichTextDocumentSettings) : null
-        })()
-
-        if (styleSet) {
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>rich text style</span>
-                        <span className={styles.shapeName}>{styleSet.name}</span>
-                    </div>
-                    <RichTextStyleSetSection
-                        styleSet={styleSet}
-                        source={source}
-                        documentSettings={documentSettings}
-                        dispatch={dispatch}
-                    />
-                </div>
-            )
-        }
-    }
-
-    if (state.selectedPixelAssetId !== null) {
-        const pixelAsset = state.document.pixelAssets.find(a => a.id === state.selectedPixelAssetId)
-        if (pixelAsset) {
-            const usedByShapes = Object.values(state.document.shapes)
-                .filter(s => s.type === 'pixelimage' && (s as {
-                    assetId?: string
-                }).assetId === pixelAsset.id)
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>pixel image</span>
-                        <span className={styles.shapeName}>{pixelAsset.name}</span>
-                    </div>
-                    <div className={styles.section}>
-                        <div className={styles.row}>
-                            <span className={styles.label}>Size</span>
-                            <span
-                                className={styles.value}>{pixelAsset.width}×{pixelAsset.height} px</span>
+    const sel = state.panelSelection
+    if (sel !== null) {
+        switch (sel.kind) {
+            case 'gradient': {
+                const gradient = (state.document.gradients ?? []).find(g => g.id === sel.id)
+                if (gradient) return (
+                    <div className={styles.panel}>
+                        <div className={styles.header}>
+                            <span className={styles.shapeType}>gradient</span>
+                            <span className={styles.shapeName}>{gradient.name}</span>
                         </div>
-                        <div className={styles.row}>
-                            <span className={styles.label}>Used by</span>
-                            <span
-                                className={styles.value}>{usedByShapes.length} shape{usedByShapes.length !== 1 ? 's' : ''}</span>
+                        <DocumentGradientSection gradient={gradient} dispatch={dispatch}/>
+                    </div>
+                )
+                break
+            }
+            case 'library-item':
+                return (
+                    <div className={styles.panel}>
+                        <div className={styles.header}>
+                            <span className={styles.shapeType}>library</span>
+                            <span className={styles.shapeName}>{sel.itemType}</span>
                         </div>
-                        <div className={styles.row}>
-                            <button
-                                className={styles.actionBtn}
-                                onClick={() => dispatch({
-                                    type: 'START_PIXEL_EDIT',
-                                    assetId: pixelAsset.id
-                                })}
-                            >
-                                Edit Pixels
-                            </button>
+                        <LibraryItemSection
+                            library={state.library}
+                            itemId={sel.id}
+                            itemType={sel.itemType}
+                            activePageId={state.activePageId}
+                            dispatch={dispatch}
+                        />
+                    </div>
+                )
+            case 'rich-text-style-set': {
+                const styleSet = sel.source === 'document'
+                    ? (() => {
+                        const entry = state.document.powerUps?.find(p => p.id === 'powerup.rich-text')
+                        const settings = entry?.settings as unknown as RichTextDocumentSettings | undefined
+                        return settings?.styleSets.find(s => s.id === sel.id) ?? null
+                    })()
+                    : (state.library.richTextStyleSets ?? []).find(s => s.id === sel.id) ?? null
+                const documentSettings = (() => {
+                    const entry = state.document.powerUps?.find(p => p.id === 'powerup.rich-text')
+                    return entry ? (entry.settings as unknown as RichTextDocumentSettings) : null
+                })()
+                if (styleSet) return (
+                    <div className={styles.panel}>
+                        <div className={styles.header}>
+                            <span className={styles.shapeType}>rich text style</span>
+                            <span className={styles.shapeName}>{styleSet.name}</span>
                         </div>
+                        <RichTextStyleSetSection
+                            styleSet={styleSet}
+                            source={sel.source}
+                            documentSettings={documentSettings}
+                            dispatch={dispatch}
+                        />
                     </div>
-                </div>
-            )
-        }
-    }
-
-    if (state.selectedDimensionAssetId !== null) {
-        const asset = state.document.dimensions.find(a => a.id === state.selectedDimensionAssetId)
-        if (asset) {
-            const usedByPages = Object.values(state.document.shapes)
-                .filter(s => s.type === 'page' && (s as {
-                    pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
-                }).pageSize?.kind === 'asset' && (s as {
-                    pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
-                }).pageSize?.scope === 'document' && (s as {
-                    pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
-                }).pageSize?.assetId === asset.id)
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>dimension</span>
-                        <span className={styles.shapeName}>{asset.name}</span>
+                )
+                break
+            }
+            case 'pixel-asset': {
+                const pixelAsset = state.document.pixelAssets.find(a => a.id === sel.id)
+                if (pixelAsset) {
+                    const usedByShapes = Object.values(state.document.shapes)
+                        .filter(s => s.type === 'pixelimage' && (s as {assetId?: string}).assetId === pixelAsset.id)
+                    return (
+                        <div className={styles.panel}>
+                            <div className={styles.header}>
+                                <span className={styles.shapeType}>pixel image</span>
+                                <span className={styles.shapeName}>{pixelAsset.name}</span>
+                            </div>
+                            <div className={styles.section}>
+                                <div className={styles.row}>
+                                    <span className={styles.label}>Size</span>
+                                    <span className={styles.value}>{pixelAsset.width}×{pixelAsset.height} px</span>
+                                </div>
+                                <div className={styles.row}>
+                                    <span className={styles.label}>Used by</span>
+                                    <span className={styles.value}>{usedByShapes.length} shape{usedByShapes.length !== 1 ? 's' : ''}</span>
+                                </div>
+                                <div className={styles.row}>
+                                    <button className={styles.actionBtn}
+                                            onClick={() => dispatch({type: 'START_PIXEL_EDIT', assetId: pixelAsset.id})}>
+                                        Edit Pixels
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+                break
+            }
+            case 'dimension-asset': {
+                const asset = state.document.dimensions.find(a => a.id === sel.id)
+                if (asset) {
+                    const usedByPages = Object.values(state.document.shapes)
+                        .filter(s => s.type === 'page' && (s as {
+                            pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                        }).pageSize?.kind === 'asset' && (s as {
+                            pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                        }).pageSize?.scope === 'document' && (s as {
+                            pageSize?: { kind: 'asset'; scope: 'document' | 'library'; assetId: string }
+                        }).pageSize?.assetId === asset.id)
+                    return (
+                        <div className={styles.panel}>
+                            <div className={styles.header}>
+                                <span className={styles.shapeType}>dimension</span>
+                                <span className={styles.shapeName}>{asset.name}</span>
+                            </div>
+                            <DimensionAssetSection asset={asset} usageCount={usedByPages.length} dispatch={dispatch}/>
+                        </div>
+                    )
+                }
+                break
+            }
+            case 'font': {
+                const font = state.document.customFonts.find(f => f.name === sel.name)
+                if (font) return (
+                    <div className={styles.panel}>
+                        <div className={styles.header}>
+                            <span className={styles.shapeType}>font</span>
+                            <span className={styles.shapeName}>{font.name}</span>
+                        </div>
+                        <FontInfoSection font={font} dispatch={dispatch}/>
                     </div>
-                    <DimensionAssetSection asset={asset} usageCount={usedByPages.length} dispatch={dispatch}/>
-                </div>
-            )
-        }
-    }
-
-    if (state.selectedFontName !== null) {
-        const font = state.document.customFonts.find(f => f.name === state.selectedFontName)
-        if (font) {
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>font</span>
-                        <span className={styles.shapeName}>{font.name}</span>
+                )
+                break
+            }
+            case 'image-asset': {
+                const asset = state.document.images.find(a => a.id === sel.id)
+                if (asset) {
+                    const usedByShapes = Object.values(state.document.shapes)
+                        .filter(s => s.type === 'image' && (s as ImageShape).assetId === asset.id)
+                    return (
+                        <div className={styles.panel}>
+                            <div className={styles.header}>
+                                <span className={styles.shapeType}>asset</span>
+                                <span className={styles.shapeName}>{asset.name}</span>
+                            </div>
+                            <ImageAssetSection
+                                asset={asset}
+                                usageCount={usedByShapes.length}
+                                usedByShapes={usedByShapes.map(s => ({id: s.id, name: s.name}))}
+                                dispatch={dispatch}
+                            />
+                        </div>
+                    )
+                }
+                break
+            }
+            case 'document': {
+                const registeredPowerUps = getRegisteredDocumentPowerUps(state.document)
+                const unknownPowerUps = (state.document.powerUps ?? [])
+                    .filter(entry => !getPowerUpDefinition(entry.id))
+                    .map(entry => ({id: entry.id, version: entry.version}))
+                return (
+                    <div className={styles.panel}>
+                        <div className={styles.header}>
+                            <span className={styles.shapeType}>document</span>
+                            <span className={styles.shapeName}>{state.documentName}</span>
+                        </div>
+                        <DocumentSection
+                            documentName={state.documentName}
+                            documentId={state.documentId}
+                            gridSettings={state.document.gridSettings}
+                            activeThemeName={getActiveTheme(state.document).name}
+                            dispatch={dispatch}
+                        />
+                        <DocumentPowerUpsSection registeredPowerUps={registeredPowerUps} dispatch={dispatch}/>
+                        <UnknownDocumentPowerUpsSection unknownEntries={unknownPowerUps} dispatch={dispatch}/>
                     </div>
-                    <FontInfoSection font={font} dispatch={dispatch}/>
-                </div>
-            )
+                )
+            }
         }
-    }
-
-    if (state.selectedAssetId !== null) {
-        const asset = state.document.images.find(a => a.id === state.selectedAssetId)
-        if (asset) {
-            const usedByShapes = Object.values(state.document.shapes)
-                .filter(s => s.type === 'image' && (s as ImageShape).assetId === asset.id)
-            return (
-                <div className={styles.panel}>
-                    <div className={styles.header}>
-                        <span className={styles.shapeType}>asset</span>
-                        <span className={styles.shapeName}>{asset.name}</span>
-                    </div>
-                    <ImageAssetSection
-                        asset={asset}
-                        usageCount={usedByShapes.length}
-                        usedByShapes={usedByShapes.map(s => ({id: s.id, name: s.name}))}
-                        dispatch={dispatch}
-                    />
-                </div>
-            )
-        }
-    }
-
-    if (state.documentSelected) {
-        const registeredPowerUps = getRegisteredDocumentPowerUps(state.document)
-        const unknownPowerUps = (state.document.powerUps ?? [])
-            .filter(entry => !getPowerUpDefinition(entry.id))
-            .map(entry => ({id: entry.id, version: entry.version}))
-        return (
-            <div className={styles.panel}>
-                <div className={styles.header}>
-                    <span className={styles.shapeType}>document</span>
-                    <span className={styles.shapeName}>{state.documentName}</span>
-                </div>
-                <DocumentSection
-                    documentName={state.documentName}
-                    documentId={state.documentId}
-                    gridSettings={state.document.gridSettings}
-                    activeThemeName={getActiveTheme(state.document).name}
-                    dispatch={dispatch}
-                />
-                <DocumentPowerUpsSection registeredPowerUps={registeredPowerUps} dispatch={dispatch}/>
-                <UnknownDocumentPowerUpsSection unknownEntries={unknownPowerUps} dispatch={dispatch}/>
-            </div>
-        )
     }
 
     if (selected.length === 0) {

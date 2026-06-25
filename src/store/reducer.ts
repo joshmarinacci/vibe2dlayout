@@ -1300,22 +1300,13 @@ export const initialState: AppState = {
     documentName: 'Untitled',
     currentFilePath: null,
     isDirty: false,
-    documentSelected: false,
-    selectedAssetId: null,
-    selectedDimensionAssetId: null,
-    selectedPixelAssetId: null,
+    panelSelection: null,
     editingPixelAssetId: null,
-    selectedFontName: null,
     pendingDocumentsModalMode: null,
     showGradientModal: false,
     showSketchStyleModal: false,
     croppingShapeId: null,
-    selectedGradientId: null,
     library: {...EMPTY_LIBRARY},
-    selectedLibraryItemId: null,
-    selectedLibraryItemType: null,
-    selectedRichTextStyleSetId: null,
-    selectedRichTextStyleSetSource: null,
     physicsSimulationRunning: false,
     leftPanelVisible: true,
     rightPanelVisible: true,
@@ -1424,14 +1415,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'SELECT_SHAPES':
             return {
                 ...state,
-                documentSelected: false,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
+                panelSelection: null,
                 selection: {
                     ...state.selection,
                     ids: action.additive
@@ -1442,28 +1426,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'DESELECT_ALL':
             return {
                 ...state,
-                documentSelected: false,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
+                panelSelection: null,
                 selection: {ids: [], editingTextId: null}
             }
         case 'SELECT_ALL': {
             const allIds = getAllIds(state.document.rootNodes)
             return {
                 ...state,
-                documentSelected: false,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
+                panelSelection: null,
                 selection: {...state.selection, ids: allIds}
             }
         }
@@ -1522,35 +1492,17 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'SELECT_GRADIENT':
             return {
                 ...state,
-                selectedGradientId: action.gradientId,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
-                selectedRichTextStyleSetId: null,
-                selectedRichTextStyleSetSource: null,
-                documentSelected: false,
+                panelSelection: action.gradientId ? {kind: 'gradient' as const, id: action.gradientId} : null,
                 selection: {ids: [], editingTextId: null},
             }
         case 'SELECT_RICH_TEXT_STYLE_SET':
             return {
                 ...state,
-                selectedRichTextStyleSetId: action.id,
-                selectedRichTextStyleSetSource: action.source,
-                selectedGradientId: null,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
-                documentSelected: false,
+                panelSelection: {kind: 'rich-text-style-set' as const, id: action.id, source: action.source},
                 selection: {ids: [], editingTextId: null},
             }
         case 'DESELECT_RICH_TEXT_STYLE_SET':
-            return {...state, selectedRichTextStyleSetId: null, selectedRichTextStyleSetSource: null}
+            return {...state, panelSelection: null}
         case 'TOGGLE_SKETCH_STYLE_MODAL':
             return {...state, showSketchStyleModal: !state.showSketchStyleModal}
         case 'SET_FILE_PATH':
@@ -1602,66 +1554,31 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'SELECT_DOCUMENT':
             return {
                 ...state,
-                documentSelected: true,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
+                panelSelection: {kind: 'document' as const},
                 selection: {ids: [], editingTextId: null},
             }
         case 'SELECT_IMAGE_ASSET':
             return {
                 ...state,
-                selectedAssetId: action.assetId,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
-                documentSelected: false,
+                panelSelection: action.assetId ? {kind: 'image-asset' as const, id: action.assetId} : null,
                 selection: {ids: [], editingTextId: null},
             }
         case 'SELECT_DIMENSION_ASSET':
             return {
                 ...state,
-                selectedDimensionAssetId: action.assetId,
-                selectedAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
-                documentSelected: false,
+                panelSelection: action.assetId ? {kind: 'dimension-asset' as const, id: action.assetId} : null,
                 selection: {ids: [], editingTextId: null},
             }
         case 'SELECT_PIXEL_ASSET':
             return {
                 ...state,
-                selectedPixelAssetId: action.assetId,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedFontName: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
-                documentSelected: false,
+                panelSelection: action.assetId ? {kind: 'pixel-asset' as const, id: action.assetId} : null,
                 selection: {ids: [], editingTextId: null},
             }
         case 'SELECT_FONT':
             return {
                 ...state,
-                selectedFontName: action.fontName,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedGradientId: null,
-                selectedLibraryItemId: null,
-                selectedLibraryItemType: null,
-                documentSelected: false,
+                panelSelection: action.fontName ? {kind: 'font' as const, name: action.fontName} : null,
                 selection: {ids: [], editingTextId: null},
             }
         case 'START_PIXEL_EDIT':
@@ -1742,26 +1659,17 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'SELECT_LIBRARY_ITEM':
             return {
                 ...state,
-                selectedLibraryItemId: action.id,
-                selectedLibraryItemType: action.itemType,
-                selectedGradientId: null,
-                selectedRichTextStyleSetId: null,
-                selectedRichTextStyleSetSource: null,
+                panelSelection: {kind: 'library-item' as const, id: action.id, itemType: action.itemType},
                 selection: {ids: [], editingTextId: null},
-                documentSelected: false,
-                selectedAssetId: null,
-                selectedDimensionAssetId: null,
-                selectedPixelAssetId: null,
-                selectedFontName: null,
             }
 
         case 'DESELECT_LIBRARY_ITEM':
-            return {...state, selectedLibraryItemId: null, selectedLibraryItemType: null}
+            return {...state, panelSelection: null}
 
         case 'ADD_LIBRARY_GRADIENT': {
             const lib = {...state.library, gradients: [...state.library.gradients, action.gradient]}
             saveLibrary(lib)
-            return {...state, library: lib, selectedLibraryItemId: action.gradient.id, selectedLibraryItemType: 'gradient'}
+            return {...state, library: lib, panelSelection: {kind: 'library-item' as const, id: action.gradient.id, itemType: 'gradient' as const}}
         }
 
         case 'UPDATE_LIBRARY_GRADIENT': {
@@ -1773,19 +1681,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'DELETE_LIBRARY_GRADIENT': {
             const lib = {...state.library, gradients: state.library.gradients.filter(g => g.id !== action.id)}
             saveLibrary(lib)
-            const wasSelected = state.selectedLibraryItemId === action.id
-            return {
-                ...state,
-                library: lib,
-                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
-                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
-            }
+            const wasSelected = state.panelSelection?.kind === 'library-item' && state.panelSelection.id === action.id
+            return {...state, library: lib, panelSelection: wasSelected ? null : state.panelSelection}
         }
 
         case 'ADD_LIBRARY_IMAGE': {
             const lib = {...state.library, images: [...state.library.images, action.image]}
             saveLibrary(lib)
-            return {...state, library: lib, selectedLibraryItemId: action.image.id, selectedLibraryItemType: 'image'}
+            return {...state, library: lib, panelSelection: {kind: 'library-item' as const, id: action.image.id, itemType: 'image' as const}}
         }
 
         case 'UPDATE_LIBRARY_IMAGE': {
@@ -1797,13 +1700,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'DELETE_LIBRARY_IMAGE': {
             const lib = {...state.library, images: state.library.images.filter(i => i.id !== action.id)}
             saveLibrary(lib)
-            const wasSelected = state.selectedLibraryItemId === action.id
-            return {
-                ...state,
-                library: lib,
-                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
-                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
-            }
+            const wasSelected = state.panelSelection?.kind === 'library-item' && state.panelSelection.id === action.id
+            return {...state, library: lib, panelSelection: wasSelected ? null : state.panelSelection}
         }
 
         case 'ADD_LIBRARY_DIMENSION': {
@@ -1813,8 +1711,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 ...state,
                 library: lib,
                 document: normalizePageShapes(state.document, lib.dimensions),
-                selectedLibraryItemId: action.dimension.id,
-                selectedLibraryItemType: 'dimension',
+                panelSelection: {kind: 'library-item' as const, id: action.dimension.id, itemType: 'dimension' as const},
             }
         }
 
@@ -1846,20 +1743,19 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                     }),
                 ),
             }
-            const wasSelected = state.selectedLibraryItemId === action.id
+            const wasSelected = state.panelSelection?.kind === 'library-item' && state.panelSelection.id === action.id
             return {
                 ...state,
                 library: lib,
                 document: normalizePageShapes(nextDocument, lib.dimensions),
-                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
-                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
+                panelSelection: wasSelected ? null : state.panelSelection,
             }
         }
 
         case 'ADD_LIBRARY_FONT': {
             const lib = {...state.library, fonts: [...state.library.fonts, action.font]}
             saveLibrary(lib)
-            return {...state, library: lib, selectedLibraryItemId: action.font.id, selectedLibraryItemType: 'font'}
+            return {...state, library: lib, panelSelection: {kind: 'library-item' as const, id: action.font.id, itemType: 'font' as const}}
         }
 
         case 'UPDATE_LIBRARY_FONT': {
@@ -1871,13 +1767,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'DELETE_LIBRARY_FONT': {
             const lib = {...state.library, fonts: state.library.fonts.filter(f => f.id !== action.id)}
             saveLibrary(lib)
-            const wasSelected = state.selectedLibraryItemId === action.id
-            return {
-                ...state,
-                library: lib,
-                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
-                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
-            }
+            const wasSelected = state.panelSelection?.kind === 'library-item' && state.panelSelection.id === action.id
+            return {...state, library: lib, panelSelection: wasSelected ? null : state.panelSelection}
         }
 
         case 'RENAME_LIBRARY_ITEM': {
@@ -1906,37 +1797,27 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         case 'ADD_LIBRARY_SHAPE_TEMPLATE': {
             const lib = {...state.library, shapeTemplates: [...state.library.shapeTemplates, action.template]}
             saveLibrary(lib)
-            return {...state, library: lib, selectedLibraryItemId: action.template.id, selectedLibraryItemType: 'shape-template'}
+            return {...state, library: lib, panelSelection: {kind: 'library-item' as const, id: action.template.id, itemType: 'shape-template' as const}}
         }
 
         case 'DELETE_LIBRARY_SHAPE_TEMPLATE': {
             const lib = {...state.library, shapeTemplates: state.library.shapeTemplates.filter(t => t.id !== action.id)}
             saveLibrary(lib)
-            const wasSelected = state.selectedLibraryItemId === action.id
-            return {
-                ...state,
-                library: lib,
-                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
-                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
-            }
+            const wasSelected = state.panelSelection?.kind === 'library-item' && state.panelSelection.id === action.id
+            return {...state, library: lib, panelSelection: wasSelected ? null : state.panelSelection}
         }
 
         case 'ADD_LIBRARY_PAGE_TEMPLATE': {
             const lib = {...state.library, pageTemplates: [...state.library.pageTemplates, action.template]}
             saveLibrary(lib)
-            return {...state, library: lib, selectedLibraryItemId: action.template.id, selectedLibraryItemType: 'page-template'}
+            return {...state, library: lib, panelSelection: {kind: 'library-item' as const, id: action.template.id, itemType: 'page-template' as const}}
         }
 
         case 'DELETE_LIBRARY_PAGE_TEMPLATE': {
             const lib = {...state.library, pageTemplates: state.library.pageTemplates.filter(t => t.id !== action.id)}
             saveLibrary(lib)
-            const wasSelected = state.selectedLibraryItemId === action.id
-            return {
-                ...state,
-                library: lib,
-                selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
-                selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
-            }
+            const wasSelected = state.panelSelection?.kind === 'library-item' && state.panelSelection.id === action.id
+            return {...state, library: lib, panelSelection: wasSelected ? null : state.panelSelection}
         }
 
         case 'ADD_RICH_TEXT_STYLE_SET_TO_LIBRARY': {

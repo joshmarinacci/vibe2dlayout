@@ -42,7 +42,7 @@ export function RichTextStyleSetsSection() {
         const remaining = settings.styleSets.filter(s => s.id !== id)
         if (remaining.length > 0) {
             updateSettings({styleSets: remaining})
-            if (state.selectedRichTextStyleSetId === id) {
+            if (state.panelSelection?.kind === 'rich-text-style-set' && state.panelSelection.id === id) {
                 dispatch({type: 'DESELECT_RICH_TEXT_STYLE_SET'})
             }
         }
@@ -78,7 +78,7 @@ export function RichTextStyleSetsSection() {
             {!collapsed && settings.styleSets.map(ss => (
                 <div
                     key={ss.id}
-                    className={`${rowStyles.row} ${state.selectedRichTextStyleSetId === ss.id && state.selectedRichTextStyleSetSource === 'document' ? rowStyles.selected : ''}`}
+                    className={`${rowStyles.row} ${state.panelSelection?.kind === 'rich-text-style-set' && state.panelSelection.id === ss.id && state.panelSelection.source === 'document' ? rowStyles.selected : ''}`}
                     onClick={() => dispatch({type: 'SELECT_RICH_TEXT_STYLE_SET', id: ss.id, source: 'document'})}
                     onDoubleClick={() => setEditorStyleSetId(ss.id)}
                     onContextMenu={e => { e.preventDefault(); setCtxMenu({x: e.clientX, y: e.clientY, styleSet: ss}) }}

@@ -308,7 +308,7 @@ export function TreePanel() {
                 {/* Document item at top */}
                 <DocumentRow
                     documentName={state.documentName}
-                    documentSelected={state.documentSelected}
+                    documentSelected={state.panelSelection?.kind === 'document'}
                     dispatch={dispatch}
                     onAddPage={addPage}
                     onRename={name => dispatch({
@@ -370,30 +370,30 @@ export function TreePanel() {
                 {!assetsCollapsed && <>
                     <AssetsSection
                         assets={state.document.images}
-                        selectedAssetId={state.selectedAssetId}
+                        selectedAssetId={state.panelSelection?.kind === 'image-asset' ? state.panelSelection.id : null}
                         dispatch={dispatch}
                         shapes={state.document.shapes}
                     />
                     <DimensionsSection
                         assets={state.document.dimensions}
-                        selectedDimensionAssetId={state.selectedDimensionAssetId}
+                        selectedDimensionAssetId={state.panelSelection?.kind === 'dimension-asset' ? state.panelSelection.id : null}
                         dispatch={dispatch}
                         shapes={state.document.shapes}
                     />
                     <PixelAssetsSection
                         assets={state.document.pixelAssets}
-                        selectedPixelAssetId={state.selectedPixelAssetId}
+                        selectedPixelAssetId={state.panelSelection?.kind === 'pixel-asset' ? state.panelSelection.id : null}
                         dispatch={dispatch}
                         shapes={state.document.shapes}
                     />
                     <FontsSection
                         customFonts={state.document.customFonts}
-                        selectedFontName={state.selectedFontName}
+                        selectedFontName={state.panelSelection?.kind === 'font' ? state.panelSelection.name : null}
                         dispatch={dispatch}
                     />
                     <GradientsSection
                         gradients={state.document.gradients ?? []}
-                        selectedGradientId={state.selectedGradientId}
+                        selectedGradientId={state.panelSelection?.kind === 'gradient' ? state.panelSelection.id : null}
                         dispatch={dispatch}
                     />
                     <SketchStylesSection
@@ -415,8 +415,8 @@ export function TreePanel() {
                 />
                 {!libraryCollapsed && <LibrarySection
                     library={state.library}
-                    selectedId={state.selectedLibraryItemId}
-                    selectedType={state.selectedLibraryItemType}
+                    selectedId={state.panelSelection?.kind === 'library-item' ? state.panelSelection.id : null}
+                    selectedType={state.panelSelection?.kind === 'library-item' ? state.panelSelection.itemType : null}
                     shapes={state.document.shapes}
                     activePageId={state.activePageId}
                     dispatch={dispatch}

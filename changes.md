@@ -1,4 +1,14 @@
 
+## 2026-06-25 — Consolidate panel selection into a single discriminated union
+
+Replaced 10 separate `selected*` / `documentSelected` fields in `AppState` with a single `panelSelection: PanelSelection` discriminated union field.
+
+- `src/store/types.ts`: Added `LibraryItemType` and `PanelSelection` types; removed the old fields from `AppState`
+- `src/store/reducer.ts`: Updated initial state and all reducer cases (`SELECT_*`, `DESELECT_*`, all `ADD_LIBRARY_*` / `DELETE_LIBRARY_*` cases) to use the union
+- `src/components/properties/PropertiesPanel.tsx`: Replaced the 8-branch if-waterfall with a `switch (sel.kind)` statement
+- `src/components/tree/TreePanel.tsx`: Derives per-section `selected*` props from `panelSelection` at the point of use
+- `src/components/tree/RichTextStyleSetsSection.tsx`: Updated two direct state reads to use `panelSelection`
+
 ## 2026-06-24 16:00 — Fix toolbar shape dropdown clipped on narrow screens
 
 The shape and component dropdowns were hidden behind the canvas when the browser window was narrow. Root cause: the `@media (max-width: 640px)` rule on the toolbar sets `overflow-x: auto`, which browsers coerce to `overflow: auto` on both axes, clipping `position: absolute` children that extend below the toolbar row.
