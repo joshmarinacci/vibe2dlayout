@@ -15,6 +15,7 @@ import {ShortcutIndicator} from './ShortcutIndicator'
 import {ShortcutsModal} from './ShortcutsModal'
 import {CommandPalette} from './CommandPalette'
 import {LogConsole} from './LogConsole'
+import {MobileBar} from './MobileBar'
 import {StatusBar} from './StatusBar'
 
 const MIN_SIDEBAR = 150
@@ -111,6 +112,7 @@ export function AppShell() {
             <SettingsModal/>
             <CommandPalette/>
             <ShortcutIndicator/>
+            <MobileBar/>
             <PresentationMode/>
             <SpeakerNotesPanel/>
         </div>

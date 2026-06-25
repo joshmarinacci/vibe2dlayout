@@ -1,4 +1,101 @@
 
+## 2026-06-24 16:00 — Fix toolbar shape dropdown clipped on narrow screens
+
+The shape and component dropdowns were hidden behind the canvas when the browser window was narrow. Root cause: the `@media (max-width: 640px)` rule on the toolbar sets `overflow-x: auto`, which browsers coerce to `overflow: auto` on both axes, clipping `position: absolute` children that extend below the toolbar row.
+
+Fix: the dropdown button now measures its `getBoundingClientRect()` on open and the menu renders with `position: fixed` at those coordinates, escaping all overflow containers. Applied to both the shapes dropdown and the components dropdown in `Toolbar.tsx`.
+
+## 2026-06-24 15:30 — Mobile web improvements (light editing)
+
+Six targeted improvements to make the app usable for basic editing on mobile/touch devices.
+
+**1. Safe-area insets** (`index.html`, `AppShell.module.css`)
+- Added `viewport-fit=cover` to the viewport meta tag
+- Toolbar padding-top uses `env(safe-area-inset-top)` so content clears the notch on iPhones with Dynamic Island / Face ID notch
+
+**2. iOS input auto-zoom fix** (`inputs.module.css`)
+- iOS Safari zooms the viewport when an input has `font-size < 16px`. Added `@media (hover: none) and (pointer: coarse)` rule setting `font-size: 16px` on `numberInput`, `textInput`, `select`, and `contentTextarea`
+
+**3. Larger toolbar touch targets** (`Toolbar.module.css`)
+- Added `@media (hover: none) and (pointer: coarse)` rule: all `.btn` buttons get `min-height: 44px; min-width: 44px` (Apple/Google recommended minimum). `zoomSelect` also bumped to 44px and 16px font
+
+**4. Larger selection handle hit areas** (`SelectionOverlay.tsx`)
+- Module-level `IS_TOUCH` constant detects coarse pointer devices once at load
+- On touch, each resize handle renders a transparent 44px hit zone wrapper with the 8px visual dot centered inside; desktop behaviour unchanged
+
+**5. Long-press context menu** (`useCanvasPointer.ts`)
+- On `pointerType === 'touch'`, a 500ms `setTimeout` is started on `pointerdown`
+- Cancelled on move > 8px or `pointerup`; also cancelled immediately if a second pointer goes down (handles pinch-zoom cancellation)
+- On fire: performs hit-test, selects the tapped shape, and opens the same `CanvasContextMenu` used by right-click
+
+**6. Mobile bottom bar** (`MobileBar.tsx`, `MobileBar.module.css`, `AppShell.tsx`)
+- New `<MobileBar>` component: only visible on `(hover: none) and (pointer: coarse)` devices via CSS, only renders when `selection.ids.length > 0`
+- Fixed bar at bottom (respects `env(safe-area-inset-bottom)`), 56px tall, frosted-glass background
+- Buttons: Layers (toggle left panel), Properties (toggle right panel), Duplicate, Delete
+
+## 2026-06-24 14:30 — Rich Text style font list
+
+The Font Family field in the StyleSetEditor now lists fonts added to the document (from the Assets panel) at the top of the dropdown, followed by the built-in common fonts. Duplicates are suppressed.
+
+- `StyleSetEditor`: reads `state.document.customFonts` via `useAppState()` and passes names as `customFonts` prop to `StyleElementEditor`
+- `StyleElementEditor`: added `customFonts?: string[]` prop; merges document fonts first, then common fonts (deduped)
+
+## 2026-06-24 14:00 — Rich Text style prop sheet (right panel)
+
+Selecting a rich text style in the assets panel or library now shows its prop sheet in the right-side Properties panel, matching the pattern of gradients and fonts.
+
+- `AppState`: added `selectedRichTextStyleSetId` and `selectedRichTextStyleSetSource` ('document'|'library')
+- `ViewAction`: added `SELECT_RICH_TEXT_STYLE_SET` and `DESELECT_RICH_TEXT_STYLE_SET` actions; reducer clears all other selection state
+- New `RichTextStyleSetSection` component (`src/components/properties/sections/RichTextStyleSetSection.tsx`): editable name field (document only), 0.6× scaled preview of H1/H2/body text, "Edit Style Set…" / "Save to Library" for document styles, "Add to Document" / "Delete from Library" for library styles
+- `PropertiesPanel`: handles `selectedRichTextStyleSetId` state — looks up the styleset from document powerup settings or library and renders `RichTextStyleSetSection`
+- `RichTextStyleSetsSection` and `LibrarySection`: dispatch `SELECT_RICH_TEXT_STYLE_SET` on row click; selection highlight driven by Redux state
+- `RichTextStylePropSheet` (inline card) is no longer used in tree views — kept for possible future reuse
+
+## 2026-06-24 — Rich Text PowerUp bug fixes
+
+**Shapes dropdown / right-click menu** (`src/utils/shapeMenuGroups.tsx`, `src/components/toolbar/Toolbar.tsx`)
+- `buildAddShapeGroups` now includes registry shapes with `category === 'shapes'` in the Shapes submenu
+- Toolbar shapes dropdown also includes registry `'shapes'` category entries alongside hardcoded SHAPE_TOOLS
+
+**CSS scoping fix** (`src/powerups/richText/styleSetToCSS.ts`, `RichTextRenderer.tsx`)
+- `styleSetToCSS` now takes a `scopeClass` parameter; each shape uses `.rt-${shape.id}`, the editor preview uses `.rt-preview` — prevents one shape's stylesheet from bleeding into other rich-text shapes on the same canvas
+
+**StyleSetEditor duplicate fix** (`src/powerups/richText/StyleSetEditor.tsx`)
+- Added `activeId` local state initialised from `styleSetId` prop; `handleDuplicate` now switches `activeId` to the copy's id and enters rename mode immediately
+
+**Page assets panel** (`src/components/tree/RichTextStyleSetsSection.tsx`, `src/components/tree/TreePanel.tsx`)
+- New `RichTextStyleSetsSection` component showing document-level rich-text stylesets with H1/body color swatches; right-click context menu (Edit, Duplicate, Save to Library, Delete)
+- Mounted in `TreePanel` after `SketchStylesSection`; returns `null` when the Rich Text PowerUp is not installed
+
+## 2026-06-24 — Rich Text PowerUp
+
+Added a new built-in PowerUp that contributes a `rich-text` shape type supporting Markdown content rendered with per-element styled typography.
+
+**Shape model** (`src/model/shapes.ts`)
+- New `RichTextShape` interface: `content` (markdown string), `styleSetId`, `padding`, optional `backgroundColor`
+- Added to the `Shape` union type
+
+**PowerUp core** (`src/powerups/richText/`)
+- `types.ts`: `RichTextStyleEntry`, `RichTextStyleSet`, `StyleKey`, `RichTextDocumentSettings`
+- `defaultStyleSet.ts`: clean system-ui default styleset (body/h1–h3/blockquote/code/codeBlock/link)
+- `styleSetToCSS.ts`: converts a `RichTextStyleSet` into scoped CSS for `.rt-content`
+- `RichTextRenderer.tsx`: canvas renderer using `position:absolute` div + `dangerouslySetInnerHTML` from `marked`; edit mode shows a textarea overlay via `useTextEdit`
+- `RichTextPropsRenderer.tsx`: properties panel with markdown textarea, styleset selector, background fill toggle/color picker, and "Edit Style Set…" / "New Style Set" buttons
+- `richTextPowerUp.ts`: `PowerUpDefinition` that registers/unregisters the shape type on load/unload
+
+**StyleSet editor** (Phase 2)
+- `StyleSetEditor.tsx`: draggable modal (portal) with element list, per-element style form, live preview, Rename/Duplicate/Save-to-Library actions
+- `StyleElementEditor.tsx`: font family (with datalist), size, weight, italic, color, line height, letter spacing controls using existing inputs
+- `StyleSetEditor.module.css`: two-column layout
+
+**Library integration** (Phase 3)
+- `src/model/library.ts`: added optional `richTextStyleSets?: RichTextStyleSet[]`
+- `src/store/types.ts`: `ADD_RICH_TEXT_STYLE_SET_TO_LIBRARY`, `REMOVE_RICH_TEXT_STYLE_SET_FROM_LIBRARY`, `ADD_RICH_TEXT_STYLE_SET_TO_DOCUMENT` actions
+- `src/store/reducer.ts`: handles all three actions; "add to document" appends a copy with a fresh id to the PowerUp settings
+- `LibrarySection.tsx`: "Rich Text Styles" subsection with color swatches, Add to Document, and delete buttons
+
+**Dependency**: `marked` (markdown parser, no transitive deps)
+
 ## 2026-06-24 — Action system Phase 5: toolbar migration
 
 - `Toolbar.tsx` imports `useActionRegistry` and computes `uniqueRegistryToolbarActions`: all registry actions with `surfaces: ['toolbar']` that are not already covered by a legacy `toolbarActions` entry (deduped by `powerup.toolbar.${id}`)

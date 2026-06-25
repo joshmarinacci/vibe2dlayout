@@ -172,6 +172,12 @@ export function useCanvasPointer(
     const [marqueeRect, setMarqueeRect] = useState<GhostRect | null>(null)
     const marqueeStart = useRef<{ cx: number; cy: number; sx: number; sy: number } | null>(null)
     const [contextMenu, setContextMenu] = useState<CanvasContextMenuState | null>(null)
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const longPressStartPos = useRef<{clientX: number; clientY: number} | null>(null)
+
+    useEffect(() => {
+        return () => { if (longPressTimer.current) clearTimeout(longPressTimer.current) }
+    }, [])
 
     const getCanvasPos = useCallback((e: React.PointerEvent) => {
         const rect = containerRef.current!.getBoundingClientRect()
@@ -241,8 +247,35 @@ export function useCanvasPointer(
 
     const onPointerDown = useCallback((e: React.PointerEvent) => {
         if (e.button !== 0) return
+        // Cancel pending long-press on any new pointer (handles second-finger cancellation)
+        if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
         if (multiTouchActiveRef?.current) return
         containerRef.current?.setPointerCapture(e.pointerId)
+
+        // Start long-press timer for touch context menu
+        if (e.pointerType === 'touch') {
+            longPressStartPos.current = {clientX: e.clientX, clientY: e.clientY}
+            const capturedX = e.clientX
+            const capturedY = e.clientY
+            longPressTimer.current = setTimeout(() => {
+                longPressTimer.current = null
+                const rect = containerRef.current?.getBoundingClientRect()
+                if (!rect) return
+                const sx = capturedX - rect.left
+                const sy = capturedY - rect.top
+                const pos = screenToCanvas(state.viewTransform, sx - RULER_SIZE, sy - RULER_SIZE)
+                const shapeId = hitTestShapes(pos.x, pos.y)
+                if (shapeId) dispatch({type: 'SELECT_SHAPES', ids: [shapeId], additive: false})
+                setContextMenu({
+                    screenX: capturedX,
+                    screenY: capturedY,
+                    canvasX: pos.x,
+                    canvasY: pos.y,
+                    shapeId,
+                    selectedIds: shapeId ? [shapeId] : [],
+                })
+            }, 500)
+        }
 
         const pos = getCanvasPos(e)
         dragStart.current = {sx: e.clientX, sy: e.clientY, cx: pos.x, cy: pos.y}
@@ -343,6 +376,15 @@ export function useCanvasPointer(
 
     const onPointerMove = useCallback((e: React.PointerEvent) => {
         if (multiTouchActiveRef?.current) return
+        // Cancel long-press if finger moved more than 8px
+        if (longPressTimer.current && longPressStartPos.current) {
+            const dx = e.clientX - longPressStartPos.current.clientX
+            const dy = e.clientY - longPressStartPos.current.clientY
+            if (Math.sqrt(dx * dx + dy * dy) > 8) {
+                clearTimeout(longPressTimer.current)
+                longPressTimer.current = null
+            }
+        }
         if (!dragStart.current) return
 
         const pos = getCanvasPos(e)
@@ -462,6 +504,7 @@ export function useCanvasPointer(
     }, [state.toolMode, dispatch, getCanvasPos, containerRef, snapEnabled, snapAlignment, gridSize])
 
     const onPointerUp = useCallback((e: React.PointerEvent) => {
+        if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
         if (multiTouchActiveRef?.current) { dragStart.current = null; return }
         if (!dragStart.current) return
         containerRef.current?.releasePointerCapture(e.pointerId)

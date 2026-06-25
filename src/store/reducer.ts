@@ -1314,6 +1314,8 @@ export const initialState: AppState = {
     library: {...EMPTY_LIBRARY},
     selectedLibraryItemId: null,
     selectedLibraryItemType: null,
+    selectedRichTextStyleSetId: null,
+    selectedRichTextStyleSetSource: null,
     physicsSimulationRunning: false,
     leftPanelVisible: true,
     rightPanelVisible: true,
@@ -1527,9 +1529,28 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedFontName: null,
                 selectedLibraryItemId: null,
                 selectedLibraryItemType: null,
+                selectedRichTextStyleSetId: null,
+                selectedRichTextStyleSetSource: null,
                 documentSelected: false,
                 selection: {ids: [], editingTextId: null},
             }
+        case 'SELECT_RICH_TEXT_STYLE_SET':
+            return {
+                ...state,
+                selectedRichTextStyleSetId: action.id,
+                selectedRichTextStyleSetSource: action.source,
+                selectedGradientId: null,
+                selectedAssetId: null,
+                selectedDimensionAssetId: null,
+                selectedPixelAssetId: null,
+                selectedFontName: null,
+                selectedLibraryItemId: null,
+                selectedLibraryItemType: null,
+                documentSelected: false,
+                selection: {ids: [], editingTextId: null},
+            }
+        case 'DESELECT_RICH_TEXT_STYLE_SET':
+            return {...state, selectedRichTextStyleSetId: null, selectedRichTextStyleSetSource: null}
         case 'TOGGLE_SKETCH_STYLE_MODAL':
             return {...state, showSketchStyleModal: !state.showSketchStyleModal}
         case 'SET_FILE_PATH':
@@ -1724,6 +1745,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedLibraryItemId: action.id,
                 selectedLibraryItemType: action.itemType,
                 selectedGradientId: null,
+                selectedRichTextStyleSetId: null,
+                selectedRichTextStyleSetSource: null,
                 selection: {ids: [], editingTextId: null},
                 documentSelected: false,
                 selectedAssetId: null,
@@ -1914,6 +1937,32 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 selectedLibraryItemId: wasSelected ? null : state.selectedLibraryItemId,
                 selectedLibraryItemType: wasSelected ? null : state.selectedLibraryItemType,
             }
+        }
+
+        case 'ADD_RICH_TEXT_STYLE_SET_TO_LIBRARY': {
+            const lib = {...state.library, richTextStyleSets: [...(state.library.richTextStyleSets ?? []), action.styleSet]}
+            saveLibrary(lib)
+            return {...state, library: lib}
+        }
+
+        case 'REMOVE_RICH_TEXT_STYLE_SET_FROM_LIBRARY': {
+            const lib = {...state.library, richTextStyleSets: (state.library.richTextStyleSets ?? []).filter(s => s.id !== action.id)}
+            saveLibrary(lib)
+            return {...state, library: lib}
+        }
+
+        case 'ADD_RICH_TEXT_STYLE_SET_TO_DOCUMENT': {
+            const document = state.document
+            const puEntry = document.powerUps?.find(p => p.id === 'powerup.rich-text')
+            if (!puEntry) return state
+            const currentSets = ((puEntry.settings as {styleSets?: unknown}).styleSets ?? []) as Array<{id: string}>
+            const copy = {...action.styleSet, id: generateId()}
+            const powerUps = document.powerUps.map(p =>
+                p.id === 'powerup.rich-text'
+                    ? {...p, settings: {...p.settings, styleSets: [...currentSets, copy]}}
+                    : p
+            )
+            return {...state, document: {...document, powerUps}}
         }
 
         // ── Undo/Redo (handled by history wrapper) ─────────────────────────

@@ -168,3 +168,15 @@
         display: none;
     }
 }
+
+@media (hover: none) and (pointer: coarse) {
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0 10px;
+    }
+    .zoomSelect {
+        height: 44px;
+        font-size: 16px;
+    }
+}

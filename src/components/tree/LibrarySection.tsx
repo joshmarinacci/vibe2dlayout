@@ -85,6 +85,7 @@ export function LibrarySection({library, selectedId, selectedType, shapes, activ
     const [fontsCollapsed, setFontsCollapsed] = useState(false)
     const [shapeTemplatesCollapsed, setShapeTemplatesCollapsed] = useState(false)
     const [pageTemplatesCollapsed, setPageTemplatesCollapsed] = useState(false)
+    const [richTextStyleSetsCollapsed, setRichTextStyleSetsCollapsed] = useState(false)
     const [ctxMenu, setCtxMenu] = useState<CtxState | null>(null)
     const [renamingId, setRenamingId] = useState<string | null>(null)
     const [renameText, setRenameText] = useState('')
@@ -490,6 +491,30 @@ export function LibrarySection({library, selectedId, selectedType, shapes, activ
                 ))}
                 {library.pageTemplates.length === 0 && (
                     <div className={styles.empty}>No page templates</div>
+                )}
+            </SubSection>
+
+            <SubSection
+                title="Rich Text Styles"
+                collapsed={richTextStyleSetsCollapsed}
+                onToggle={() => setRichTextStyleSetsCollapsed(v => !v)}
+            >
+                {(library.richTextStyleSets ?? []).map(ss => (
+                    <div
+                        key={ss.id}
+                        className={`${styles.row} ${selectedId === ss.id && selectedType === null ? styles.rowSelected : ''}`}
+                        onClick={() => dispatch({type: 'SELECT_RICH_TEXT_STYLE_SET', id: ss.id, source: 'library'})}
+                        onContextMenu={e => openContextMenu(e, ss.id, 'gradient')}
+                    >
+                        <div style={{display: 'flex', gap: 2, flexShrink: 0}}>
+                            <div style={{width: 10, height: 10, borderRadius: 2, background: ss.styles.h1.color, border: '1px solid rgba(0,0,0,0.1)'}} title="H1 color"/>
+                            <div style={{width: 10, height: 10, borderRadius: 2, background: ss.styles.body.color, border: '1px solid rgba(0,0,0,0.1)'}} title="Body color"/>
+                        </div>
+                        <span className={styles.rowName}>{ss.name}</span>
+                    </div>
+                ))}
+                {(library.richTextStyleSets ?? []).length === 0 && (
+                    <div className={styles.empty}>No rich text styles saved</div>
                 )}
             </SubSection>
 

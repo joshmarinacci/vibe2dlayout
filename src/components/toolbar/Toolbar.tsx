@@ -78,6 +78,9 @@ export function Toolbar() {
     const {state, canUndo, canRedo} = useAppState()
     const dispatch = useAppDispatch()
     const registeredShapes = useShapeRegistry()
+    const extraShapeTools: ToolButton[] = registeredShapes
+        .filter(s => s.category === 'shapes')
+        .map(s => ({mode: s.toolMode, icon: s.icon, title: s.name}))
     const containerTools: ToolButton[] = registeredShapes
         .filter(s => s.category === 'containers')
         .map(s => ({mode: s.toolMode, icon: s.icon, title: s.name}))
@@ -87,7 +90,11 @@ export function Toolbar() {
     const allComponentTools = [...containerTools, ...formTools]
     const componentModes = new Set(allComponentTools.map(t => t.mode))
     const [showShapesMenu, setShowShapesMenu] = useState(false)
+    const [shapesMenuPos, setShapesMenuPos] = useState<{top: number, left: number} | null>(null)
+    const shapesButtonRef = useRef<HTMLButtonElement>(null)
     const [showComponentMenu, setShowComponentMenu] = useState(false)
+    const [componentMenuPos, setComponentMenuPos] = useState<{top: number, left: number} | null>(null)
+    const componentButtonRef = useRef<HTMLButtonElement>(null)
     const [componentSubMenu, setComponentSubMenu] = useState<'containers' | 'forms' | null>(null)
     const subMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -144,7 +151,7 @@ export function Toolbar() {
     }, [anyMenuOpen])
 
 
-    const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode)
+    const activeShapeTool = SHAPE_TOOLS.find(t => t.mode === state.toolMode) ?? extraShapeTools.find(t => t.mode === state.toolMode)
     const activeComponentTool = allComponentTools.find(t => t.mode === state.toolMode)
     const powerUpToolbarActions = getActivePowerUpToolbarActions(state.document)
     const powerUpMenuActions = getActivePowerUpMenuActions(state.document)
@@ -715,16 +722,23 @@ export function Toolbar() {
                 {/* Shapes dropdown */}
                 <div ref={shapesMenuRef} style={{position: 'relative'}}>
                     <button
+                        ref={shapesButtonRef}
                         className={`${styles.btn} ${styles.formBtn} ${SHAPE_MODES.has(state.toolMode) ? styles.active : ''}`}
                         title="Shapes"
-                        onClick={() => setShowShapesMenu(v => !v)}
+                        onClick={() => {
+                            if (!showShapesMenu) {
+                                const rect = shapesButtonRef.current?.getBoundingClientRect()
+                                if (rect) setShapesMenuPos({top: rect.bottom + 4, left: rect.left})
+                            }
+                            setShowShapesMenu(v => !v)
+                        }}
                     >
                         {activeShapeTool ? activeShapeTool.icon : <Square size={14}/>}
                         <ChevronDown size={10}/>
                     </button>
                     {showShapesMenu && (
-                        <div className={styles.formMenu}>
-                            {SHAPE_TOOLS.map(t => (
+                        <div className={styles.formMenu} style={shapesMenuPos ? {position: 'fixed', top: shapesMenuPos.top, left: shapesMenuPos.left, zIndex: 9999} : undefined}>
+                            {[...SHAPE_TOOLS, ...extraShapeTools].map(t => (
                                 <button
                                     key={t.mode}
                                     className={`${styles.formMenuItem} ${state.toolMode === t.mode ? styles.formMenuItemActive : ''}`}
@@ -765,16 +779,23 @@ export function Toolbar() {
                 {/* Components dropdown — only shown when forms powerup is active */}
                 {allComponentTools.length > 0 && <div ref={componentMenuRef} style={{position: 'relative'}}>
                     <button
+                        ref={componentButtonRef}
                         className={`${styles.btn} ${styles.formBtn} ${componentModes.has(state.toolMode) ? styles.active : ''}`}
                         title="Components"
-                        onClick={() => setShowComponentMenu(v => !v)}
+                        onClick={() => {
+                            if (!showComponentMenu) {
+                                const rect = componentButtonRef.current?.getBoundingClientRect()
+                                if (rect) setComponentMenuPos({top: rect.bottom + 4, left: rect.left})
+                            }
+                            setShowComponentMenu(v => !v)
+                        }}
                     >
                         {activeComponentTool ? activeComponentTool.icon :
                             <RectangleHorizontal size={14}/>}
                         <ChevronDown size={10}/>
                     </button>
                     {showComponentMenu && allComponentTools.length > 0 && (
-                        <div className={styles.formMenu} onMouseLeave={scheduleSubMenuClose}>
+                        <div className={styles.formMenu} style={componentMenuPos ? {position: 'fixed', top: componentMenuPos.top, left: componentMenuPos.left, zIndex: 9999} : undefined} onMouseLeave={scheduleSubMenuClose}>
                             {containerTools.length > 0 && (
                                 <div
                                     className={styles.formMenuItem}

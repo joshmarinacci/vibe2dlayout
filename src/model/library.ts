@@ -2,6 +2,7 @@ import type {CustomFont, GradientDef, TreeNode} from './document'
 import type {DimensionAsset} from './dimensionAsset'
 import type {ImageAsset} from './imageAsset'
 import type {Shape} from './shapes'
+import type {RichTextStyleSet} from '../powerups/richText/types'
 
 export interface ShapeTemplate {
     id: string
@@ -25,6 +26,7 @@ export interface Library {
     fonts: CustomFont[]
     shapeTemplates: ShapeTemplate[]
     pageTemplates: PageTemplate[]
+    richTextStyleSets?: RichTextStyleSet[]
 }
 
 export const EMPTY_LIBRARY: Library = {

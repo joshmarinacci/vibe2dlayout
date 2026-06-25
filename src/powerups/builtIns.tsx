@@ -8,6 +8,7 @@ import {exportPageAsPng} from '@utils/exportPng'
 import {downloadDocumentXml} from '@utils/exportXml'
 import {createPowerUpLogger} from '@logging'
 import {Download, Play, ScrollText} from 'lucide-react'
+import {RICH_TEXT_POWER_UP} from './richText/richTextPowerUp'
 import type {PowerUpDefinition} from './types'
 
 const PHYSICS_POWER_UP_ID = 'powerup.physics'
@@ -46,6 +47,7 @@ const FORMS_POWER_UP_STUB: PowerUpDefinition = {
 export const BUILT_IN_POWER_UPS: PowerUpDefinition[] = [
     FORMS_POWER_UP_STUB,
     SLIDES_POWER_UP,
+    RICH_TEXT_POWER_UP,
     {
         id: PHYSICS_POWER_UP_ID,
         name: 'Physics',
