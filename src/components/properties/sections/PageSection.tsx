@@ -157,15 +157,13 @@ export function PageSection({shape, documentDimensions, libraryDimensions, dispa
                 </>
             )}
 
-            {concreteSize && (
-                <div className={styles.row}>
-                    <span className={styles.label}>Resolved</span>
-                    <span className={styles.value}>{concreteSize.width} × {concreteSize.height} px</span>
-                </div>
+            {concreteSize && (<>
+                    <span className={'left'}>Resolved</span>
+                    <span className={'right'}>{concreteSize.width} × {concreteSize.height} px</span>
+                    </>
             )}
 
             <ToggleInput
-                className={'left'}
                 label="Clip"
                 value={shape.clipChildren}
                 onChange={v => patch({clipChildren: v})}
